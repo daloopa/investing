@@ -1,0 +1,56 @@
+# Environment variables
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Generated reports (each analyst generates their own)
+reports/*.md
+reports/*.docx
+reports/*.xlsx
+reports/.charts/
+reports/.tmp/
+!reports/.gitkeep
+
+# Log files
+logs/*.log
+!logs/.gitkeep
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Claude Code local settings (user-specific)
+.claude/settings.local.json

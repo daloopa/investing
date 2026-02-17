@@ -1,0 +1,374 @@
+[
+  {
+    "url": "https://docs.daloopa.com",
+    "title": "Overview",
+    "filepath": "daloopa_docs/index.md",
+    "path": ""
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/coverage",
+    "title": "Coverage",
+    "filepath": "daloopa_docs/docs_coverage.md",
+    "path": "/docs/coverage"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/snowflake",
+    "title": "Snowflake",
+    "filepath": "daloopa_docs/docs_snowflake.md",
+    "path": "/docs/snowflake"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference",
+    "title": "List Companies",
+    "filepath": "daloopa_docs/reference.md",
+    "path": "/reference"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/download_industry_model",
+    "title": "Get Industry Model Download URL",
+    "filepath": "daloopa_docs/reference_download_industry_model.md",
+    "path": "/reference/download_industry_model"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/inspector",
+    "title": "Inspector",
+    "filepath": "daloopa_docs/docs_inspector.md",
+    "path": "/docs/inspector"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/settings",
+    "title": "Settings",
+    "filepath": "daloopa_docs/docs_settings.md",
+    "path": "/docs/settings"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/understanding-dates",
+    "title": "Understanding Dates",
+    "filepath": "daloopa_docs/docs_understanding-dates.md",
+    "path": "/docs/understanding-dates"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/overview",
+    "title": "Overview",
+    "filepath": "daloopa_docs/docs_overview.md",
+    "path": "/docs/overview"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/get_series_continuation",
+    "title": "Get Series Continuation Data",
+    "filepath": "daloopa_docs/reference_get_series_continuation.md",
+    "path": "/reference/get_series_continuation"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs",
+    "title": "Overview",
+    "filepath": "daloopa_docs/docs.md",
+    "path": "/docs"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/supported-calendar-period-formats",
+    "title": "Supported Calendar Period Formats",
+    "filepath": "daloopa_docs/docs_supported-calendar-period-formats.md",
+    "path": "/docs/supported-calendar-period-formats"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/mcp-prompts",
+    "title": "MCP Server Prompts",
+    "filepath": "daloopa_docs/docs_mcp-prompts.md",
+    "path": "/docs/mcp-prompts"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/using-industry-models-for-idea-generation",
+    "title": "Idea Generation with Industry Models",
+    "filepath": "daloopa_docs/docs_using-industry-models-for-idea-generation.md",
+    "path": "/docs/using-industry-models-for-idea-generation"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/update-your-existing-models",
+    "title": "Update your existing models",
+    "filepath": "daloopa_docs/docs_update-your-existing-models.md",
+    "path": "/docs/update-your-existing-models"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/tag-id-preview",
+    "title": "Tag ID Preview",
+    "filepath": "daloopa_docs/docs_tag-id-preview.md",
+    "path": "/docs/tag-id-preview"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/webhook",
+    "title": "Webhook Integration",
+    "filepath": "daloopa_docs/docs_webhook.md",
+    "path": "/docs/webhook"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/databricks",
+    "title": "Databricks",
+    "filepath": "daloopa_docs/docs_databricks.md",
+    "path": "/docs/databricks"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/getting-started",
+    "title": "Getting started with Daloopa for Excel",
+    "filepath": "daloopa_docs/docs_getting-started.md",
+    "path": "/docs/getting-started"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/list_datapoint_access_events-1",
+    "title": "List Datapoint Access Events by date range",
+    "filepath": "daloopa_docs/reference_list_datapoint_access_events-1.md",
+    "path": "/reference/list_datapoint_access_events-1"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/get_company_industry_models",
+    "title": "Get Company Industry Model Mappings",
+    "filepath": "daloopa_docs/reference_get_company_industry_models.md",
+    "path": "/reference/get_company_industry_models"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/faqs",
+    "title": "FAQs",
+    "filepath": "daloopa_docs/docs_faqs.md",
+    "path": "/docs/faqs"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/best-practices",
+    "title": "Best Practices",
+    "filepath": "daloopa_docs/docs_best-practices.md",
+    "path": "/docs/best-practices"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/list_taxonomy_sub_industries-1",
+    "title": "List Taxonomy Sub-Industries (Beta)",
+    "filepath": "daloopa_docs/reference_list_taxonomy_sub_industries-1.md",
+    "path": "/reference/list_taxonomy_sub_industries-1"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/building-a-new-model",
+    "title": "Building a New Model",
+    "filepath": "daloopa_docs/docs_building-a-new-model.md",
+    "path": "/docs/building-a-new-model"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/mcp",
+    "title": "Docs MCP Server",
+    "filepath": "daloopa_docs/docs_mcp.md",
+    "path": "/docs/mcp"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/resegmentations",
+    "title": "Resegmentations",
+    "filepath": "daloopa_docs/docs_resegmentations.md",
+    "path": "/docs/resegmentations"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/company_document_lookup-1",
+    "title": "Company Document Lookup (Beta)",
+    "filepath": "daloopa_docs/reference_company_document_lookup-1.md",
+    "path": "/reference/company_document_lookup-1"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/navigating-a-model",
+    "title": "Navigating a model",
+    "filepath": "daloopa_docs/docs_navigating-a-model.md",
+    "path": "/docs/navigating-a-model"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/locating-a-model",
+    "title": "Locating a Model",
+    "filepath": "daloopa_docs/docs_locating-a-model.md",
+    "path": "/docs/locating-a-model"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/subscribing-to-a-model",
+    "title": "Subscribing to a Model",
+    "filepath": "daloopa_docs/docs_subscribing-to-a-model.md",
+    "path": "/docs/subscribing-to-a-model"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/daloopa-mcp",
+    "title": "How to Use",
+    "filepath": "daloopa_docs/docs_daloopa-mcp.md",
+    "path": "/docs/daloopa-mcp"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/operationalizing-our-models",
+    "title": "Operationalizing Our Models",
+    "filepath": "daloopa_docs/docs_operationalizing-our-models.md",
+    "path": "/docs/operationalizing-our-models"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/download_company_model",
+    "title": "Get Company Model Download URL",
+    "filepath": "daloopa_docs/reference_download_company_model.md",
+    "path": "/reference/download_company_model"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/retrieve_taxonomy_metric-1",
+    "title": "Retrieve Taxonomy Metric (Beta)",
+    "filepath": "daloopa_docs/reference_retrieve_taxonomy_metric-1.md",
+    "path": "/reference/retrieve_taxonomy_metric-1"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/company_series_list",
+    "title": "Get Company Series Data",
+    "filepath": "daloopa_docs/reference_company_series_list.md",
+    "path": "/reference/company_series_list"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/get_datapoint_consumption-1",
+    "title": "Get Datapoint Consumption by date range",
+    "filepath": "daloopa_docs/reference_get_datapoint_consumption-1.md",
+    "path": "/reference/get_datapoint_consumption-1"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/industry-tracking-idea-generation",
+    "title": "Industry Tracking & Idea Generation",
+    "filepath": "daloopa_docs/docs_industry-tracking-idea-generation.md",
+    "path": "/docs/industry-tracking-idea-generation"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/one-click-audit",
+    "title": "Click-Through Audit",
+    "filepath": "daloopa_docs/docs_one-click-audit.md",
+    "path": "/docs/one-click-audit"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/get_fundamental_updates",
+    "title": "Get Fundamental Data Updates",
+    "filepath": "daloopa_docs/reference_get_fundamental_updates.md",
+    "path": "/reference/get_fundamental_updates"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/api-vs-mcp",
+    "title": "API vs. MCP",
+    "filepath": "daloopa_docs/docs_api-vs-mcp.md",
+    "path": "/docs/api-vs-mcp"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/retrieve_document-1",
+    "title": "Retrieve Document (Beta)",
+    "filepath": "daloopa_docs/reference_retrieve_document-1.md",
+    "path": "/reference/retrieve_document-1"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/daloopa-privacy-and-data-collection-disclosure-for-mcp-access",
+    "title": "Privacy and Data Collection Disclosure for MCP Access",
+    "filepath": "daloopa_docs/docs_daloopa-privacy-and-data-collection-disclosure-for-mcp-access.md",
+    "path": "/docs/daloopa-privacy-and-data-collection-disclosure-for-mcp-access"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/contact-us",
+    "title": "Contact Us",
+    "filepath": "daloopa_docs/docs_contact-us.md",
+    "path": "/docs/contact-us"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/single-sign-on",
+    "title": "Single Sign-On",
+    "filepath": "daloopa_docs/docs_single-sign-on.md",
+    "path": "/docs/single-sign-on"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/api-authentication",
+    "title": "Authentication",
+    "filepath": "daloopa_docs/docs_api-authentication.md",
+    "path": "/docs/api-authentication"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/export_company_model",
+    "title": "Export Company Fundamentals",
+    "filepath": "daloopa_docs/reference_export_company_model.md",
+    "path": "/reference/export_company_model"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/retrofitter",
+    "title": "Retrofitter",
+    "filepath": "daloopa_docs/docs_retrofitter.md",
+    "path": "/docs/retrofitter"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/api",
+    "title": "Authentication",
+    "filepath": "daloopa_docs/docs_api.md",
+    "path": "/docs/api"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/opensearch_lightweight_search-1",
+    "title": "Keyword Search (Beta)",
+    "filepath": "daloopa_docs/reference_opensearch_lightweight_search-1.md",
+    "path": "/reference/opensearch_lightweight_search-1"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/best-practices-for-using-the-daloopa-api",
+    "title": "Happy Flows",
+    "filepath": "daloopa_docs/docs_best-practices-for-using-the-daloopa-api.md",
+    "path": "/docs/best-practices-for-using-the-daloopa-api"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/list_taxonomy_metrics-1",
+    "title": "List Taxonomy Metrics (Beta)",
+    "filepath": "daloopa_docs/reference_list_taxonomy_metrics-1.md",
+    "path": "/reference/list_taxonomy_metrics-1"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/companies_list",
+    "title": "List Companies",
+    "filepath": "daloopa_docs/reference_companies_list.md",
+    "path": "/reference/companies_list"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/get_company_fundamentals",
+    "title": "Get Company Fundamental Data",
+    "filepath": "daloopa_docs/reference_get_company_fundamentals.md",
+    "path": "/reference/get_company_fundamentals"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/use-daloopas-smart-retrofitter-plugin",
+    "title": "Use Daloopa's Smart Retrofitter Plugin",
+    "filepath": "daloopa_docs/docs_use-daloopas-smart-retrofitter-plugin.md",
+    "path": "/docs/use-daloopas-smart-retrofitter-plugin"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/prompt-library",
+    "title": "Prompt Library",
+    "filepath": "daloopa_docs/docs_prompt-library.md",
+    "path": "/docs/prompt-library"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/stitcher-beta",
+    "title": "Stitcher",
+    "filepath": "daloopa_docs/docs_stitcher-beta.md",
+    "path": "/docs/stitcher-beta"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/updater",
+    "title": "Updater",
+    "filepath": "daloopa_docs/docs_updater.md",
+    "path": "/docs/updater"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/add_company_subscription-1",
+    "title": "Add Company Subscription",
+    "filepath": "daloopa_docs/reference_add_company_subscription-1.md",
+    "path": "/reference/add_company_subscription-1"
+  },
+  {
+    "url": "https://docs.daloopa.com/reference/check_company_status",
+    "title": "Check Company Model Status",
+    "filepath": "daloopa_docs/reference_check_company_status.md",
+    "path": "/reference/check_company_status"
+  },
+  {
+    "url": "https://docs.daloopa.com/cdn-cgi/l/email-protection",
+    "title": "Email Protection",
+    "filepath": "daloopa_docs/cdn-cgi_l_email-protection.md",
+    "path": "/cdn-cgi/l/email-protection"
+  },
+  {
+    "url": "https://docs.daloopa.com/docs/mcp-1",
+    "title": "How to Use",
+    "filepath": "daloopa_docs/docs_mcp-1.md",
+    "path": "/docs/mcp-1"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__daloopa__discover_companies",
+      "mcp__daloopa__discover_company_series",
+      "mcp__daloopa__get_company_fundamentals",
+      "mcp__daloopa__search_documents"
+    ]
+  }
+}
