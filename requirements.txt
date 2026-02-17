@@ -5,5 +5,6 @@ yfinance>=0.2.31
 openpyxl>=3.1.0
 python-docx>=1.1.0
 docxtpl>=0.16.0
+docxcompose>=1.4.0
 matplotlib>=3.8.0
 fredapi>=0.5.0
