@@ -7,14 +7,14 @@ Produces two Wall Street deliverables: **Research Notes (.docx)** and **Excel Mo
 ## Prerequisites
 
 - **Claude Code** — Install with `npm install -g @anthropic-ai/claude-code`
-- **Daloopa account** — Sign up at [daloopa.com](https://daloopa.com) (for OAuth) or obtain an API key
+- **Daloopa account** — Sign up at [daloopa.com](https://daloopa.com)
 - **Python 3.9+** — For infrastructure scripts (market data, charts, Excel/Word rendering)
 
 ## Quick Start
 
 ```bash
 # 1. Clone the repo
-git clone <repo-url> && cd investing
+git clone https://github.com/daloopa/investing.git && cd investing
 
 # 2. Install Python dependencies
 pip3 install -r requirements.txt
@@ -58,9 +58,11 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 
 All reports are saved to the `reports/` directory. You can also just ask Claude anything about a company — the commands are shortcuts for common workflows.
 
-## MCP Servers
+## Data Access
 
-This project connects to two Daloopa MCP servers:
+### MCP Server (Default — Interactive with Claude Code)
+
+Two MCP servers are pre-configured in `.mcp.json`:
 
 | Server | URL | Purpose |
 |--------|-----|---------|
@@ -76,9 +78,69 @@ The **data server** provides 4 tools:
 | `get_company_fundamentals` | Pull financial data for specific metrics and periods |
 | `search_documents` | Search SEC filings (10-K, 10-Q, 8-K) for qualitative info |
 
-The **docs server** lets Claude answer questions about the Daloopa API, data coverage, and platform features directly. A local copy of the docs is also available in `daloopa_docs/`.
+By default, authentication is via OAuth — a browser window opens on your first tool call. No API keys needed.
 
-Full docs: [docs.daloopa.com](https://docs.daloopa.com)
+If you prefer API key auth for the MCP server (e.g., headless environments), update `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "daloopa": {
+      "type": "http",
+      "url": "https://mcp.daloopa.com/server/mcp",
+      "headers": {
+        "x-api-key": "${DALOOPA_API_KEY}"
+      }
+    },
+    "daloopa-docs": {
+      "type": "http",
+      "url": "https://docs.daloopa.com/mcp"
+    }
+  }
+}
+```
+
+Then add your key to `.env`:
+```
+DALOOPA_API_KEY=your_api_key_here
+```
+
+### Direct REST API (Programmatic — Python Scripts)
+
+The same API key also works with the [Daloopa REST API](https://docs.daloopa.com) directly. The `recipes/` directory contains Python scripts for headless automation, batch processing, or building custom pipelines.
+
+| Script | Purpose |
+|--------|---------|
+| `recipes/company_fundamentals.py` | Look up companies, discover series, fetch fundamentals |
+| `recipes/document_search.py` | Search SEC filings for keywords |
+| `recipes/export_csv.py` | Bulk export fundamentals to CSV |
+| `recipes/download_model.py` | Download pre-built Excel models |
+| `recipes/industry_analysis.py` | Cross-industry comparisons via taxonomy |
+| `recipes/taxonomy_comparison.py` | Standardized metric comparisons across companies |
+| `recipes/poll_for_updates.py` | Monitor companies for new earnings releases |
+| `recipes/series_continuation.py` | Track deprecated series and their replacements |
+
+All scripts use `recipes/daloopa_client.py` for authentication (Basic Auth with email + API key).
+
+**Setup for API access:**
+
+```bash
+cp .env.example .env
+# Edit .env with your credentials:
+#   DALOOPA_EMAIL=you@example.com
+#   DALOOPA_API_KEY=your_api_key_here
+```
+
+Then run any recipe:
+```bash
+python3 recipes/company_fundamentals.py AAPL
+python3 recipes/document_search.py "AI revenue" --companies AAPL MSFT
+python3 recipes/export_csv.py AAPL
+```
+
+The Claude Code skills auto-detect which access method is available and use whichever is configured. See `.claude/skills/data-access.md` for details.
+
+Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 
 ## Project Structure
 
@@ -100,7 +162,17 @@ Full docs: [docs.daloopa.com](https://docs.daloopa.com)
 │       ├── model/             # /model — Excel model output
 │       ├── initiate/          # /initiate — both outputs
 │       └── update/            # /update — refresh coverage
-├── infra/                     # Infrastructure scripts
+├── recipes/                   # Python scripts for direct API access
+│   ├── daloopa_client.py      # Shared HTTP client with auth
+│   ├── company_fundamentals.py
+│   ├── document_search.py
+│   ├── export_csv.py
+│   ├── download_model.py
+│   ├── industry_analysis.py
+│   ├── taxonomy_comparison.py
+│   ├── poll_for_updates.py
+│   └── series_continuation.py
+├── infra/                     # Infrastructure scripts (used by skills)
 │   ├── market_data.py         # Market data from yfinance/FRED
 │   ├── chart_generator.py     # Professional chart generation
 │   ├── projection_engine.py   # Forward financial projections
@@ -112,7 +184,6 @@ Full docs: [docs.daloopa.com](https://docs.daloopa.com)
 ├── scripts/
 │   ├── create_template.py     # Generate the Word template
 │   └── docs_crawler.py        # Re-crawl Daloopa docs
-├── recipes/                   # Python recipe scripts for API access
 ├── daloopa_docs/              # API documentation (local copy)
 ├── reports/                   # Generated reports (gitignored)
 │   ├── .charts/               # Generated charts
@@ -123,41 +194,6 @@ Full docs: [docs.daloopa.com](https://docs.daloopa.com)
 ├── CLAUDE.md                  # AI assistant instructions
 └── README.md
 ```
-
-## For API Key Users
-
-If you prefer API key auth over OAuth (e.g., for headless/programmatic use):
-
-1. Copy the env template:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Add your Daloopa API key to `.env`:
-   ```
-   DALOOPA_API_KEY=your_actual_key_here
-   ```
-
-3. Update the `daloopa` entry in `.mcp.json` to include the API key header:
-   ```json
-   {
-     "mcpServers": {
-       "daloopa": {
-         "type": "url",
-         "url": "https://mcp.daloopa.com/server/mcp",
-         "headers": {
-           "x-api-key": "${DALOOPA_API_KEY}"
-         }
-       },
-       "daloopa-docs": {
-         "type": "url",
-         "url": "https://docs.daloopa.com/mcp"
-       }
-     }
-   }
-   ```
-
-4. Restart Claude Code for the changes to take effect.
 
 ## Optional API Keys
 
