@@ -2,7 +2,7 @@
 
 A ready-to-go financial analysis toolkit that connects Claude Code to [Daloopa's](https://daloopa.com) institutional-grade financial data. Built for hedge fund analysts (L/S equity, quant) who want AI-assisted fundamental research.
 
-Produces two Wall Street deliverables: **Research Notes (.docx)** and **Excel Models (.xlsx)**.
+Produces two investment deliverables: **Research Notes (.docx)** and **Excel Models (.xlsx)**.
 
 ## Prerequisites
 
@@ -47,7 +47,7 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 | `/dcf` | DCF valuation with sensitivity analysis | `/dcf AAPL` | `reports/AAPL_dcf.md` |
 | `/comps` | Trading comparables with peer multiples | `/comps AAPL` | `reports/AAPL_comps.md` |
 
-### Wall Street Deliverables (.docx and .xlsx)
+### Investment Deliverables (.docx and .xlsx)
 
 | Command | Description | Example | Output |
 |---------|-------------|---------|--------|
