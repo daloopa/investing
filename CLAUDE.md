@@ -62,7 +62,7 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `/dcf TICKER` — Discounted cash flow valuation with sensitivity analysis
 - `/comps TICKER` — Trading comparables with peer multiples and implied valuation
 
-### Wall Street Deliverables (.docx and .xlsx)
+### Investment Deliverables (.docx and .xlsx)
 - `/research-note TICKER` — Generate professional Word research note
 - `/model TICKER` — Build multi-tab Excel financial model
 - `/initiate TICKER` — Initiate coverage: generates both research note + Excel model

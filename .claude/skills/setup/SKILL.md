@@ -92,7 +92,7 @@ Tell the user about the available slash commands:
 - `/dcf TICKER` — DCF valuation with sensitivity analysis
 - `/comps TICKER` — Trading comparables with peer multiples
 
-**Wall Street Deliverables** (.docx and .xlsx):
+**Investment Deliverables** (.docx and .xlsx):
 - `/research-note TICKER` — Professional Word research note
 - `/model TICKER` — Multi-tab Excel financial model
 - `/initiate TICKER` — Both research note + Excel model (initiating coverage)
