@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Perform a comprehensive earnings analysis for the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -73,7 +73,15 @@ Search for guidance series (revenue guidance, EPS guidance, margin guidance, OpE
 
 If no formal guidance series exist, note that the company does not provide quantitative guidance.
 
-## 6. Management Commentary
+## 6. Consensus Context (if available)
+If consensus estimates are available (see data-access.md Section 3), add:
+- Consensus revenue and EPS vs actual results — beat/miss vs Street
+- Estimate revision trends (are estimates moving up or down?)
+- Note the source of consensus data used
+
+If consensus data is not available, skip this section and note "consensus data not available."
+
+## 7. Management Commentary
 Search SEC filings/documents for management commentary. Try multiple searches to get broad coverage:
 - First search: "results" or "record" for earnings highlights
 - Second search: "outlook" or "guidance" for forward-looking commentary
@@ -87,7 +95,7 @@ Extract:
 - Any notable call-outs (one-time items, macro commentary, strategic updates)
 - Direct management quotes where available (with document citations)
 
-## 7. Save Report
+## 8. Save Report
 Save the complete analysis to `reports/{TICKER}_earnings_{PERIOD}.md` where PERIOD is the most recent quarter analyzed. The report should include:
 - Executive summary (2-3 sentence overview of the quarter + 2-3 most notable findings)
 - Core financial metrics table (8 quarters, periods as columns, metrics as rows, including FCF)
@@ -100,4 +108,7 @@ Save the complete analysis to `reports/{TICKER}_earnings_{PERIOD}.md` where PERI
 - Seasonality note if applicable
 - All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight the 2-3 most notable findings.
+Tell the user where the report was saved and highlight the 2-3 most notable findings with a critical lens:
+- **Quality of earnings**: Are the beats sustainable or driven by one-time items, favorable timing, or accounting changes? Is revenue growth real or pulled forward?
+- **Red flags**: Any deterioration in cash conversion, growing GAAP vs non-GAAP gaps, rising SBC dilution, margin expansion from under-investment?
+- **What the market is missing**: What does the data say that consensus might not be pricing in — positive or negative?

@@ -6,14 +6,13 @@ argument-hint: TICKER
 
 Generate a professional research note (.docx) for the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 This is an orchestrator skill that gathers comprehensive data, then renders a Word document. Work through each phase sequentially, building up a context object that gets written to JSON and rendered.
 
 ## Phase A — Company Setup
 Look up the company by ticker. Note company_id, full name, latest available quarter.
-Run `python infra/market_data.py quote {TICKER}` for price, market cap, shares outstanding, beta.
-Run `python infra/market_data.py multiples {TICKER}` for current trading multiples.
+Get current stock price, market cap, shares outstanding, beta, and trading multiples for {TICKER} (see data-access.md Section 2 for how to source market data).
 
 Initialize context: `context = {company_name, ticker, date, price, market_cap, ...}`
 
@@ -28,7 +27,9 @@ Pull Cash Flow & Balance Sheet:
 - Cash, Total Debt, Net Debt
 - D&A
 
-Compute margins and YoY growth rates for each quarter. Build `context.financials` with tables.
+**For every value returned by `get_company_fundamentals`, record its `fundamental_id` (the `id` field).** Store each data point as `{value, fundamental_id}` so citations can be rendered in the final document.
+
+Compute margins and YoY growth rates for each quarter. Build `context.financials` with tables. Every Daloopa-sourced number must include its citation link: `[$X.XX million](https://daloopa.com/src/{fundamental_id})`.
 
 ## Phase C — KPIs & Segments (follows /tearsheet methodology)
 Think about what KPIs matter most for THIS company's business model. Search for:
@@ -60,15 +61,16 @@ Build `context.capital_allocation`.
 ## Phase G — Valuation (follows /dcf + /comps methodology)
 
 **DCF:**
-- Get risk-free rate: `python infra/market_data.py risk-free-rate`
+- Get risk-free rate (see data-access.md Section 2)
 - Calculate WACC using CAPM
-- Project FCF 5 years (use projection engine if available, else manual)
+- Project FCF 5 years (use projection engine if available per data-access.md Section 5, else manual)
 - Compute terminal value, implied share price, sensitivity table
 - Build `context.dcf` (set `context.has_dcf = true`)
 
 **Comps:**
 - Identify 5-8 peers
-- Get peer multiples: `python infra/market_data.py peers {PEER1} {PEER2} ...`
+- Get peer trading multiples (see data-access.md Section 2)
+- If consensus forward estimates are available (data-access.md Section 3), include forward multiples
 - Compute implied valuation range from peer multiples
 - Build `context.comps` (set `context.has_comps = true`)
 
@@ -86,21 +88,24 @@ Extract and organize into:
 - `context.company_description` — 2-3 sentence business description
 
 ## Phase I — Charts
-Generate charts using `python infra/chart_generator.py`:
+If chart generation is available (see data-access.md Section 5), generate charts:
 
-1. Revenue trend: `revenue-trend --data '{periods, values}' --output reports/.charts/{TICKER}_revenue_trend.png`
-2. Margin trend: `margin-trend --data '{periods, series}' --output reports/.charts/{TICKER}_margin_trend.png`
-3. Segment pie: `segment-pie --data '{segments}' --output reports/.charts/{TICKER}_segment_pie.png`
+1. Revenue time-series: `time-series --data '{periods, values}' --output reports/.charts/{TICKER}_revenue_trend.png`
+2. Margin time-series: `time-series --data '{periods, series}' --output reports/.charts/{TICKER}_margin_trend.png`
+3. Segment pie: `pie --data '{segments}' --output reports/.charts/{TICKER}_segment_pie.png`
 4. Scenario bar: `scenario-bar --data '{metrics, bull, base, bear}' --output reports/.charts/{TICKER}_scenario_bar.png`
 5. DCF sensitivity: `dcf-sensitivity --data '{wacc_values, growth_values, prices, current_price}' --output reports/.charts/{TICKER}_dcf_sensitivity.png`
 
 If chart generator isn't available or a chart fails, skip that chart and note it. Set chart paths in context (e.g., `context.revenue_chart = "reports/.charts/..."`)
 
 ## Phase J — Synthesis
-This is the most judgment-intensive step. Write:
-- **Executive Summary**: 3-4 sentence TL;DR covering current state, key thesis, valuation view
-- **Variant Perception**: What does the market think vs what do you see in the data?
-- **Key Findings**: Top 3-5 most notable data points or trends
+This is the most judgment-intensive step. Be honest and critical — the reader is a professional investor who needs your real assessment, not a balanced summary.
+
+Write:
+- **Executive Summary**: 3-4 sentence TL;DR covering current state, key thesis, valuation view. Include a clear directional view — is this stock attractive, fairly valued, or overvalued at the current price?
+- **Variant Perception**: What does the market think vs what do you see in the data? Where is the consensus wrong? If you agree with consensus, say that too — but explain what could change.
+- **Key Findings**: Top 3-5 most notable data points or trends — prioritize what changes the investment thesis, not just what's interesting
+- **Red Flags & Concerns**: Any quality-of-earnings issues, sustainability questions, or risks the market may be underpricing
 - Build `context.executive_summary`, `context.variant_perception`
 
 Also build structured tables for the template:
@@ -120,4 +125,4 @@ Tell the user:
 - A 3-4 sentence executive summary of the research note
 - Key findings and valuation range
 
-All financial figures in the context must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
+**Citation enforcement:** Every financial figure from Daloopa in the context JSON AND the rendered document must use citation format: `[$X.XX million](https://daloopa.com/src/{fundamental_id})`. If a number came from `get_company_fundamentals`, it must have a citation link. No exceptions. Before rendering, verify that the context JSON contains fundamental_ids for all Daloopa-sourced values.

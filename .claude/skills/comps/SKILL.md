@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Build a trading comparables analysis for the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -36,11 +36,11 @@ Pull from Daloopa for the target company (last 4 quarters):
 - Net Margin (most recent quarter)
 
 ## 4. Peer Market Multiples
-For each peer, run:
-- `python infra/market_data.py multiples {PEER_TICKER}` — P/E, EV/EBITDA, P/S, P/B, div yield, PEG ratio
-- `python infra/market_data.py quote {PEER_TICKER}` — price, market cap
+For each peer, get trading multiples and current quote (see data-access.md Section 2):
+- P/E (trailing and forward), EV/EBITDA, P/S, P/B, dividend yield, PEG ratio
+- Price, market cap, enterprise value
 
-If market data scripts aren't available, note that peer multiples cannot be sourced and provide a framework for manual completion.
+If market data is unavailable, note that peer multiples cannot be sourced and provide a framework for manual completion.
 
 If a peer ticker fails (delisted, no data), drop it and note why.
 
@@ -79,7 +79,16 @@ For each:
 
 Compute range (min to max implied price) and central tendency.
 
-## 8. Premium/Discount Analysis
+## 8. Consensus Forward Estimates (if available)
+If consensus estimates are available (see data-access.md Section 3):
+- Add NTM (next twelve months) revenue and EPS estimates for target and each peer
+- Compute forward P/E and forward EV/EBITDA using consensus NTM estimates
+- Note where the target's forward multiples sit vs the peer group
+- Flag any peers with significant estimate revision trends
+
+If consensus data is not available, use trailing multiples only and note the limitation.
+
+## 9. Premium/Discount Analysis
 Assess whether the target trades at a premium or discount to peers:
 - For each multiple, show target vs peer median as a % premium/discount
 - Consider whether a premium/discount is justified based on:
@@ -88,7 +97,12 @@ Assess whether the target trades at a premium or discount to peers:
   - Market position (leader vs challenger)
   - Risk profile
 
-## 9. Save Report
+**Be honest about whether the premium is truly justified:**
+- A company can deserve a premium and still be overvalued if the premium has stretched too far beyond fundamentals. Quantify: how much growth differential is needed to justify the current premium? Is the company delivering that?
+- If the stock trades at a significant premium but growth is decelerating toward peer levels, flag the derating risk explicitly.
+- Don't default to "premium is justified because it's the market leader" — that's already in the price. What justifies the premium *expanding* or *sustaining* from here?
+
+## 10. Save Report
 Save to `reports/{TICKER}_comps.md`. Format:
 
 ```

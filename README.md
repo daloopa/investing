@@ -2,13 +2,13 @@
 
 A ready-to-go financial analysis toolkit that connects Claude Code to [Daloopa's](https://daloopa.com) institutional-grade financial data. Built for hedge fund analysts (L/S equity, quant) who want AI-assisted fundamental research.
 
-Produces two investment deliverables: **Research Notes (.docx)** and **Excel Models (.xlsx)**.
+Produces investment deliverables: **Research Notes (.docx)**, **Excel Models (.xlsx)**, **PDF Reports**, and **Pitch Decks (.pdf)**.
 
 ## Prerequisites
 
 - **Claude Code** — Install with `npm install -g @anthropic-ai/claude-code`
 - **Daloopa account** — Sign up at [daloopa.com](https://daloopa.com)
-- **Python 3.9+** — For infrastructure scripts (market data, charts, Excel/Word rendering)
+- **Python 3.9+** — For infrastructure scripts (market data, charts, Excel/Word/PDF rendering)
 
 ## Quick Start
 
@@ -32,7 +32,7 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 
 ## Available Commands
 
-### Building Block Skills (Markdown Reports)
+### Building Block Skills (Markdown + PDF Reports)
 
 | Command | Description | Example | Output |
 |---------|-------------|---------|--------|
@@ -47,16 +47,23 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 | `/dcf` | DCF valuation with sensitivity analysis | `/dcf AAPL` | `reports/AAPL_dcf.md` |
 | `/comps` | Trading comparables with peer multiples | `/comps AAPL` | `reports/AAPL_comps.md` |
 
-### Investment Deliverables (.docx and .xlsx)
+### Investment Deliverables (.docx, .xlsx, .pdf)
 
 | Command | Description | Example | Output |
 |---------|-------------|---------|--------|
 | `/research-note` | Professional Word research note | `/research-note AAPL` | `reports/AAPL_research_note.docx` |
-| `/model` | Multi-tab Excel financial model | `/model AAPL` | `reports/AAPL_model.xlsx` |
+| `/build-model` | Multi-tab Excel financial model | `/build-model AAPL` | `reports/AAPL_model.xlsx` |
 | `/initiate` | Initiate coverage (both outputs) | `/initiate AAPL` | `.docx` + `.xlsx` |
 | `/update` | Refresh coverage with latest data | `/update AAPL` | Updated `.docx` + `.xlsx` |
+| `/ib-deck` | Institutional-grade pitch deck | `/ib-deck AAPL` | `reports/AAPL_deck.pdf` |
 
 All reports are saved to the `reports/` directory. You can also just ask Claude anything about a company — the commands are shortcuts for common workflows.
+
+## Plugin
+
+The 10 building block analysis skills are also available as a standalone **Claude Code plugin** that works in any project — no Python infrastructure needed, just a Daloopa account.
+
+See [`../daloopa-plugin/`](../daloopa-plugin/) or install from the Claude Code marketplace.
 
 ## Data Access
 
@@ -148,6 +155,7 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 ├── .claude/
 │   └── skills/                # Claude Code skill definitions
 │       ├── data-access.md     # Shared data access reference
+│       ├── design-system.md   # Formatting and styling conventions
 │       ├── setup/             # /setup — interactive setup wizard
 │       ├── earnings/          # /earnings — earnings analysis
 │       ├── tearsheet/         # /tearsheet — company one-pager
@@ -158,8 +166,9 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │       ├── capital-allocation/# /capital-allocation — capital deployment
 │       ├── dcf/               # /dcf — DCF valuation
 │       ├── comps/             # /comps — trading comparables
+│       ├── ib-deck/           # /ib-deck — pitch deck builder
 │       ├── research-note/     # /research-note — Word document output
-│       ├── model/             # /model — Excel model output
+│       ├── build-model/       # /build-model — Excel model output
 │       ├── initiate/          # /initiate — both outputs
 │       └── update/            # /update — refresh coverage
 ├── recipes/                   # Python scripts for direct API access
@@ -174,15 +183,18 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │   └── series_continuation.py
 ├── infra/                     # Infrastructure scripts (used by skills)
 │   ├── market_data.py         # Market data from yfinance/FRED
-│   ├── chart_generator.py     # Professional chart generation
+│   ├── chart_generator.py     # Professional chart generation (6 types)
 │   ├── projection_engine.py   # Forward financial projections
 │   ├── excel_builder.py       # Multi-tab Excel model builder
 │   ├── docx_renderer.py       # Word document renderer
+│   ├── pdf_renderer.py        # Markdown → styled PDF
+│   ├── deck_renderer.py       # HTML deck → PDF
 │   └── report_differ.py       # Context diff for updates
 ├── templates/
 │   └── research_note.docx     # Word template (Jinja2 tags)
 ├── scripts/
 │   ├── create_template.py     # Generate the Word template
+│   ├── sync_plugin.sh         # Sync shared skills to plugin repo
 │   └── docs_crawler.py        # Re-crawl Daloopa docs
 ├── daloopa_docs/              # API documentation (local copy)
 ├── reports/                   # Generated reports (gitignored)

@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Build a discounted cash flow (DCF) valuation for the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -14,11 +14,11 @@ Follow these steps:
 Look up the company by ticker. Note the company_id, full name, and latest available quarter.
 
 ## 2. Market Data
-Run these commands to get market-side inputs:
-- `python infra/market_data.py quote {TICKER}` — price, market cap, shares outstanding, beta
-- `python infra/market_data.py risk-free-rate` — 10Y Treasury rate for WACC
+Get market-side inputs for {TICKER} (see data-access.md Section 2 for how to source market data in your environment):
+- Current price, market cap, shares outstanding, beta
+- 10Y Treasury yield (risk-free rate for WACC)
 
-If market data scripts aren't available or fail, use reasonable defaults: beta=1.0, risk-free rate=4.5%, and note the assumptions.
+If market data is unavailable, use reasonable defaults: beta=1.0, risk-free rate=4.5%, and note the assumptions.
 
 ## 3. Historical Financials from Daloopa
 Pull 8 quarters of:
@@ -60,12 +60,7 @@ Show all inputs and the resulting WACC clearly.
 
 ## 5. Project Free Cash Flows
 
-Build 5-year FCF projections. Use `python infra/projection_engine.py` if available:
-- Write historical data to a JSON context file at `reports/.tmp/{TICKER}_dcf_input.json`
-- Run: `python infra/projection_engine.py --context reports/.tmp/{TICKER}_dcf_input.json --output reports/.tmp/{TICKER}_dcf_projections.json`
-- Read the projections output
-
-If the projection engine isn't available, project manually:
+Build 5-year FCF projections. If a projection engine is available (see data-access.md Section 5), use it. Otherwise, project manually:
 - **Revenue:** Use management guidance for near-term, then decay toward 3% long-term growth
 - **FCF Margin:** Use trailing average, adjust for any clear trends
 - **FCF = Projected Revenue × Projected FCF Margin**
@@ -101,14 +96,28 @@ Highlight the base case cell and the current market price for reference.
 
 Also show a secondary sensitivity: Revenue Growth vs FCF Margin if data supports it.
 
-## 9. Sanity Checks
+## 9. Consensus Sanity Check (if available)
+If consensus estimates are available (see data-access.md Section 3):
+- Compare your projected revenue/EPS path to consensus for the next 1-2 years
+- Note where your DCF assumptions diverge from Street expectations
+- If your implied price is significantly above/below consensus target, explain why
+
+If consensus data is not available, skip this check.
+
+## 10. Sanity Checks & Self-Challenge
 Flag any issues:
 - If implied price is >2x or <0.5x current price, note that the DCF produces an extreme result and examine assumptions
 - If terminal value is >85% of total value, the model is highly sensitive to terminal assumptions
 - If WACC < risk-free rate or > 15%, the capital structure inputs may be off
 - Compare implied multiples to historical trading range
 
-## 10. Save Report
+**Challenge your own assumptions — don't anchor to the current price:**
+- Build the DCF from fundamentals first, THEN compare to market price. Don't work backwards from the current price to justify assumptions.
+- If your base case revenue growth assumes continuation of recent trends, stress-test: what if growth mean-reverts to the industry average? What if the current cycle peaks?
+- Explicitly state what has to go right for the bull case implied price and what has to go wrong for the bear case.
+- If the DCF only "works" with aggressive terminal growth or unrealistically low WACC, say so — the stock may simply be expensive on fundamentals.
+
+## 11. Save Report
 Save to `reports/{TICKER}_dcf.md`. Format:
 
 ```

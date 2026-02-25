@@ -8,7 +8,7 @@ Generate a concise company tearsheet for the company specified by the user: $ARG
 
 This should be a quick, one-page overview — the kind of snapshot an analyst pulls up before a meeting.
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -111,4 +111,4 @@ Data sourced from Daloopa
 
 All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and give a 2-3 sentence summary of the company's current state.
+Tell the user where the report was saved and give a 2-3 sentence summary of the company's current state, including an honest assessment: What is the single biggest risk or concern? Does the current valuation (price, implied multiples) seem warranted given the growth trajectory? What would make you cautious about owning this stock?

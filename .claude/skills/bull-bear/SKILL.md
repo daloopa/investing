@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Build a bull/bear/base case scenario framework for the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -55,7 +55,15 @@ Search SEC filings/documents across multiple queries. If any search returns empt
 - **Capital allocation**: Try "repurchase", "dividend"; fallback to "buyback", "capital return"
 - **Macro/regulatory**: Try "tariff", "regulatory"; fallback to "geopolitical", "compliance"
 
-## 5. Construct Three Scenarios
+## 5. Consensus Positioning (if available)
+If consensus estimates are available (see data-access.md Section 3), note:
+- Where consensus revenue/EPS sits relative to your base case
+- Whether the market is positioned closer to your bull or bear case
+- Recent estimate revision trends (optimistic vs pessimistic drift)
+
+If consensus data is not available, skip this section.
+
+## 6. Construct Three Scenarios
 
 For each scenario, build a **bottoms-up revenue model** showing key segment or product-level assumptions (e.g., units x ASP, subscribers x ARPU, segment growth rates). Don't just state a revenue range — show the math that gets there.
 
@@ -88,7 +96,9 @@ Don't default to 25/50/25. Assign probabilities informed by the most recent data
 - If macro headwinds are intensifying, weight bear higher
 - Explain your reasoning for the weighting
 
-## 6. Save Report
+**Be honest about which scenario is most likely.** Don't default to a bullish framing or split the difference to seem balanced. If the data suggests the bear case is more probable, say so clearly. If the bull case requires multiple things to go right simultaneously, acknowledge that compounds the risk. The reader needs your honest assessment, not diplomatic equivocation.
+
+## 7. Save Report
 Save to `reports/{TICKER}_bull_bear.md`. The report should include:
 - Company overview and current state summary
 - Historical financial data table (8 quarters, Daloopa citations, including computed EBITDA/FCF)
@@ -108,4 +118,4 @@ Save to `reports/{TICKER}_bull_bear.md`. The report should include:
 - Key swing factors section — the 3-5 variables that most determine which scenario plays out
 - All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight the key swing factors between bull and bear cases.
+Tell the user where the report was saved and highlight: which scenario you believe is most likely and why, the key swing factors between bull and bear cases, and where you think the market is currently positioned (closer to bull, base, or bear). If the current stock price implies an overly optimistic or pessimistic scenario, flag it.
