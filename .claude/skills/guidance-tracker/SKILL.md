@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Track management guidance accuracy for the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -51,6 +51,11 @@ Analyze the guidance track record:
 - Any metrics where management is notably conservative or aggressive
 - Guidance range width trends (if range guidance is given)
 
+**Management credibility assessment:**
+- If the company consistently beats by a similar margin, call out sandbagging — this suggests management is deliberately setting low bars, which can mask underlying deceleration. A 100% beat rate is not necessarily bullish; it may mean guidance is uninformative.
+- If guidance has been cut or missed, assess whether management acknowledged the miss honestly or buried it in adjusted metrics.
+- Flag any pattern where qualitative language ("strong demand," "robust pipeline") didn't translate to actual results.
+
 ## 7. Commentary from Filings
 Search SEC filings/documents across multiple queries to build a complete picture of guidance practices. If any search returns empty, try alternative keywords before giving up.
 
@@ -78,4 +83,4 @@ Save to `reports/{TICKER}_guidance_tracker.md`. The report should include:
 - Key guidance quotes from filings with document citations
 - All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight the key patterns (e.g., "Management has beat revenue guidance 7 of the last 8 quarters by an average of 2.3%").
+Tell the user where the report was saved and highlight the key patterns (e.g., "Management has beat revenue guidance 7 of the last 8 quarters by an average of 2.3%"). Include an honest credibility verdict: Is management's guidance informative or performative? Should investors trust the forward guidance, and if not, what should they anchor to instead?

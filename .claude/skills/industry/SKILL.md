@@ -8,7 +8,7 @@ Perform an industry comparison across the companies specified by the user: $ARGU
 
 The user will provide multiple tickers separated by spaces (e.g., "AAPL MSFT GOOG AMZN").
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -95,4 +95,4 @@ Save to `reports/{INDUSTRY_LABEL}_industry_comp.md` where INDUSTRY_LABEL is deri
 - Note on calendar quarter alignment and any fiscal year differences
 - All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight the key takeaways (who's winning, key differentiators).
+Tell the user where the report was saved and give a clear competitive verdict: Who is winning and who is losing? Which company has the strongest competitive position and why? Which company looks most vulnerable? Are any of the companies structurally mispriced relative to peers (too cheap or too expensive given the fundamentals)? Don't hedge — rank them honestly.

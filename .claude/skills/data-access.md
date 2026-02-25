@@ -1,17 +1,12 @@
 # Data Access Reference
 
-All skills that need financial data should follow this reference to determine HOW to access Daloopa data. There are two supported methods — detect which is available and use it.
+All skills that need financial data should follow this reference. Read `design-system.md` (co-located with this file) for formatting, analytical density, and styling conventions.
 
-## Detection Logic
+---
 
-1. **Check for MCP**: Look at your available tools. If you see Daloopa MCP tools (`discover_companies`, `discover_company_series`, `get_company_fundamentals`, `search_documents`), MCP is available.
-2. **Check for API credentials**: Check if `recipes/daloopa_client.py` exists and `.env` contains `DALOOPA_EMAIL` and `DALOOPA_API_KEY`. If so, the API is available via recipe scripts.
-3. **Both available?** Either works. Use whichever fits the task better — MCP returns structured data directly, API scripts are more flexible and composable.
-4. **Neither available?** Tell the user to run `/setup` to configure their data access.
+## Section 1: Daloopa MCP Tools
 
-## Method 1: MCP Tools
-
-Call the Daloopa MCP tools directly:
+Check your available tools. If you see Daloopa MCP tools (`discover_companies`, `discover_company_series`, `get_company_fundamentals`, `search_documents`), MCP is available.
 
 | Operation | MCP Tool |
 |---|---|
@@ -22,40 +17,65 @@ Call the Daloopa MCP tools directly:
 
 Results come back as structured data you can use directly.
 
-## Method 2: API via Recipe Scripts
-
-Run the Python recipe scripts via Bash. Parse their stdout for the data you need.
+If MCP is not available, check for API credentials (`recipes/daloopa_client.py` + `.env` with `DALOOPA_EMAIL` and `DALOOPA_API_KEY`). If so, use recipe scripts:
 
 | Operation | Recipe Command |
 |---|---|
-| Find company by ticker/name | `python recipes/company_fundamentals.py TICKER` (shows company search results) |
-| Find series + pull data | `python recipes/company_fundamentals.py TICKER PERIOD1 PERIOD2 ...` (discovers series and fetches fundamentals) |
+| Find company by ticker/name | `python recipes/company_fundamentals.py TICKER` |
+| Find series + pull data | `python recipes/company_fundamentals.py TICKER PERIOD1 PERIOD2 ...` |
 | Search SEC filings | `python recipes/document_search.py "KEYWORDS" --companies TICKER1 TICKER2` |
-| Industry comparison | `python recipes/industry_analysis.py --search "KEYWORD"` or `python recipes/industry_analysis.py SUB_ID PERIOD1 PERIOD2` |
 
-### API Notes
-- Recipe scripts print results to stdout. Parse the output to extract values.
-- The company_fundamentals recipe handles company lookup, series discovery, AND data retrieval in one run. To search for specific series, you may need to call the API functions from a Python snippet directly:
-  ```
-  python -c "
-  import sys; sys.path.insert(0, 'recipes')
-  from company_fundamentals import search_company, discover_series, get_fundamentals
-  companies = search_company('AAPL')
-  company_id = companies[0]['id']
-  series = discover_series(company_id, ['revenue', 'net income'])
-  series_ids = [s['id'] for s in series]
-  results = get_fundamentals(company_id, ['2024Q1','2024Q2'], series_ids)
-  for r in results:
-      print(f\"{r['label']}|{r['calendar_period']}|{r['value_raw']}|{r['unit']}|{r['id']}\")
-  "
-  ```
-- For document search, results include document_id, filing_type, and context snippets.
-- All recipe scripts read credentials from `.env` automatically.
-- Citation format is the same regardless of method: `[$X.XX million](https://daloopa.com/src/{fundamental_id})`
+If neither MCP nor API is available, tell the user to run `/setup`.
 
-## Market Data (yfinance + FRED)
+## Section 2: External Market Data
 
-For market-side data (price, multiples, historical prices, peer comparisons, risk-free rate), use the infrastructure scripts:
+Skills that need market-side data should gather the following. Use whatever tools or data sources are available in your environment.
+
+| Data Need | What to Get |
+|---|---|
+| **Stock quote** | Current price, market cap, shares outstanding, beta |
+| **Trading multiples** | Trailing P/E, Forward P/E, EV/EBITDA, P/S, P/B, dividend yield |
+| **Historical prices** | OHLCV data for trend analysis (1-5 years) |
+| **Peer multiples** | Side-by-side trading multiples for 5-10 comparable companies |
+| **Risk-free rate** | 10Y Treasury yield (for WACC/DCF calculations) |
+
+If market data is unavailable, note the limitation and proceed with Daloopa fundamentals only. Use reasonable defaults where needed (beta=1.0, risk-free rate=4.5%).
+
+## Section 3: Consensus Estimates (Optional)
+
+When available, consensus analyst estimates add valuable context. Look for:
+
+| Data Need | Use Case |
+|---|---|
+| **Consensus revenue / EPS** | Beat/miss analysis vs. Street expectations |
+| **Forward estimates (NTM)** | Forward P/E, forward EV/EBITDA for comps |
+| **Estimate revisions** | Trend in analyst expectations (up/down/stable) |
+| **Price targets** | Consensus target and range for context |
+
+If consensus data is not available, skip these sections and note "consensus data not available" rather than guessing.
+
+## Section 4: Citation Requirements (MANDATORY)
+
+**Every financial figure sourced from Daloopa MUST include a citation link.** This is non-negotiable.
+
+Format: `[$X.XX million](https://daloopa.com/src/{fundamental_id})`
+
+The `fundamental_id` (or `id`) is returned in every `get_company_fundamentals` response and in every API recipe result. You must:
+
+1. **Capture the `fundamental_id` at data-pull time** — when you call `get_company_fundamentals` or parse recipe output, record the `id` for every value
+2. **Carry the ID through to output** — when building tables, prose, or context JSON, attach the citation link to every Daloopa-sourced number
+3. **Never drop citation IDs** — if a value came from Daloopa, it gets a link. No exceptions. Computed values (e.g., margins, growth rates) derived from Daloopa figures should cite the underlying inputs
+4. **Document citations** — when quoting SEC filings from `search_documents`, link to: `[Document Name](https://marketplace.daloopa.com/document/{document_id})`
+
+If you output a financial figure without a citation, it cannot be verified. Uncitable numbers are useless to an analyst.
+
+---
+
+## Section 5: Infrastructure Tools (Project Repo Only)
+
+The following tools are available in the project repo environment. If these scripts are not available (e.g., in a plugin context), skip these steps — the skill's core analysis works without them.
+
+### Market Data Scripts
 
 | Operation | Command |
 |---|---|
@@ -65,14 +85,24 @@ For market-side data (price, multiples, historical prices, peer comparisons, ris
 | Peer multiples comparison | `python infra/market_data.py peers TICKER1 TICKER2 ...` |
 | Risk-free rate (10Y Treasury) | `python infra/market_data.py risk-free-rate` |
 
-All commands output JSON to stdout. If the scripts aren't available (e.g., yfinance not installed), note this limitation and proceed with Daloopa data only.
+All commands output JSON to stdout.
 
-## Charts
+### Charts
 
-For chart generation, use: `python infra/chart_generator.py {chart_type} --data '{json}' --output path.png`
+For chart generation: `python infra/chart_generator.py {chart_type} --data '{json}' --output path.png`
 
-Available chart types: `revenue-trend`, `margin-trend`, `segment-pie`, `segment-stack`, `eps-trend`, `scenario-bar`, `dcf-sensitivity`, `price-history`
+Available chart types: `time-series`, `waterfall`, `football-field`, `pie`, `scenario-bar`, `dcf-sensitivity`
 
-## Projections
+### Projections
 
 For forward financial projections: `python infra/projection_engine.py --context input.json --output projections.json`
+
+### PDF Rendering
+
+To convert a markdown report to a styled PDF: `python infra/pdf_renderer.py --input reports/{file}.md --output reports/{file}.pdf`
+
+### Word / Excel Rendering
+
+- Word documents: `python infra/docx_renderer.py --template templates/research_note.docx --context context.json --output output.docx`
+- Excel models: `python infra/excel_builder.py --context context.json --output output.xlsx`
+- Context diffs: `python infra/report_differ.py --old old.json --new new.json --output diff.json`

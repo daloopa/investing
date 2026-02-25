@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Perform a deep dive into capital allocation for the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -14,11 +14,10 @@ Follow these steps:
 Look up the company by ticker. Note the company_id, full name, and latest available quarter.
 
 ## 2. Market Data
-Run `python infra/market_data.py quote {TICKER}` to get:
-- Current price, market cap, shares outstanding
+Get the current stock price, market cap, and shares outstanding for {TICKER} (see data-access.md Section 2 for how to source market data in your environment).
 - This is needed to compute yields and per-share metrics
 
-If the market data script isn't available or fails, note that market-derived metrics (yields, etc.) cannot be computed and proceed with Daloopa data only.
+If market data is unavailable, note that market-derived metrics (yields, etc.) cannot be computed and proceed with Daloopa data only.
 
 ## 3. Capital Allocation Data
 Pull 8 quarters of:
@@ -94,13 +93,19 @@ Extract:
 - Any changes in capital allocation strategy
 - Direct quotes with document citations
 
-## 6. Historical Analysis
+## 6. Historical Analysis & Value Judgment
 Analyze the 8-quarter trend:
 - Is buyback activity accelerating or decelerating?
 - Is the company buying back more shares when price is lower (disciplined) or higher (less disciplined)?
 - Dividend growth rate (if applicable)
 - Shift between CapEx, buybacks, dividends, and debt repayment over time
 - FCF conversion trend (is more/less of OCF converting to FCF?)
+
+**Honestly assess whether capital allocation is creating or destroying value:**
+- If the company is buying back stock at all-time-high prices with deteriorating fundamentals, call it value destruction — even if EPS looks better from the lower share count.
+- If the company is under-investing in CapEx or R&D to fund buybacks, flag the risk to long-term competitiveness.
+- If FCF payout ratio exceeds 100%, the company is funding returns with debt or cash drawdowns — flag this as unsustainable.
+- Compare the implied return from buybacks (inverse of P/E at purchase prices) to what the company could earn from organic reinvestment or M&A.
 
 ## 7. Save Report
 Save to `reports/{TICKER}_capital_allocation.md`. Format:

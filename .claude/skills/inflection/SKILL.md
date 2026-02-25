@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Detect the biggest financial and operating inflections for the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -72,6 +72,11 @@ Identify the narrative:
 - Are there divergent trends (e.g., revenue accelerating but margins decelerating)?
 - Which inflections matter most for the investment case?
 - Are operating KPIs leading or lagging the financial inflections?
+
+**Critically assess sustainability:**
+- For positive inflections: Is this a durable trend change or a one-time comp effect? Will it persist next quarter when the base normalizes? Is it driven by organic strength or by pull-forward, price increases, or easy comps?
+- For negative inflections: Is this the beginning of a structural deterioration or a temporary blip? Is the company investing through it (good) or cutting to protect margins (potentially bad long-term)?
+- Flag any inflections where the magnitude seems too good/bad to be sustainable.
 
 ## 8. Save Report
 Save to `reports/{TICKER}_inflection.md`. Format:
