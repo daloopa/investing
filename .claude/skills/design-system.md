@@ -106,6 +106,20 @@ Standard chart types:
 5. **Scenario bar** — Bull/base/bear comparison
 6. **DCF sensitivity** — WACC vs terminal growth heatmap
 
+## Output Formats
+
+All skills must produce professional deliverables suitable for institutional distribution:
+
+| Skill Type | Primary Output | Secondary | Notes |
+|------------|---------------|-----------|-------|
+| Building block analysis | PDF | .md (intermediate) | Markdown is working format; PDF is the deliverable |
+| Research notes | .docx | — | Word for editability |
+| Financial models | .xlsx | — | Excel for interactivity |
+| Pitch decks | .pdf | .html (source) | HTML is working format; PDF is the deliverable |
+| Comp sheet models | .xlsx | — | Excel for interactivity |
+
+**Never deliver raw markdown as a final output.** Markdown is an intermediate format for structuring content before rendering. The analyst receives PDF, Word, Excel, or slide deck files.
+
 ## Typography (Rendered Outputs — PDF, Deck, Docx)
 
 - Primary font: system sans-serif stack (Segoe UI, -apple-system, Arial)

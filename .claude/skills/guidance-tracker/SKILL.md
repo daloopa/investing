@@ -15,14 +15,27 @@ Look up the company by ticker. Extract company_id and latest available quarter.
 
 ## 2. Discover Guidance Series
 Search for series with keywords like "guidance", "outlook", "estimate", "forecast", "target" to find all available guidance metrics. Common guidance series include:
+
+**Financial guidance:**
 - Revenue guidance (quarterly and/or annual)
 - EPS guidance
 - Operating income / margin guidance
 - EBITDA guidance
 - Segment-level revenue guidance
-- Any KPI guidance (subscriber guidance, unit guidance, etc.)
 - CapEx guidance
 - Free Cash Flow guidance
+
+**Operational KPI guidance** — many companies guide on KPIs, and tracking these beats/misses is often more informative than financial guidance:
+- Subscriber / user count guidance (e.g., "we expect to add X million subscribers")
+- Unit shipment guidance (e.g., "iPhone units", "deliveries")
+- ARPU / ASP guidance
+- Same-store sales guidance
+- GMV / bookings guidance
+- Net revenue retention guidance
+- Store openings / closings guidance
+- Production volume / capacity guidance
+
+Search explicitly for KPI-specific guidance series using terms like "subscriber guidance", "unit guidance", "ARPU guidance", "same-store sales outlook", "deliveries forecast", "bookings target". These are separate from financial guidance and often reside in different series.
 
 ## 3. Pull Guidance Data
 Pull all discovered guidance series for the last 8+ quarters.
@@ -83,4 +96,10 @@ Save to `reports/{TICKER}_guidance_tracker.md`. The report should include:
 - Key guidance quotes from filings with document citations
 - All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight the key patterns (e.g., "Management has beat revenue guidance 7 of the last 8 quarters by an average of 2.3%"). Include an honest credibility verdict: Is management's guidance informative or performative? Should investors trust the forward guidance, and if not, what should they anchor to instead?
+## 9. Render PDF
+Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
+`python3 infra/pdf_renderer.py --input reports/{TICKER}_guidance_tracker.md --output reports/{TICKER}_guidance_tracker.pdf`
+
+Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+
+Highlight the key patterns (e.g., "Management has beat revenue guidance 7 of the last 8 quarters by an average of 2.3%"). Include an honest credibility verdict: Is management's guidance informative or performative? Should investors trust the forward guidance, and if not, what should they anchor to instead?

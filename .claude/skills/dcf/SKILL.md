@@ -58,14 +58,42 @@ Also pull segment revenue and any available guidance series.
 
 Show all inputs and the resulting WACC clearly.
 
-## 5. Project Free Cash Flows
+## 5a. KPI-Driven Revenue Build (Preferred)
+
+Before projecting top-down, attempt a bottoms-up revenue build using operational KPIs. This produces a significantly more defensible DCF — a top-down trend decay is a guess; a bottoms-up KPI build is analysis.
+
+**Discover segment and KPI data:**
+Pull segment revenue breakdown + segment-specific KPIs for the target company. Use the sector taxonomy to know what to search for:
+
+- **SaaS/Cloud**: ARR, net revenue retention, RPO/cRPO, customers >$100K, cloud gross margin
+- **Consumer Tech**: DAU/MAU, ARPU, engagement metrics, installed base, paid subscribers
+- **E-commerce/Marketplace**: GMV, take rate, active buyers/sellers, order frequency
+- **Retail**: same-store sales, store count, average ticket, transactions
+- **Telecom/Media**: subscribers, churn, ARPU, content spend
+- **Hardware**: units shipped, ASP, attach rate, installed base
+- **Financial Services**: AUM, NIM, loan growth, credit quality metrics, fee income ratio
+- **Pharma/Biotech**: pipeline stage, patient starts, scripts, market share
+- **Industrials/Energy**: backlog, book-to-bill, utilization, production volumes, reserves
+
+**Build bottoms-up projections per segment:**
+For each segment with KPI data, project revenue using unit economics:
+- Hardware segments: projected units × projected ASP
+- Subscription segments: projected subscribers × projected ARPU (net of churn)
+- Marketplace segments: projected GMV × projected take rate
+- Services/recurring: apply growth rate informed by retention metrics and customer adds
+
+Sum segment projections to get total revenue for each of 5 years. Show the build clearly so the reader can challenge individual segment assumptions.
+
+**Fall back to top-down if KPIs aren't available.** If segment KPIs are sparse or unavailable, use the top-down approach in Section 5b instead, but note explicitly that the model is less reliable without bottoms-up drivers.
+
+## 5b. Top-Down FCF Projections (Fallback)
 
 Build 5-year FCF projections. If a projection engine is available (see data-access.md Section 5), use it. Otherwise, project manually:
 - **Revenue:** Use management guidance for near-term, then decay toward 3% long-term growth
 - **FCF Margin:** Use trailing average, adjust for any clear trends
 - **FCF = Projected Revenue × Projected FCF Margin**
 
-Show all assumptions clearly — this is the most judgment-intensive part.
+Show all assumptions clearly — this is the most judgment-intensive part. If using this fallback instead of the KPI-driven build (Section 5a), note the limitation.
 
 ## 6. Terminal Value
 Calculate terminal value using perpetuity growth method:
@@ -182,4 +210,10 @@ Data sourced from Daloopa
 
 All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and summarize: implied price vs current price, key upside/downside drivers, and the biggest sensitivity.
+## 12. Render PDF
+Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
+`python3 infra/pdf_renderer.py --input reports/{TICKER}_dcf.md --output reports/{TICKER}_dcf.pdf`
+
+Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+
+Summarize: implied price vs current price, key upside/downside drivers, and the biggest sensitivity.
