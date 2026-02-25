@@ -8,7 +8,7 @@ Perform an industry comparison across the companies specified by the user: $ARGU
 
 The user will provide multiple tickers separated by spaces (e.g., "AAPL MSFT GOOG AMZN").
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -37,13 +37,19 @@ For each company, find and pull these metrics for the last 4 quarters PLUS the y
 For any derived/computed metric, mark it with "(calc.)" so the reader knows it's not directly sourced.
 
 ## 3. Company-Specific KPIs
-First, think about what KPIs matter for the specific industry being compared. For example:
-- **Cloud/AI companies**: ARR, RPO/cRPO, Azure/Cloud growth rates, cloud gross margin
-- **Consumer tech**: installed base, subscribers, ARPU, engagement
-- **E-commerce**: GMV, take rate, active buyers
-- **SaaS**: net revenue retention, seat count, ARPU
+First, think about what KPIs matter for the specific industry being compared. Use the full sector taxonomy to guide discovery:
 
-For each company, discover and pull the most relevant KPIs. Note which KPIs are common across the group (apples-to-apples comparison) and which are unique to specific companies.
+- **SaaS/Cloud**: ARR, net revenue retention, RPO/cRPO, customers >$100K, cloud gross margin
+- **Consumer Tech**: DAU/MAU, ARPU, engagement metrics, installed base, paid subscribers
+- **E-commerce/Marketplace**: GMV, take rate, active buyers/sellers, order frequency
+- **Retail**: same-store sales, store count, average ticket, transactions
+- **Telecom/Media**: subscribers, churn, ARPU, content spend
+- **Hardware**: units shipped, ASP, attach rate, installed base
+- **Financial Services**: AUM, NIM, loan growth, credit quality metrics, fee income ratio
+- **Pharma/Biotech**: pipeline stage, patient starts, scripts, market share
+- **Industrials/Energy**: backlog, book-to-bill, utilization, production volumes, reserves
+
+For each company, discover and pull the most relevant KPIs. Note which KPIs are common across the group (apples-to-apples comparison) and which are unique to specific companies. For mixed-sector comparisons, focus on the KPIs that apply to the largest revenue segments of each company.
 
 ## 4. Normalize & Compare
 - **Calendar quarter alignment is critical.** Ensure all companies are compared on the same calendar quarters. Note each company's fiscal year end and map fiscal quarters to calendar quarters.
@@ -95,4 +101,10 @@ Save to `reports/{INDUSTRY_LABEL}_industry_comp.md` where INDUSTRY_LABEL is deri
 - Note on calendar quarter alignment and any fiscal year differences
 - All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight the key takeaways (who's winning, key differentiators).
+## 8. Render PDF
+Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
+`python3 infra/pdf_renderer.py --input reports/{INDUSTRY_LABEL}_industry_comp.md --output reports/{INDUSTRY_LABEL}_industry_comp.pdf`
+
+Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+
+Give a clear competitive verdict: Who is winning and who is losing? Which company has the strongest competitive position and why? Which company looks most vulnerable? Are any of the companies structurally mispriced relative to peers (too cheap or too expensive given the fundamentals)? Don't hedge — rank them honestly.

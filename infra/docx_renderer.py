@@ -14,6 +14,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import sys
 
 from docxtpl import DocxTemplate, InlineImage
@@ -32,14 +33,6 @@ TABLE_CONFIGS = {
         ("Metric", "metric", 3.0),
         ("Value", "value", 1.75),
         ("vs Prior", "vs_prior", 1.75),
-    ],
-    "financials_table": [
-        ("Metric", "metric", 1.9),
-        ("Q1", "q1", 0.92),
-        ("Q2", "q2", 0.92),
-        ("Q3", "q3", 0.92),
-        ("Q4", "q4", 0.92),
-        ("FY", "fy", 0.92),
     ],
     "guidance_table": [
         ("Period", "period", 0.9),
@@ -60,6 +53,11 @@ TABLE_CONFIGS = {
         ("Impact", "impact", 1.25),
         ("Probability", "probability", 1.25),
     ],
+}
+
+# Tables with dynamic columns (detected from first row keys)
+DYNAMIC_TABLES = {
+    "financials_table", "segments_table", "geo_table", "shares_outstanding_table",
 }
 
 # ---------------------------------------------------------------------------
@@ -94,9 +92,61 @@ def _set_cell_borders(cell):
     tcPr.append(borders)
 
 
+_MARKDOWN_LINK_RE = re.compile(r'\[([^\]]+)\]\((https?://[^)]+)\)')
+
+
+def _add_hyperlink(paragraph, url, text):
+    """Add a clickable hyperlink to a paragraph."""
+    part = paragraph.part
+    r_id = part.relate_to(url, 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink', is_external=True)
+    hyperlink = parse_xml(f'<w:hyperlink {nsdecls("w")} r:id="{r_id}" {nsdecls("r")}></w:hyperlink>')
+    run_elem = parse_xml(
+        f'<w:r {nsdecls("w")}>'
+        f'<w:rPr><w:rStyle w:val="Hyperlink"/><w:color w:val="1155CC"/><w:u w:val="single"/>'
+        f'<w:rFonts w:ascii="{FONT_NAME}" w:hAnsi="{FONT_NAME}"/>'
+        f'<w:sz w:val="{int(FONT_SIZE.pt * 2)}"/></w:rPr>'
+        f'<w:t xml:space="preserve">{text}</w:t>'
+        f'</w:r>'
+    )
+    hyperlink.append(run_elem)
+    paragraph._p.append(hyperlink)
+
+
+def _write_text_with_links(cell, text):
+    """Write text into a cell, converting [text](url) to hyperlinks."""
+    text = str(text) if text is not None else ""
+    para = cell.paragraphs[0]
+    para.clear()
+
+    parts = _MARKDOWN_LINK_RE.split(text)
+    # split produces: [before, link_text, url, between, link_text2, url2, ...]
+    i = 0
+    while i < len(parts):
+        if i + 2 < len(parts) and i % 3 == 0:
+            # Plain text before a link
+            if parts[i]:
+                run = para.add_run(parts[i])
+                run.font.name = FONT_NAME
+                run.font.size = FONT_SIZE
+            # Link text and URL
+            _add_hyperlink(para, parts[i + 2], parts[i + 1])
+            i += 3
+        else:
+            # Trailing plain text
+            if parts[i]:
+                run = para.add_run(parts[i])
+                run.font.name = FONT_NAME
+                run.font.size = FONT_SIZE
+            i += 1
+
+
 def _style_cell(cell, text, is_header=False, row_idx=0):
     """Write text into a cell and apply formatting."""
-    cell.text = str(text) if text is not None else ""
+    if is_header or not _MARKDOWN_LINK_RE.search(str(text) if text else ""):
+        cell.text = str(text) if text is not None else ""
+    else:
+        _write_text_with_links(cell, text)
+
     _set_cell_borders(cell)
 
     if is_header:
@@ -171,12 +221,36 @@ def process_chart_images(doc, context):
             context[key] = ""
 
 
+def _build_dynamic_config(rows_data):
+    """Build a table config from the keys in the first row of data.
+
+    Assumes every row dict has a 'metric' key plus period columns.
+    """
+    if not rows_data:
+        return []
+    sample = rows_data[0]
+    cols = [("Metric", "metric", 1.5)]
+    for key in sample:
+        if key == "metric":
+            continue
+        cols.append((key, key, 0.82))
+    return cols
+
+
 def process_table_subdocs(doc, context):
     """Convert list-of-dicts table data into Subdoc objects with formatted tables."""
     for key, config in TABLE_CONFIGS.items():
         rows_data = context.get(key)
         if not isinstance(rows_data, list) or not rows_data:
             continue
+        context[key] = _build_table_subdoc(doc, rows_data, config)
+
+    # Handle dynamic-column tables (financials, segments, geo, etc.)
+    for key in DYNAMIC_TABLES:
+        rows_data = context.get(key)
+        if not isinstance(rows_data, list) or not rows_data:
+            continue
+        config = _build_dynamic_config(rows_data)
         context[key] = _build_table_subdoc(doc, rows_data, config)
 
 
@@ -222,6 +296,30 @@ def main():
 
     # Convert table data to Subdoc objects with formatted tables
     process_table_subdocs(doc, context)
+
+    # Convert markdown links in string values to RichText for proper hyperlinks
+    from docxtpl import RichText
+    for key in list(context.keys()):
+        val = context[key]
+        if not isinstance(val, str):
+            continue
+        if not _MARKDOWN_LINK_RE.search(val):
+            continue
+        rt = RichText()
+        parts = _MARKDOWN_LINK_RE.split(val)
+        i = 0
+        while i < len(parts):
+            if i + 2 < len(parts) and i % 3 == 0:
+                if parts[i]:
+                    rt.add(parts[i])
+                rt.add(parts[i + 1], url_id=doc.build_url_id(parts[i + 2]),
+                       color='1155CC', underline=True)
+                i += 3
+            else:
+                if parts[i]:
+                    rt.add(parts[i])
+                i += 1
+        context[key] = rt
 
     # Render and save
     doc.render(context)

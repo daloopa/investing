@@ -127,42 +127,40 @@ def _add_executive_summary(doc):
     _add_page_break(doc)
     doc.add_heading("Executive Summary", level=1)
     doc.add_paragraph("{{ executive_summary }}")
-    # Table built dynamically by renderer as Subdoc
-    doc.add_paragraph("{{ key_metrics_table }}")
+    # Table built dynamically by renderer as Subdoc (paragraph-level substitution)
+    doc.add_paragraph("{{p key_metrics_table }}")
 
 
 def _add_investment_thesis(doc):
     doc.add_heading("Investment Thesis", level=1)
+    doc.add_paragraph("{{ investment_thesis }}")
+    doc.add_heading("Variant Perception", level=2)
     doc.add_paragraph("{{ variant_perception }}")
-    doc.add_heading("Thesis Pillars", level=2)
-    doc.add_paragraph("{% for pillar in thesis_pillars %}")
-    p = doc.add_paragraph()
-    run = p.add_run("{{ pillar.title }}")
-    run.bold = True
-    doc.add_paragraph("{{ pillar.description }}")
-    doc.add_paragraph("{% endfor %}")
 
 
 def _add_company_overview(doc):
     doc.add_heading("Company Overview", level=1)
     doc.add_paragraph("{{ company_description }}")
-    doc.add_paragraph("{{ segment_chart }}")
 
 
 def _add_financial_analysis(doc):
     doc.add_heading("Financial Analysis", level=1)
     doc.add_paragraph("{{ revenue_chart }}")
+    doc.add_paragraph("{{p financials_table }}")
     doc.add_paragraph("{{ margin_chart }}")
-    # Table built dynamically by renderer as Subdoc
-    doc.add_paragraph("{{ financials_table }}")
+    doc.add_heading("Revenue by Segment", level=2)
+    doc.add_paragraph("{{ segment_chart }}")
+    doc.add_paragraph("{{p segments_table }}")
+    doc.add_heading("Revenue by Geography", level=2)
+    doc.add_paragraph("{{p geo_table }}")
+    doc.add_heading("Capital Return & Share Count", level=2)
+    doc.add_paragraph("{{p shares_outstanding_table }}")
 
 
 def _add_guidance_track_record(doc):
     doc.add_paragraph("{% if has_guidance %}")
     doc.add_heading("Guidance Track Record", level=1)
-    doc.add_paragraph("{{ guidance_summary }}")
-    # Table built dynamically by renderer as Subdoc
-    doc.add_paragraph("{{ guidance_table }}")
+    doc.add_paragraph("{{ guidance_track_record }}")
     doc.add_paragraph("{% endif %}")
 
 
@@ -188,7 +186,7 @@ def _add_scenario_analysis(doc):
 
 def _add_capital_allocation(doc):
     doc.add_heading("Capital Allocation", level=1)
-    doc.add_paragraph("{{ capital_allocation_summary }}")
+    doc.add_paragraph("{{ capital_allocation_commentary }}")
 
 
 def _add_valuation(doc):
@@ -202,15 +200,13 @@ def _add_valuation(doc):
 
     doc.add_paragraph("{% if has_comps %}")
     doc.add_heading("Comparable Companies", level=2)
-    # Table built dynamically by renderer as Subdoc
-    doc.add_paragraph("{{ comps_table }}")
+    doc.add_paragraph("{{ comps_commentary }}")
     doc.add_paragraph("{% endif %}")
 
 
 def _add_risks(doc):
     doc.add_heading("Key Risks", level=1)
-    # Table built dynamically by renderer as Subdoc
-    doc.add_paragraph("{{ risks_table }}")
+    doc.add_paragraph("{{ risks_summary }}")
 
 
 def _add_appendix(doc):
