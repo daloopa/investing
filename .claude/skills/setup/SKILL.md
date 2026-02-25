@@ -92,11 +92,12 @@ Tell the user about the available slash commands:
 - `/dcf TICKER` — DCF valuation with sensitivity analysis
 - `/comps TICKER` — Trading comparables with peer multiples
 
-**Investment Deliverables** (.docx and .xlsx):
+**Investment Deliverables** (.docx, .xlsx, .pdf):
 - `/research-note TICKER` — Professional Word research note
-- `/model TICKER` — Multi-tab Excel financial model
+- `/build-model TICKER` — Multi-tab Excel financial model
 - `/initiate TICKER` — Both research note + Excel model (initiating coverage)
 - `/update TICKER` — Refresh existing coverage with latest data
+- `/ib-deck TICKER` — Institutional-grade pitch deck (HTML → PDF)
 
 All output is saved to the `reports/` directory.
 

@@ -6,22 +6,22 @@ argument-hint: TICKER
 
 Initiate coverage on the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 This is the capstone skill that produces both a research note and an Excel model from a single comprehensive data gathering pass.
 
 ## Strategy
-Rather than running `/research-note` and `/model` independently (which would duplicate data gathering), this skill gathers a superset of data once, then renders both outputs.
+Rather than running `/research-note` and `/build-model` independently (which would duplicate data gathering), this skill gathers a superset of data once, then renders both outputs.
 
 ## Phase 1 — Company Setup
 Look up the company by ticker. Note company_id, full name, latest available quarter.
-Run market data commands:
-- `python infra/market_data.py quote {TICKER}` — price, market cap, shares, beta
-- `python infra/market_data.py multiples {TICKER}` — trading multiples
-- `python infra/market_data.py risk-free-rate` — for DCF
+Get market data (see data-access.md Section 2):
+- Current price, market cap, shares outstanding, beta
+- Trading multiples (P/E, EV/EBITDA, P/S, P/B)
+- Risk-free rate (for DCF)
 
 ## Phase 2 — Comprehensive Data Gathering
-Follow the `/model` skill's Phase 2 data pull (the most comprehensive). Pull 8-16 quarters of:
+Follow the `/build-model` skill's Phase 2 data pull (the most comprehensive). Pull 8-16 quarters of:
 - Full Income Statement (Revenue through EPS, including D&A for EBITDA calc)
 - Full Balance Sheet (Cash through Equity)
 - Full Cash Flow Statement (OCF, CapEx, FCF, Dividends, Buybacks)
@@ -33,14 +33,13 @@ Follow the `/model` skill's Phase 2 data pull (the most comprehensive). Pull 8-1
 
 ## Phase 3 — Peer Analysis
 Identify 5-8 comparable companies.
-Run `python infra/market_data.py peers {PEER1} {PEER2} ...` for multiples.
+Get peer trading multiples (see data-access.md Section 2).
+If consensus forward estimates are available (data-access.md Section 3), include NTM estimates.
 Pull peer fundamentals from Daloopa where available (revenue growth, margins).
 
 ## Phase 4 — Projections
-Write historical data to `reports/.tmp/{TICKER}_initiate_input.json`.
-Run projection engine if available:
-`python infra/projection_engine.py --context reports/.tmp/{TICKER}_initiate_input.json --output reports/.tmp/{TICKER}_initiate_projections.json`
-Otherwise project manually.
+If a projection engine is available (see data-access.md Section 5), use it. Otherwise project manually.
+Write historical data to `reports/.tmp/{TICKER}_initiate_input.json` for reuse.
 
 ## Phase 5 — DCF Valuation
 - Calculate WACC (CAPM)
@@ -67,12 +66,12 @@ Build bull/base/bear cases:
 ## Phase 8 — Synthesis & Charts
 Write the executive summary, variant perception, and key findings.
 
-Generate charts:
-1. `python infra/chart_generator.py revenue-trend ...`
-2. `python infra/chart_generator.py margin-trend ...`
-3. `python infra/chart_generator.py segment-pie ...`
-4. `python infra/chart_generator.py scenario-bar ...`
-5. `python infra/chart_generator.py dcf-sensitivity ...`
+If chart generation is available (see data-access.md Section 5), generate charts:
+1. Revenue time-series
+2. Margin time-series
+3. Segment pie
+4. Scenario bar (bull/base/bear)
+5. DCF sensitivity heatmap
 
 Skip any charts that fail; note which were generated.
 

@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Build a discounted cash flow (DCF) valuation for the company specified by the user: $ARGUMENTS
 
-**Before starting, read `.claude/skills/data-access.md` to determine whether to use MCP tools or API recipe scripts for data access.** Follow its detection logic and use the appropriate method throughout this skill.
+**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -14,11 +14,11 @@ Follow these steps:
 Look up the company by ticker. Note the company_id, full name, and latest available quarter.
 
 ## 2. Market Data
-Run these commands to get market-side inputs:
-- `python infra/market_data.py quote {TICKER}` — price, market cap, shares outstanding, beta
-- `python infra/market_data.py risk-free-rate` — 10Y Treasury rate for WACC
+Get market-side inputs for {TICKER} (see data-access.md Section 2 for how to source market data in your environment):
+- Current price, market cap, shares outstanding, beta
+- 10Y Treasury yield (risk-free rate for WACC)
 
-If market data scripts aren't available or fail, use reasonable defaults: beta=1.0, risk-free rate=4.5%, and note the assumptions.
+If market data is unavailable, use reasonable defaults: beta=1.0, risk-free rate=4.5%, and note the assumptions.
 
 ## 3. Historical Financials from Daloopa
 Pull 8 quarters of:
@@ -58,19 +58,42 @@ Also pull segment revenue and any available guidance series.
 
 Show all inputs and the resulting WACC clearly.
 
-## 5. Project Free Cash Flows
+## 5a. KPI-Driven Revenue Build (Preferred)
 
-Build 5-year FCF projections. Use `python infra/projection_engine.py` if available:
-- Write historical data to a JSON context file at `reports/.tmp/{TICKER}_dcf_input.json`
-- Run: `python infra/projection_engine.py --context reports/.tmp/{TICKER}_dcf_input.json --output reports/.tmp/{TICKER}_dcf_projections.json`
-- Read the projections output
+Before projecting top-down, attempt a bottoms-up revenue build using operational KPIs. This produces a significantly more defensible DCF — a top-down trend decay is a guess; a bottoms-up KPI build is analysis.
 
-If the projection engine isn't available, project manually:
+**Discover segment and KPI data:**
+Pull segment revenue breakdown + segment-specific KPIs for the target company. Use the sector taxonomy to know what to search for:
+
+- **SaaS/Cloud**: ARR, net revenue retention, RPO/cRPO, customers >$100K, cloud gross margin
+- **Consumer Tech**: DAU/MAU, ARPU, engagement metrics, installed base, paid subscribers
+- **E-commerce/Marketplace**: GMV, take rate, active buyers/sellers, order frequency
+- **Retail**: same-store sales, store count, average ticket, transactions
+- **Telecom/Media**: subscribers, churn, ARPU, content spend
+- **Hardware**: units shipped, ASP, attach rate, installed base
+- **Financial Services**: AUM, NIM, loan growth, credit quality metrics, fee income ratio
+- **Pharma/Biotech**: pipeline stage, patient starts, scripts, market share
+- **Industrials/Energy**: backlog, book-to-bill, utilization, production volumes, reserves
+
+**Build bottoms-up projections per segment:**
+For each segment with KPI data, project revenue using unit economics:
+- Hardware segments: projected units × projected ASP
+- Subscription segments: projected subscribers × projected ARPU (net of churn)
+- Marketplace segments: projected GMV × projected take rate
+- Services/recurring: apply growth rate informed by retention metrics and customer adds
+
+Sum segment projections to get total revenue for each of 5 years. Show the build clearly so the reader can challenge individual segment assumptions.
+
+**Fall back to top-down if KPIs aren't available.** If segment KPIs are sparse or unavailable, use the top-down approach in Section 5b instead, but note explicitly that the model is less reliable without bottoms-up drivers.
+
+## 5b. Top-Down FCF Projections (Fallback)
+
+Build 5-year FCF projections. If a projection engine is available (see data-access.md Section 5), use it. Otherwise, project manually:
 - **Revenue:** Use management guidance for near-term, then decay toward 3% long-term growth
 - **FCF Margin:** Use trailing average, adjust for any clear trends
 - **FCF = Projected Revenue × Projected FCF Margin**
 
-Show all assumptions clearly — this is the most judgment-intensive part.
+Show all assumptions clearly — this is the most judgment-intensive part. If using this fallback instead of the KPI-driven build (Section 5a), note the limitation.
 
 ## 6. Terminal Value
 Calculate terminal value using perpetuity growth method:
@@ -101,14 +124,28 @@ Highlight the base case cell and the current market price for reference.
 
 Also show a secondary sensitivity: Revenue Growth vs FCF Margin if data supports it.
 
-## 9. Sanity Checks
+## 9. Consensus Sanity Check (if available)
+If consensus estimates are available (see data-access.md Section 3):
+- Compare your projected revenue/EPS path to consensus for the next 1-2 years
+- Note where your DCF assumptions diverge from Street expectations
+- If your implied price is significantly above/below consensus target, explain why
+
+If consensus data is not available, skip this check.
+
+## 10. Sanity Checks & Self-Challenge
 Flag any issues:
 - If implied price is >2x or <0.5x current price, note that the DCF produces an extreme result and examine assumptions
 - If terminal value is >85% of total value, the model is highly sensitive to terminal assumptions
 - If WACC < risk-free rate or > 15%, the capital structure inputs may be off
 - Compare implied multiples to historical trading range
 
-## 10. Save Report
+**Challenge your own assumptions — don't anchor to the current price:**
+- Build the DCF from fundamentals first, THEN compare to market price. Don't work backwards from the current price to justify assumptions.
+- If your base case revenue growth assumes continuation of recent trends, stress-test: what if growth mean-reverts to the industry average? What if the current cycle peaks?
+- Explicitly state what has to go right for the bull case implied price and what has to go wrong for the bear case.
+- If the DCF only "works" with aggressive terminal growth or unrealistically low WACC, say so — the stock may simply be expensive on fundamentals.
+
+## 11. Save Report
 Save to `reports/{TICKER}_dcf.md`. Format:
 
 ```
@@ -173,4 +210,10 @@ Data sourced from Daloopa
 
 All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and summarize: implied price vs current price, key upside/downside drivers, and the biggest sensitivity.
+## 12. Render PDF
+Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
+`python3 infra/pdf_renderer.py --input reports/{TICKER}_dcf.md --output reports/{TICKER}_dcf.pdf`
+
+Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+
+Summarize: implied price vs current price, key upside/downside drivers, and the biggest sensitivity.
