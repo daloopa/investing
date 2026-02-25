@@ -71,6 +71,7 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `/capital-allocation TICKER` — Deep dive into buybacks, dividends, shareholder yield
 - `/dcf TICKER` — Discounted cash flow valuation with sensitivity analysis
 - `/comps TICKER` — Trading comparables with peer multiples and implied valuation
+- `/comp-sheet TICKER` — Multi-company industry comp sheet Excel model with deep KPIs
 
 ### Investment Deliverables (.docx, .xlsx, .pdf)
 - `/research-note TICKER` — Generate professional Word research note
@@ -83,7 +84,8 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `infra/market_data.py` — Market data from yfinance (price, multiples, history)
 - `infra/chart_generator.py` — Professional chart generation (6 chart types: time-series, waterfall, football-field, pie, scenario-bar, dcf-sensitivity)
 - `infra/projection_engine.py` — Forward financial projections
-- `infra/excel_builder.py` — Multi-tab Excel model builder
+- `infra/excel_builder.py` — Multi-tab Excel model builder (single-company)
+- `infra/comp_builder.py` — Multi-company comp sheet Excel builder (8 tabs)
 - `infra/docx_renderer.py` — Word document renderer from templates
 - `infra/pdf_renderer.py` — Markdown → styled HTML → PDF renderer
 - `infra/deck_renderer.py` — HTML deck → PDF renderer

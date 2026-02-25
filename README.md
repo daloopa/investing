@@ -37,15 +37,16 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 | Command | Description | Example | Output |
 |---------|-------------|---------|--------|
 | `/setup` | Interactive setup wizard | `/setup` | — |
-| `/earnings` | Full earnings analysis with guidance tracking | `/earnings AAPL` | `reports/AAPL_earnings_2025Q3.md` |
-| `/tearsheet` | Quick one-page company overview | `/tearsheet MSFT` | `reports/MSFT_tearsheet.md` |
-| `/industry` | Cross-company industry comparison | `/industry AAPL MSFT GOOG AMZN` | `reports/AAPL_MSFT_GOOG_AMZN_industry_comp.md` |
-| `/bull-bear` | Bull/bear/base scenario framework | `/bull-bear TSLA` | `reports/TSLA_bull_bear.md` |
-| `/guidance-tracker` | Track management guidance accuracy | `/guidance-tracker NVDA` | `reports/NVDA_guidance_tracker.md` |
-| `/inflection` | Auto-detect metric accelerations/decelerations | `/inflection AAPL` | `reports/AAPL_inflection.md` |
-| `/capital-allocation` | Buybacks, dividends, shareholder yield | `/capital-allocation MSFT` | `reports/MSFT_capital_allocation.md` |
-| `/dcf` | DCF valuation with sensitivity analysis | `/dcf AAPL` | `reports/AAPL_dcf.md` |
-| `/comps` | Trading comparables with peer multiples | `/comps AAPL` | `reports/AAPL_comps.md` |
+| `/earnings` | Full earnings analysis with guidance tracking | `/earnings AAPL` | `reports/AAPL_earnings_2025Q3.pdf` |
+| `/tearsheet` | Quick one-page company overview | `/tearsheet MSFT` | `reports/MSFT_tearsheet.pdf` |
+| `/industry` | Cross-company industry comparison | `/industry AAPL MSFT GOOG AMZN` | `reports/AAPL_MSFT_GOOG_AMZN_industry_comp.pdf` |
+| `/bull-bear` | Bull/bear/base scenario framework | `/bull-bear TSLA` | `reports/TSLA_bull_bear.pdf` |
+| `/guidance-tracker` | Track management guidance accuracy | `/guidance-tracker NVDA` | `reports/NVDA_guidance_tracker.pdf` |
+| `/inflection` | Auto-detect metric accelerations/decelerations | `/inflection AAPL` | `reports/AAPL_inflection.pdf` |
+| `/capital-allocation` | Buybacks, dividends, shareholder yield | `/capital-allocation MSFT` | `reports/MSFT_capital_allocation.pdf` |
+| `/dcf` | DCF valuation with sensitivity analysis | `/dcf AAPL` | `reports/AAPL_dcf.pdf` |
+| `/comps` | Trading comparables with peer multiples | `/comps AAPL` | `reports/AAPL_comps.pdf` |
+| `/comp-sheet` | Multi-company industry comp sheet model | `/comp-sheet AAPL` | `reports/AAPL_comp_sheet.xlsx` |
 
 ### Investment Deliverables (.docx, .xlsx, .pdf)
 
@@ -166,6 +167,7 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │       ├── capital-allocation/# /capital-allocation — capital deployment
 │       ├── dcf/               # /dcf — DCF valuation
 │       ├── comps/             # /comps — trading comparables
+│       ├── comp-sheet/        # /comp-sheet — industry comp Excel model
 │       ├── ib-deck/           # /ib-deck — pitch deck builder
 │       ├── research-note/     # /research-note — Word document output
 │       ├── build-model/       # /build-model — Excel model output
@@ -185,7 +187,8 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │   ├── market_data.py         # Market data from yfinance/FRED
 │   ├── chart_generator.py     # Professional chart generation (6 types)
 │   ├── projection_engine.py   # Forward financial projections
-│   ├── excel_builder.py       # Multi-tab Excel model builder
+│   ├── excel_builder.py       # Multi-tab Excel model builder (single-company)
+│   ├── comp_builder.py        # Multi-company comp sheet builder (8 tabs)
 │   ├── docx_renderer.py       # Word document renderer
 │   ├── pdf_renderer.py        # Markdown → styled PDF
 │   ├── deck_renderer.py       # HTML deck → PDF

@@ -118,4 +118,10 @@ Data sourced from Daloopa
 
 All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight the 2-3 most notable inflections and what they signal.
+## 9. Render PDF
+Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
+`python3 infra/pdf_renderer.py --input reports/{TICKER}_inflection.md --output reports/{TICKER}_inflection.pdf`
+
+Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+
+Highlight the 2-3 most notable inflections and what they signal.

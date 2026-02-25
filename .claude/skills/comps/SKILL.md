@@ -52,6 +52,24 @@ For each peer that is available in Daloopa:
 
 For peers not in Daloopa, rely on yfinance multiples only and note the data source limitation.
 
+## 5.5. Peer Operational KPIs
+
+For each company (target + all peers available in Daloopa), discover and pull company-specific operational KPIs. Use the sector taxonomy below to know what to search for:
+
+- **SaaS/Cloud**: ARR, net revenue retention, RPO/cRPO, customers >$100K, cloud gross margin
+- **Consumer Tech**: DAU/MAU, ARPU, engagement metrics, installed base, paid subscribers
+- **E-commerce/Marketplace**: GMV, take rate, active buyers/sellers, order frequency
+- **Retail**: same-store sales, store count, average ticket, transactions
+- **Telecom/Media**: subscribers, churn, ARPU, content spend
+- **Hardware**: units shipped, ASP, attach rate, installed base
+- **Financial Services**: AUM, NIM, loan growth, credit quality metrics, fee income ratio
+- **Pharma/Biotech**: pipeline stage, patient starts, scripts, market share
+- **Industrials/Energy**: backlog, book-to-bill, utilization, production volumes, reserves
+
+Pull trailing 4Q for each peer. Not all peers will have the same KPIs — build a sparse matrix and note which are comparable across the group vs company-specific.
+
+Add KPI columns to the comps table in Section 6 where comparable metrics exist (e.g., subscriber growth, ARPU, units alongside P/E and EV/EBITDA). This shows whether valuation premiums are supported by operational outperformance.
+
 ## 6. Build Comps Table
 Create the main comparables table with these columns:
 | Company | Ticker | Mkt Cap | EV | P/E | Fwd P/E | EV/EBITDA | P/S | Rev Growth | Op Margin | Net Margin | FCF Yield |
@@ -101,6 +119,7 @@ Assess whether the target trades at a premium or discount to peers:
 - A company can deserve a premium and still be overvalued if the premium has stretched too far beyond fundamentals. Quantify: how much growth differential is needed to justify the current premium? Is the company delivering that?
 - If the stock trades at a significant premium but growth is decelerating toward peer levels, flag the derating risk explicitly.
 - Don't default to "premium is justified because it's the market leader" — that's already in the price. What justifies the premium *expanding* or *sustaining* from here?
+- **Reference KPI outperformance as justification (or lack thereof).** Example: "AAPL trades at 34x P/E vs peer median 28x — premium partly justified by +14% Services growth vs peer median +8%, but Wearables decline (-2.2% YoY) is a drag peers don't have." If the target's KPIs are in line with or worse than peers, the premium is harder to defend.
 
 ## 10. Save Report
 Save to `reports/{TICKER}_comps.md`. Format:
@@ -138,12 +157,22 @@ Generated: {date}
 ## Premium/Discount Justification
 {Analysis of whether current premium/discount is warranted}
 
+## Peer Operational KPIs
+| KPI | {TICKER} | Peer 1 | Peer 2 | ... | Peer Median |
+{KPI comparison table — sparse where data unavailable, footnoted}
+
 ## Key Observations
-- {3-5 bullet points on relative valuation, standout metrics, peer group dynamics}
+- {3-5 bullet points on relative valuation, standout metrics, peer group dynamics, KPI differentiation}
 
 Data sourced from Daloopa
 ```
 
 All financial figures from Daloopa must use citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight: where the stock trades relative to peers (premium/discount), the implied valuation range, and the most relevant multiple for this company.
+## 11. Render PDF
+Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
+`python3 infra/pdf_renderer.py --input reports/{TICKER}_comps.md --output reports/{TICKER}_comps.pdf`
+
+Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+
+Highlight: where the stock trades relative to peers (premium/discount), the implied valuation range, and the most relevant multiple for this company.

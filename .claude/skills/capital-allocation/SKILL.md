@@ -107,6 +107,33 @@ Analyze the 8-quarter trend:
 - If FCF payout ratio exceeds 100%, the company is funding returns with debt or cash drawdowns — flag this as unsustainable.
 - Compare the implied return from buybacks (inverse of P/E at purchase prices) to what the company could earn from organic reinvestment or M&A.
 
+## 6.5. Reinvestment Assessment
+
+Assess whether the company is adequately reinvesting in its business or funding returns at the expense of long-term competitiveness.
+
+**Pull reinvestment metrics (8 quarters):**
+- R&D expense (and R&D as % of revenue)
+- Capital Expenditures (and CapEx as % of revenue)
+- Key growth KPIs relevant to the business model (use sector taxonomy):
+  - **SaaS/Cloud**: ARR, net revenue retention, RPO/cRPO, customers >$100K
+  - **Consumer Tech**: DAU/MAU, ARPU, installed base, paid subscribers
+  - **E-commerce/Marketplace**: GMV, take rate, active buyers/sellers
+  - **Retail**: same-store sales, store count, average ticket
+  - **Telecom/Media**: subscribers, churn, ARPU, content spend
+  - **Hardware**: units shipped, ASP, attach rate
+  - **Financial Services**: AUM, NIM, loan growth, fee income ratio
+  - **Pharma/Biotech**: pipeline stage, patient starts, scripts, market share
+  - **Industrials/Energy**: backlog, book-to-bill, utilization, production volumes
+
+**Assess reinvestment adequacy:**
+- Is R&D/revenue trending down while buybacks are increasing? This may indicate the company is funding shareholder returns by underinvesting in innovation.
+- Is CapEx/revenue declining while the business requires sustained infrastructure investment (e.g., cloud, manufacturing, stores)?
+- Are growth KPIs (subscriber adds, customer growth, same-store sales) deteriorating while capital returns are at record levels? This is a red flag — the company may be harvesting rather than growing.
+- Compare R&D intensity and CapEx intensity vs peers (if available from /industry or /comps data). Is the company investing more or less than competitors?
+
+**Value creation vs extraction verdict:**
+- Net assessment: Is the company's capital allocation creating long-term value (reinvesting at high ROIC, buying back cheap stock, growing dividends sustainably) or extracting value (under-investing to fund buybacks at premium valuations, leveraging up for returns)?
+
 ## 7. Save Report
 Save to `reports/{TICKER}_capital_allocation.md`. Format:
 
@@ -146,6 +173,12 @@ Generated: {date}
 ## Capital Allocation Framework
 {Management's stated priorities from filings, with document citations}
 
+## Reinvestment Assessment
+| Metric | Q1 | Q2 | ... | Q8 |
+{R&D, R&D % Rev, CapEx, CapEx % Rev, key growth KPIs — with Daloopa citations}
+
+{Analysis: Is the company adequately reinvesting? R&D/CapEx trends vs growth KPI trends. Value creation vs extraction verdict.}
+
 ## Buyback Discipline Analysis
 {Analysis of buyback timing vs price, share count reduction trend, authorization remaining}
 
@@ -160,4 +193,10 @@ Data sourced from Daloopa
 
 All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight the key capital allocation story (e.g., "AAPL returned $XX billion to shareholders over the last year, a X.X% shareholder yield, with buybacks accelerating").
+## 8. Render PDF
+Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
+`python3 infra/pdf_renderer.py --input reports/{TICKER}_capital_allocation.md --output reports/{TICKER}_capital_allocation.pdf`
+
+Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+
+Highlight the key capital allocation story (e.g., "AAPL returned $XX billion to shareholders over the last year, a X.X% shareholder yield, with buybacks accelerating").

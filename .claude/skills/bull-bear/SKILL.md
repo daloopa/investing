@@ -118,4 +118,10 @@ Save to `reports/{TICKER}_bull_bear.md`. The report should include:
 - Key swing factors section — the 3-5 variables that most determine which scenario plays out
 - All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight: which scenario you believe is most likely and why, the key swing factors between bull and bear cases, and where you think the market is currently positioned (closer to bull, base, or bear). If the current stock price implies an overly optimistic or pessimistic scenario, flag it.
+## 8. Render PDF
+Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
+`python3 infra/pdf_renderer.py --input reports/{TICKER}_bull_bear.md --output reports/{TICKER}_bull_bear.pdf`
+
+Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+
+Highlight: which scenario you believe is most likely and why, the key swing factors between bull and bear cases, and where you think the market is currently positioned (closer to bull, base, or bear). If the current stock price implies an overly optimistic or pessimistic scenario, flag it.

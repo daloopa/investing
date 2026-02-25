@@ -95,6 +95,35 @@ Extract:
 - Any notable call-outs (one-time items, macro commentary, strategic updates)
 - Direct management quotes where available (with document citations)
 
+## 7.5. Forward Outlook & Revenue Drivers
+
+Synthesize the backward-looking data into a forward-looking view. This section turns the earnings analysis from "what happened" into "what it means for the future."
+
+**Forward Guidance Analysis:**
+- What is management guiding for NEXT quarter and/or full year? Extract specific numbers (revenue range, EPS range, margin targets, CapEx plans).
+- Is the guide conservative or aggressive? Compare to: (a) the company's historical beat rate from Section 5, (b) the current run rate extrapolated forward, (c) consensus if available. A company that beats by 3% every quarter and guides flat is sandbagging; a company that guides for acceleration after 3 quarters of deceleration is aggressive.
+- How does forward guidance compare to trailing trends? If revenue grew +8% YoY last quarter and guidance implies +5%, is management signaling deceleration or being conservative?
+
+**Revenue Driver Decomposition:**
+- Break down what's driving growth: volume vs price vs mix. Which segments are contributing vs dragging?
+- For each major segment, identify the unit economics driver: units x ASP, subscribers x ARPU, GMV x take rate, etc.
+- What has to happen for current growth rates to sustain? If growth is coming from price increases, is there a ceiling? If from volume, is the TAM expanding or saturating?
+
+**KPI Trajectory Implications:**
+- Connect KPI trends to revenue outlook. If subscriber growth is decelerating, what does that imply for next quarter's revenue? If ASPs are rising but units are flat, is that sustainable?
+- If backlog/RPO/deferred revenue is building, when does it convert to recognized revenue? If it's declining, that's a leading indicator of future revenue pressure.
+- Flag any KPI-to-revenue divergences (e.g., user growth accelerating but ARPU declining — net effect on revenue?)
+
+**Trend Synthesis:**
+- Looking at the last 4-8 quarters holistically — is this company accelerating, decelerating, or at a plateau?
+- What's the single most important metric to watch next quarter? Why?
+- Are operating KPIs leading or lagging the financial results?
+
+**Risks to the Forward View:**
+- What could go wrong with the guidance? What assumptions are embedded that could break?
+- Identify the 2-3 biggest risks to the forward trajectory: competitive threats, macro sensitivity, product cycle dependency, regulatory risk, customer concentration.
+- If the bull case requires multiple things to go right simultaneously, flag that explicitly.
+
 ## 8. Save Report
 Save the complete analysis to `reports/{TICKER}_earnings_{PERIOD}.md` where PERIOD is the most recent quarter analyzed. The report should include:
 - Executive summary (2-3 sentence overview of the quarter + 2-3 most notable findings)
@@ -108,7 +137,13 @@ Save the complete analysis to `reports/{TICKER}_earnings_{PERIOD}.md` where PERI
 - Seasonality note if applicable
 - All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-Tell the user where the report was saved and highlight the 2-3 most notable findings with a critical lens:
+## 9. Render PDF
+Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
+`python3 infra/pdf_renderer.py --input reports/{TICKER}_earnings_{PERIOD}.md --output reports/{TICKER}_earnings_{PERIOD}.pdf`
+
+Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+
+Highlight the 2-3 most notable findings with a critical lens:
 - **Quality of earnings**: Are the beats sustainable or driven by one-time items, favorable timing, or accounting changes? Is revenue growth real or pulled forward?
 - **Red flags**: Any deterioration in cash conversion, growing GAAP vs non-GAAP gaps, rising SBC dilution, margin expansion from under-investment?
 - **What the market is missing**: What does the data say that consensus might not be pricing in — positive or negative?

@@ -97,12 +97,16 @@ Available chart types: `time-series`, `waterfall`, `football-field`, `pie`, `sce
 
 For forward financial projections: `python infra/projection_engine.py --context input.json --output projections.json`
 
-### PDF Rendering
+### PDF Rendering (Building Block Skills)
 
-To convert a markdown report to a styled PDF: `python infra/pdf_renderer.py --input reports/{file}.md --output reports/{file}.pdf`
+After saving the markdown report, render it to PDF:
+`python3 infra/pdf_renderer.py --input reports/{file}.md --output reports/{file}.pdf`
 
-### Word / Excel Rendering
+The PDF renderer applies the design system styling (typography, colors, table formatting) and produces a professional document. **All building block skills must render to PDF** — the markdown file is the intermediate format; the PDF is the deliverable. If rendering fails, the markdown file is still saved as a fallback.
+
+### Word / Excel / Comp Sheet Rendering
 
 - Word documents: `python infra/docx_renderer.py --template templates/research_note.docx --context context.json --output output.docx`
 - Excel models: `python infra/excel_builder.py --context context.json --output output.xlsx`
+- Comp sheet models: `python3 infra/comp_builder.py --context context.json --output output.xlsx`
 - Context diffs: `python infra/report_differ.py --old old.json --new new.json --output diff.json`
