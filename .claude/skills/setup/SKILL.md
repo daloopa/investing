@@ -58,10 +58,6 @@ Ask if they want to configure optional API keys for enhanced functionality:
 - Without it, a default rate of 4.5% is used
 - Add to `.env`: `FRED_API_KEY=<their_key>`
 
-**FMP API Key** (optional fallback for market data):
-- 250 free calls/day at https://financialmodelingprep.com/developer
-- Fallback if yfinance is unavailable
-- Add to `.env`: `FMP_API_KEY=<their_key>`
 
 ## Step 5: Verify MCP Connection
 This project connects to two Daloopa MCP servers:
@@ -71,8 +67,10 @@ This project connects to two Daloopa MCP servers:
 Run a quick test by calling `discover_companies` with a well-known ticker like "AAPL" to confirm the data MCP server is connected and responding. Show the user the result.
 
 ## Step 6: Verify Market Data
-Run a quick test: `python infra/market_data.py quote AAPL`
-This should return current price, market cap, etc. from yfinance.
+If the user has a market data MCP configured (e.g., a financial data provider with stock quote tools), test it by looking up AAPL.
+
+If no market data MCP is available, fall back to the infra script: `python infra/market_data.py quote AAPL`
+This should return current price, market cap, etc.
 
 ## Step 7: Create Word Template
 Run: `python scripts/create_template.py`

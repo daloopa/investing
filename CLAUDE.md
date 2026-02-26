@@ -5,7 +5,7 @@ This is a financial analysis toolkit powered by Daloopa's institutional-grade fi
 ## Analyst Context
 - Perspective: long/short equity, fundamental analysis
 - Data source: Daloopa MCP server (SEC filings, earnings, financial statements)
-- Market data: yfinance (price, multiples, historical), FRED (risk-free rate)
+- Market data: MCP-first (use whatever market data MCP the user has configured), fallback to `infra/market_data.py`
 - Consensus estimates: optional (when available, adds beat/miss and forward context)
 - All analysis should be thorough, data-driven, and cite sources
 - Follow `design-system.md` for number formatting, analytical density, and styling
@@ -19,7 +19,9 @@ Always follow this pattern when working with Daloopa data:
 4. **`search_documents`** — Search SEC filings (10-K, 10-Q, 8-K) for qualitative information
 
 ## Market Data
-Market data is sourced via `infra/market_data.py` using yfinance:
+Market data uses whatever MCP the user has configured (preferred), falling back to `infra/market_data.py` if no market data MCP is available. See `.claude/skills/data-access.md` Section 2 for the full resolution order.
+
+Fallback scripts (when no MCP provides market data):
 - `python infra/market_data.py quote TICKER` — price, market cap, shares, beta
 - `python infra/market_data.py multiples TICKER` — P/E, EV/EBITDA, P/S, P/B
 - `python infra/market_data.py history TICKER --period 2y` — historical OHLCV
@@ -81,7 +83,7 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `/ib-deck TICKER` — Generate institutional-grade pitch deck (HTML → PDF)
 
 ## Infrastructure
-- `infra/market_data.py` — Market data from yfinance (price, multiples, history)
+- `infra/market_data.py` — Market data fallback via yfinance (price, multiples, history)
 - `infra/chart_generator.py` — Professional chart generation (6 chart types: time-series, waterfall, football-field, pie, scenario-bar, dcf-sensitivity)
 - `infra/projection_engine.py` — Forward financial projections
 - `infra/excel_builder.py` — Multi-tab Excel model builder (single-company)

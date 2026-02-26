@@ -184,7 +184,7 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │   ├── poll_for_updates.py
 │   └── series_continuation.py
 ├── infra/                     # Infrastructure scripts (used by skills)
-│   ├── market_data.py         # Market data from yfinance/FRED
+│   ├── market_data.py         # Market data fallback (yfinance/FRED)
 │   ├── chart_generator.py     # Professional chart generation (6 types)
 │   ├── projection_engine.py   # Forward financial projections
 │   ├── excel_builder.py       # Multi-tab Excel model builder (single-company)
@@ -215,7 +215,6 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 | Key | Purpose | How to Get |
 |-----|---------|------------|
 | `FRED_API_KEY` | Risk-free rate for DCF/WACC | Free at [fred.stlouisfed.org](https://fred.stlouisfed.org/docs/api/api_key.html) |
-| `FMP_API_KEY` | Fallback market data (250 calls/day) | Free at [financialmodelingprep.com](https://financialmodelingprep.com/developer) |
 
 Add to `.env` if desired. Without FRED, DCF calculations default to a 4.5% risk-free rate.
 
