@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Track management guidance accuracy for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -83,23 +83,24 @@ Search SEC filings/documents across multiple queries to build a complete picture
 Extract direct management quotes where available and cite the document source.
 
 ## 8. Save Report
-Save to `reports/{TICKER}_guidance_tracker.md`. The report should include:
+Save to `reports/{TICKER}_guidance_tracker.html` using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
+
+The report should include:
 - Summary header with company name, ticker, and period covered
-- Quarter mapping table showing guidance source -> actual result period
-- Main tracker table:
-
-| Guidance Source | Metric | Guidance | Actual Period | Actual | Delta | Beat/Miss |
-{with Daloopa citations on all values}
-
+- Quarter mapping reference table showing the +1 offset explicitly:
+  ```
+  | Guidance Source Quarter | Guidance Applies To | Actual Result Quarter |
+  | CQ1 2024               | CQ2 2024            | CQ2 2024              |
+  | CQ2 2024               | CQ3 2024            | CQ3 2024              |
+  ```
+  This makes the offset rule visible and auditable for every row in the tracker.
+- Main tracker table with columns: Guidance Source, Metric, Guidance, Actual Period, Actual, Delta, Beat/Miss (with Daloopa citations on all values)
 - Summary statistics (beat rate, avg beat/miss by metric)
 - Pattern analysis narrative
 - Key guidance quotes from filings with document citations
-- All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-## 9. Render PDF
-Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
-`python3 infra/pdf_renderer.py --input reports/{TICKER}_guidance_tracker.md --output reports/{TICKER}_guidance_tracker.pdf`
+All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
 
-Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+Tell the user where the HTML report was saved.
 
 Highlight the key patterns (e.g., "Management has beat revenue guidance 7 of the last 8 quarters by an average of 2.3%"). Include an honest credibility verdict: Is management's guidance informative or performative? Should investors trust the forward guidance, and if not, what should they anchor to instead?

@@ -6,7 +6,7 @@ argument-hint: TICKER [--category ib-advisory|activist-ls]
 
 Build an institutional-grade pitch deck for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Also read the reference files in this skill's `references/` directory for slide templates and components.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Also read the reference files in this skill's `references/` directory for slide templates and components.
 
 This is a project-only skill that generates a self-contained HTML presentation and renders it to PDF.
 
@@ -30,8 +30,8 @@ Use Daloopa MCP for all financial data. Target comprehensive coverage:
 - **5+ years of quarterly financials** (income statement, balance sheet, cash flow)
 - **Segment and geographic breakdowns**
 - **All company-specific operating KPIs**
-- **6-10 peers** — get trading multiples and fundamentals from Daloopa + market data (see data-access.md Section 2)
-- **Guidance and consensus** (see data-access.md Section 3)
+- **6-10 peers** — get trading multiples and fundamentals from Daloopa + market data (see ../data-access.md Section 2)
+- **Guidance and consensus** (see ../data-access.md Section 3)
 - **SEC filings** — risk factors, growth drivers, M&A commentary, strategic language
 
 Get market data for the target and all peers:
@@ -73,7 +73,7 @@ Generate a self-contained HTML file following the templates in `references/slide
 - Every content slide must have minimum 2-3 data-rich elements (tables, charts, commentary)
 - No sparse slides — fill the space with analysis
 - All financial figures must include Daloopa citations
-- Follow design-system.md for colors, typography, number formatting
+- Follow ../design-system.md for colors, typography, number formatting
 - Use CSS `@page` with landscape orientation, 16:9 aspect ratio (1280×720px per slide)
 - Each slide is a `<div class="slide">` with `page-break-after: always`
 

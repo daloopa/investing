@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Build a trading comparables analysis for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -36,7 +36,7 @@ Pull from Daloopa for the target company (last 4 quarters):
 - Net Margin (most recent quarter)
 
 ## 4. Peer Market Multiples
-For each peer, get trading multiples and current quote (see data-access.md Section 2):
+For each peer, get trading multiples and current quote (see ../data-access.md Section 2):
 - P/E (trailing and forward), EV/EBITDA, P/S, P/B, dividend yield, PEG ratio
 - Price, market cap, enterprise value
 
@@ -98,7 +98,7 @@ For each:
 Compute range (min to max implied price) and central tendency.
 
 ## 8. Consensus Forward Estimates (if available)
-If consensus estimates are available (see data-access.md Section 3):
+If consensus estimates are available (see ../data-access.md Section 3):
 - Add NTM (next twelve months) revenue and EPS estimates for target and each peer
 - Compute forward P/E and forward EV/EBITDA using consensus NTM estimates
 - Note where the target's forward multiples sit vs the peer group
@@ -122,57 +122,65 @@ Assess whether the target trades at a premium or discount to peers:
 - **Reference KPI outperformance as justification (or lack thereof).** Example: "AAPL trades at 34x P/E vs peer median 28x — premium partly justified by +14% Services growth vs peer median +8%, but Wearables decline (-2.2% YoY) is a drag peers don't have." If the target's KPIs are in line with or worse than peers, the premium is harder to defend.
 
 ## 10. Save Report
-Save to `reports/{TICKER}_comps.md`. Format:
+Save to `reports/{TICKER}_comps.html` using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
+
+Structure the report with these sections:
 
 ```
-# {Company Name} ({TICKER}) — Comparable Companies Analysis
-Generated: {date}
+<h1>{Company Name} ({TICKER}) — Comparable Companies Analysis</h1>
+<p>Generated: {date}</p>
 
-## Summary
+<h2>Summary</h2>
 {2-3 sentences: Where does the company trade relative to peers? Is it cheap or expensive and why?}
 
-## Peer Group Selection
+<h2>Peer Group Selection</h2>
+<table>
 | Peer | Ticker | Rationale |
 {table with justification for each peer}
+</table>
 
-## Comparables Table
+<h2>Comparables Table</h2>
+<table>
 | Company | Ticker | Mkt Cap | P/E | Fwd P/E | EV/EBITDA | P/S | Rev Growth | Op Margin |
 {full comps table with target highlighted}
 | **Peer Median** | | | XX.Xx | XX.Xx | XX.Xx | XX.Xx | X.X% | X.X% |
 | **Peer Mean** | | | XX.Xx | XX.Xx | XX.Xx | XX.Xx | X.X% | X.X% |
 | **{TICKER}** | | | **XX.Xx** | **XX.Xx** | **XX.Xx** | **XX.Xx** | **X.X%** | **X.X%** |
+</table>
 
-## Target vs Peer Premium/Discount
+<h2>Target vs Peer Premium/Discount</h2>
+<table>
 | Multiple | Target | Peer Median | Premium/Discount |
 {table showing where target is rich/cheap}
+</table>
 
-## Implied Valuation
+<h2>Implied Valuation</h2>
+<table>
 | Methodology | Multiple | Target Metric | Implied Price | vs Current |
 {table with implied values}
+</table>
 
+<table>
 | **Valuation Range** | **Low** | **Median** | **High** |
 | Implied Price | $XXX | $XXX | $XXX |
 | vs Current Price | -X% | +X% | +X% |
+</table>
 
-## Premium/Discount Justification
+<h2>Premium/Discount Justification</h2>
 {Analysis of whether current premium/discount is warranted}
 
-## Peer Operational KPIs
+<h2>Peer Operational KPIs</h2>
+<table>
 | KPI | {TICKER} | Peer 1 | Peer 2 | ... | Peer Median |
 {KPI comparison table — sparse where data unavailable, footnoted}
+</table>
 
-## Key Observations
-- {3-5 bullet points on relative valuation, standout metrics, peer group dynamics, KPI differentiation}
-
-Data sourced from Daloopa
+<h2>Key Observations</h2>
+<ul>{3-5 bullet points on relative valuation, standout metrics, peer group dynamics, KPI differentiation}</ul>
 ```
 
-All financial figures from Daloopa must use citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
+All financial figures from Daloopa must use citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
 
-## 11. Render PDF
-Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
-`python3 infra/pdf_renderer.py --input reports/{TICKER}_comps.md --output reports/{TICKER}_comps.pdf`
-
-Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+Tell the user where the HTML report was saved.
 
 Highlight: where the stock trades relative to peers (premium/discount), the implied valuation range, and the most relevant multiple for this company.

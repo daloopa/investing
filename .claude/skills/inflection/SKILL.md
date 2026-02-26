@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Detect the biggest financial and operating inflections for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -79,49 +79,51 @@ Identify the narrative:
 - Flag any inflections where the magnitude seems too good/bad to be sustainable.
 
 ## 8. Save Report
-Save to `reports/{TICKER}_inflection.md`. Format:
+Save to `reports/{TICKER}_inflection.html` using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
+
+Structure the report with these sections:
 
 ```
-# {Company Name} ({TICKER}) — Inflection Analysis
-Generated: {date}
+<h1>{Company Name} ({TICKER}) — Inflection Analysis</h1>
+<p>Generated: {date}</p>
 
-## Summary
+<h2>Summary</h2>
 {2-3 sentence overview: Is the company accelerating, decelerating, or mixed? What are the most important inflections?}
 
-## Top Accelerating Metrics
+<h2>Top Accelerating Metrics</h2>
+<table>
 | Rank | Metric | Latest Value | YoY Growth | Prior YoY Growth | Acceleration | Trend |
 {table with Daloopa citations}
+</table>
 
-## Top Decelerating Metrics
+<h2>Top Decelerating Metrics</h2>
+<table>
 | Rank | Metric | Latest Value | YoY Growth | Prior YoY Growth | Deceleration | Trend |
 {table with Daloopa citations}
+</table>
 
-## Key Inflection Deep Dives
+<h2>Key Inflection Deep Dives</h2>
 
-### 1. {Metric Name} — {Accelerating/Decelerating}
+<h3>1. {Metric Name} — {Accelerating/Decelerating}</h3>
 {Context from filings, management commentary, what's driving it}
 
-### 2. {Metric Name} — {Accelerating/Decelerating}
+<h3>2. {Metric Name} — {Accelerating/Decelerating}</h3>
 {...}
 
 {repeat for top 5}
 
-## Divergences & Signals
+<h2>Divergences & Signals</h2>
 {Analysis of divergent trends, leading indicators, and implications}
 
-## Inflection Heatmap
+<h2>Inflection Heatmap</h2>
+<table>
 | Metric | Q(-3) YoY | Q(-2) YoY | Q(-1) YoY | Q(latest) YoY | Direction |
-{visual trend using arrows or labels: Accelerating / Steady / Decelerating}
-
-Data sourced from Daloopa
+{visual trend using labels: Accelerating / Steady / Decelerating}
+</table>
 ```
 
-All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
+All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
 
-## 9. Render PDF
-Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
-`python3 infra/pdf_renderer.py --input reports/{TICKER}_inflection.md --output reports/{TICKER}_inflection.pdf`
-
-Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+Tell the user where the HTML report was saved.
 
 Highlight the 2-3 most notable inflections and what they signal.

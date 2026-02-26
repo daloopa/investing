@@ -60,7 +60,7 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 
 ## Available Commands
 
-### Building Block Skills (markdown reports + PDF)
+### Building Block Skills (HTML reports)
 - `/setup` — Walk through initial setup and authentication
 - `/earnings TICKER` — Full earnings analysis with guidance tracking
 - `/tearsheet TICKER` — Quick one-page company overview

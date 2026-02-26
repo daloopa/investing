@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Update existing coverage for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 This skill refreshes existing deliverables with the latest quarterly data, highlights what changed, and re-renders both outputs.
 
@@ -34,12 +34,12 @@ Pull data for ALL periods (not just new ones) to ensure consistency:
 This refreshes the entire dataset, catching any Daloopa revisions to prior quarters.
 
 ## Phase 4 — Market Data Refresh
-Get current prices, trading multiples, and risk-free rate (see data-access.md Section 2).
+Get current prices, trading multiples, and risk-free rate (see ../data-access.md Section 2).
 
 Also refresh peer multiples if comps data exists in context.
 
 ## Phase 5 — Re-run Projections
-With updated historical data, re-run projections. If a projection engine is available (see data-access.md Section 5), use it. Otherwise project manually.
+With updated historical data, re-run projections. If a projection engine is available (see ../data-access.md Section 5), use it. Otherwise project manually.
 
 ## Phase 6 — Diff Analysis
 Save the new context alongside the old:

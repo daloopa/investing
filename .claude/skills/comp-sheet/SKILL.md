@@ -8,7 +8,7 @@ Build a multi-company industry comp sheet Excel model for the company specified 
 
 This produces an interactive `.xlsx` workbook — the kind of comp sheet every analyst on a coverage team maintains. Multi-company, multi-tab, with deep operational KPIs alongside standard financials.
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -47,7 +47,7 @@ For each company (target + all peers), pull from Daloopa:
 - **Pharma/Biotech**: pipeline stage, patient starts, scripts, market share
 - **Industrials/Energy**: backlog, book-to-bill, utilization, production volumes, reserves
 
-**Market data** for each company (see data-access.md Section 2):
+**Market data** for each company (see ../data-access.md Section 2):
 - Price, market cap, enterprise value, shares outstanding, beta
 - All trading multiples: P/E (trailing + forward), EV/EBITDA, P/S, P/B, EV/FCF, dividend yield
 
@@ -141,7 +141,7 @@ Save to `reports/.tmp/{TICKERS}_comp_context.json`.
 
 ## 6. Render Excel
 
-Build the comp sheet workbook (see data-access.md Section 5 for infrastructure):
+Build the comp sheet workbook (see ../data-access.md Section 5 for infrastructure):
 `python3 infra/comp_builder.py --context reports/.tmp/{TICKERS}_comp_context.json --output reports/{TICKERS}_comp_sheet.xlsx`
 
 The builder creates 8 tabs:

@@ -1,6 +1,6 @@
 # Design System
 
-Shared formatting and styling reference for all skills. Follow these conventions for every output — markdown reports, PDF, Word documents, and decks.
+Shared formatting and styling reference for all skills. Building block skills output styled HTML directly using these conventions. Investment deliverables (Word, Excel, PDF decks) follow the same design system in their rendered format.
 
 ## Number Formatting
 
@@ -112,15 +112,15 @@ All skills must produce professional deliverables suitable for institutional dis
 
 | Skill Type | Primary Output | Secondary | Notes |
 |------------|---------------|-----------|-------|
-| Building block analysis | PDF | .md (intermediate) | Markdown is working format; PDF is the deliverable |
+| Building block analysis | .html | — | Styled HTML with design system CSS inlined; opens in any browser |
 | Research notes | .docx | — | Word for editability |
 | Financial models | .xlsx | — | Excel for interactivity |
 | Pitch decks | .pdf | .html (source) | HTML is working format; PDF is the deliverable |
 | Comp sheet models | .xlsx | — | Excel for interactivity |
 
-**Never deliver raw markdown as a final output.** Markdown is an intermediate format for structuring content before rendering. The analyst receives PDF, Word, Excel, or slide deck files.
+**Never deliver raw markdown as a final output.** Building block skills write styled HTML directly using the HTML Report Template below. The analyst receives HTML, Word, Excel, or slide deck files.
 
-## Typography (Rendered Outputs — PDF, Deck, Docx)
+## Typography (Rendered Outputs — HTML, Deck, Docx)
 
 - Primary font: system sans-serif stack (Segoe UI, -apple-system, Arial)
 - Headers: bold, 18-28px, navy (`#1B2A4A`)
@@ -128,3 +128,196 @@ All skills must produce professional deliverables suitable for institutional dis
 - Table cells: 11px, tabular-nums for number alignment
 - Citations: 8-9px italic
 - Slide content (deck): 11-14px with generous line-height
+
+## HTML Report Template
+
+Building block skills write styled HTML directly using this template. Copy the full template (including all CSS) into every report. Write the analysis as HTML content inside the `<body>` — use `<h1>`, `<h2>`, `<h3>` for headings, `<table>` for data tables, `<blockquote>` for commentary blocks, `<p>` for prose, `<ul>`/`<ol>` for lists, and `<a>` for Daloopa citation links.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+:root {
+    --navy: #1B2A4A;
+    --steel-blue: #4A6FA5;
+    --gold: #C5A55A;
+    --green: #27AE60;
+    --red: #C0392B;
+    --light-gray: #F8F9FA;
+    --mid-gray: #E9ECEF;
+    --dark-gray: #6C757D;
+    --near-black: #343A40;
+}
+
+@page {
+    size: A4;
+    margin: 20mm 15mm 20mm 15mm;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--near-black);
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px 40px;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--navy);
+    border-bottom: 3px solid var(--navy);
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+h2 {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--navy);
+    border-bottom: 1px solid var(--mid-gray);
+    padding-bottom: 4px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+
+h3 {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--steel-blue);
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+p {
+    margin-bottom: 8px;
+}
+
+a {
+    color: var(--steel-blue);
+    text-decoration: none;
+}
+
+strong {
+    font-weight: 600;
+}
+
+em {
+    font-style: italic;
+    color: var(--dark-gray);
+}
+
+blockquote {
+    border-left: 4px solid var(--steel-blue);
+    background: var(--light-gray);
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 11px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+thead {
+    background: var(--navy);
+    color: white;
+}
+
+th {
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--mid-gray);
+}
+
+/* Right-align numeric columns (2nd column onward) */
+td:not(:first-child), th:not(:first-child) {
+    text-align: right;
+}
+
+tr:nth-child(even) {
+    background: var(--light-gray);
+}
+
+tr:hover {
+    background: #EDF2F7;
+}
+
+code {
+    background: var(--light-gray);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 10px;
+}
+
+pre {
+    background: var(--light-gray);
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 10px;
+}
+
+ul, ol {
+    padding-left: 20px;
+    margin-bottom: 8px;
+}
+
+li {
+    margin-bottom: 4px;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--mid-gray);
+    margin: 20px 0;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    margin: 12px 0;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    font-size: 9px;
+    color: var(--dark-gray);
+    font-style: italic;
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid var(--mid-gray);
+}
+    </style>
+</head>
+<body>
+
+<!-- Report content goes here: use <h1>, <h2>, <table>, <blockquote>, <p>, <a>, etc. -->
+
+<div class="footer">Data sourced from Daloopa</div>
+</body>
+</html>
+```

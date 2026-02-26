@@ -58,6 +58,7 @@ TABLE_CONFIGS = {
 # Tables with dynamic columns (detected from first row keys)
 DYNAMIC_TABLES = {
     "financials_table", "segments_table", "geo_table", "shares_outstanding_table",
+    "opex_breakdown_table",
 }
 
 # ---------------------------------------------------------------------------

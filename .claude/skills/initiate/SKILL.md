@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Initiate coverage on the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 This is the capstone skill that produces both a research note and an Excel model from a single comprehensive data gathering pass.
 
@@ -15,7 +15,7 @@ Rather than running `/research-note` and `/build-model` independently (which wou
 
 ## Phase 1 — Company Setup
 Look up the company by ticker. Note company_id, full name, latest available quarter.
-Get market data (see data-access.md Section 2):
+Get market data (see ../data-access.md Section 2):
 - Current price, market cap, shares outstanding, beta
 - Trading multiples (P/E, EV/EBITDA, P/S, P/B)
 - Risk-free rate (for DCF)
@@ -33,12 +33,12 @@ Follow the `/build-model` skill's Phase 2 data pull (the most comprehensive). Pu
 
 ## Phase 3 — Peer Analysis
 Identify 5-8 comparable companies.
-Get peer trading multiples (see data-access.md Section 2).
-If consensus forward estimates are available (data-access.md Section 3), include NTM estimates.
+Get peer trading multiples (see ../data-access.md Section 2).
+If consensus forward estimates are available (../data-access.md Section 3), include NTM estimates.
 Pull peer fundamentals from Daloopa where available (revenue growth, margins).
 
 ## Phase 4 — Projections
-If a projection engine is available (see data-access.md Section 5), use it. Otherwise project manually.
+If a projection engine is available (see ../data-access.md Section 5), use it. Otherwise project manually.
 Write historical data to `reports/.tmp/{TICKER}_initiate_input.json` for reuse.
 
 ## Phase 5 — DCF Valuation
@@ -56,17 +56,17 @@ Search SEC filings comprehensively:
 - Company-specific strategic topics
 Extract business description, risks (ranked), investment thesis, catalysts.
 
-## Phase 7 — Scenario Analysis
-Build bull/base/bear cases:
-- Bottoms-up segment revenue builds for each scenario
-- Margin, EPS, and price target implications
-- Probability weighting based on recent data
-- Key swing factors
+## Phase 7 — What You Need to Believe
+Build falsifiable bull/bear beliefs (follows /research-note methodology):
+- 4-6 numbered bull beliefs with evidence and Daloopa citations — each testable in 6 months
+- 4-6 numbered bear beliefs with evidence and Daloopa citations — each testable in 6 months
+- Valuation math for each side: forward multiple × earnings estimate = price target
+- Risk/reward asymmetry assessment (bull upside % vs bear downside %)
 
 ## Phase 8 — Synthesis & Charts
 Write the executive summary, variant perception, and key findings.
 
-If chart generation is available (see data-access.md Section 5), generate charts:
+If chart generation is available (see ../data-access.md Section 5), generate charts:
 1. Revenue time-series
 2. Margin time-series
 3. Segment pie
