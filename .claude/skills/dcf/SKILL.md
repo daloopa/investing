@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Build a discounted cash flow (DCF) valuation for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -14,7 +14,7 @@ Follow these steps:
 Look up the company by ticker. Note the company_id, full name, and latest available quarter.
 
 ## 2. Market Data
-Get market-side inputs for {TICKER} (see data-access.md Section 2 for how to source market data in your environment):
+Get market-side inputs for {TICKER} (see ../data-access.md Section 2 for how to source market data in your environment):
 - Current price, market cap, shares outstanding, beta
 - 10Y Treasury yield (risk-free rate for WACC)
 
@@ -88,7 +88,7 @@ Sum segment projections to get total revenue for each of 5 years. Show the build
 
 ## 5b. Top-Down FCF Projections (Fallback)
 
-Build 5-year FCF projections. If a projection engine is available (see data-access.md Section 5), use it. Otherwise, project manually:
+Build 5-year FCF projections. If a projection engine is available (see ../data-access.md Section 5), use it. Otherwise, project manually:
 - **Revenue:** Use management guidance for near-term, then decay toward 3% long-term growth
 - **FCF Margin:** Use trailing average, adjust for any clear trends
 - **FCF = Projected Revenue × Projected FCF Margin**
@@ -125,7 +125,7 @@ Highlight the base case cell and the current market price for reference.
 Also show a secondary sensitivity: Revenue Growth vs FCF Margin if data supports it.
 
 ## 9. Consensus Sanity Check (if available)
-If consensus estimates are available (see data-access.md Section 3):
+If consensus estimates are available (see ../data-access.md Section 3):
 - Compare your projected revenue/EPS path to consensus for the next 1-2 years
 - Note where your DCF assumptions diverge from Street expectations
 - If your implied price is significantly above/below consensus target, explain why
@@ -146,25 +146,28 @@ Flag any issues:
 - If the DCF only "works" with aggressive terminal growth or unrealistically low WACC, say so — the stock may simply be expensive on fundamentals.
 
 ## 11. Save Report
-Save to `reports/{TICKER}_dcf.md`. Format:
+Save to `reports/{TICKER}_dcf.html` using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
+
+Structure the report with these sections:
 
 ```
-# {Company Name} ({TICKER}) — DCF Valuation
-Generated: {date}
+<h1>{Company Name} ({TICKER}) — DCF Valuation</h1>
+<p>Generated: {date}</p>
 
-## Summary
+<h2>Summary</h2>
+<table>
 | Metric | Value |
-|---|---|
 | Current Price | $XXX |
 | Implied Share Price | $XXX |
 | Upside / Downside | +X.X% / -X.X% |
 | WACC | X.X% |
 | Terminal Growth | X.X% |
 | Terminal Value % of Total | XX% |
+</table>
 
-## WACC Calculation
+<h2>WACC Calculation</h2>
+<table>
 | Component | Value | Source |
-|---|---|---|
 | Risk-Free Rate | X.X% | FRED 10Y Treasury |
 | Equity Risk Premium | 5.5% | Standard assumption |
 | Beta | X.XX | Market data |
@@ -173,18 +176,23 @@ Generated: {date}
 | Equity Weight | XX% | Market cap |
 | Debt Weight | XX% | Total debt |
 | **WACC** | **X.X%** | |
+</table>
 
-## Historical Free Cash Flow (8 Quarters)
+<h2>Historical Free Cash Flow (8 Quarters)</h2>
+<table>
 | Metric | Q1 | Q2 | ... | Q8 |
 {OCF, CapEx, FCF, FCF Margin — with Daloopa citations}
+</table>
 
-## FCF Projections (5 Years)
+<h2>FCF Projections (5 Years)</h2>
+<table>
 | Metric | Year 1 | Year 2 | Year 3 | Year 4 | Year 5 |
 {Revenue, FCF Margin, FCF — with assumptions noted}
+</table>
 
-## Valuation Bridge
+<h2>Valuation Bridge</h2>
+<table>
 | Component | Value |
-|---|---|
 | PV of Projected FCFs | $XXX |
 | PV of Terminal Value | $XXX |
 | Enterprise Value | $XXX |
@@ -192,28 +200,24 @@ Generated: {date}
 | Equity Value | $XXX |
 | Shares Outstanding | XXX |
 | **Implied Share Price** | **$XXX** |
+</table>
 
-## Sensitivity Table: WACC vs Terminal Growth
+<h2>Sensitivity Table: WACC vs Terminal Growth</h2>
+<table>
 | WACC \ Growth | 1.5% | 2.0% | 2.5% | 3.0% | 3.5% | 4.0% |
 {matrix of implied share prices, base case bolded}
+</table>
+<p>Current market price: $XXX for reference.</p>
 
-Current market price: $XXX for reference.
+<h2>Key Assumptions & Risks</h2>
+<ul>{List all key assumptions and what could invalidate them}</ul>
 
-## Key Assumptions & Risks
-- {List all key assumptions and what could invalidate them}
-
-## Sanity Checks
-- {Implied multiples vs historical, terminal value concentration, etc.}
-
-Data sourced from Daloopa
+<h2>Sanity Checks</h2>
+<ul>{Implied multiples vs historical, terminal value concentration, etc.}</ul>
 ```
 
-All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
+All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
 
-## 12. Render PDF
-Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
-`python3 infra/pdf_renderer.py --input reports/{TICKER}_dcf.md --output reports/{TICKER}_dcf.pdf`
-
-Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+Tell the user where the HTML report was saved.
 
 Summarize: implied price vs current price, key upside/downside drivers, and the biggest sensitivity.

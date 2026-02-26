@@ -2,7 +2,7 @@
 
 A ready-to-go financial analysis toolkit that connects Claude Code to [Daloopa's](https://daloopa.com) institutional-grade financial data. Built for hedge fund analysts (L/S equity, quant) who want AI-assisted fundamental research.
 
-Produces investment deliverables: **Research Notes (.docx)**, **Excel Models (.xlsx)**, **PDF Reports**, and **Pitch Decks (.pdf)**.
+Produces investment deliverables: **Research Notes (.docx)**, **Excel Models (.xlsx)**, **HTML Reports**, and **Pitch Decks (.pdf)**.
 
 ## Prerequisites
 
@@ -32,20 +32,20 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 
 ## Available Commands
 
-### Building Block Skills (Markdown + PDF Reports)
+### Building Block Skills (HTML Reports)
 
 | Command | Description | Example | Output |
 |---------|-------------|---------|--------|
 | `/setup` | Interactive setup wizard | `/setup` | — |
-| `/earnings` | Full earnings analysis with guidance tracking | `/earnings AAPL` | `reports/AAPL_earnings_2025Q3.pdf` |
-| `/tearsheet` | Quick one-page company overview | `/tearsheet MSFT` | `reports/MSFT_tearsheet.pdf` |
-| `/industry` | Cross-company industry comparison | `/industry AAPL MSFT GOOG AMZN` | `reports/AAPL_MSFT_GOOG_AMZN_industry_comp.pdf` |
-| `/bull-bear` | Bull/bear/base scenario framework | `/bull-bear TSLA` | `reports/TSLA_bull_bear.pdf` |
-| `/guidance-tracker` | Track management guidance accuracy | `/guidance-tracker NVDA` | `reports/NVDA_guidance_tracker.pdf` |
-| `/inflection` | Auto-detect metric accelerations/decelerations | `/inflection AAPL` | `reports/AAPL_inflection.pdf` |
-| `/capital-allocation` | Buybacks, dividends, shareholder yield | `/capital-allocation MSFT` | `reports/MSFT_capital_allocation.pdf` |
-| `/dcf` | DCF valuation with sensitivity analysis | `/dcf AAPL` | `reports/AAPL_dcf.pdf` |
-| `/comps` | Trading comparables with peer multiples | `/comps AAPL` | `reports/AAPL_comps.pdf` |
+| `/earnings` | Full earnings analysis with guidance tracking | `/earnings AAPL` | `reports/AAPL_earnings_2025Q3.html` |
+| `/tearsheet` | Quick one-page company overview | `/tearsheet MSFT` | `reports/MSFT_tearsheet.html` |
+| `/industry` | Cross-company industry comparison | `/industry AAPL MSFT GOOG AMZN` | `reports/AAPL_MSFT_GOOG_AMZN_industry_comp.html` |
+| `/bull-bear` | Bull/bear/base scenario framework | `/bull-bear TSLA` | `reports/TSLA_bull_bear.html` |
+| `/guidance-tracker` | Track management guidance accuracy | `/guidance-tracker NVDA` | `reports/NVDA_guidance_tracker.html` |
+| `/inflection` | Auto-detect metric accelerations/decelerations | `/inflection AAPL` | `reports/AAPL_inflection.html` |
+| `/capital-allocation` | Buybacks, dividends, shareholder yield | `/capital-allocation MSFT` | `reports/MSFT_capital_allocation.html` |
+| `/dcf` | DCF valuation with sensitivity analysis | `/dcf AAPL` | `reports/AAPL_dcf.html` |
+| `/comps` | Trading comparables with peer multiples | `/comps AAPL` | `reports/AAPL_comps.html` |
 | `/comp-sheet` | Multi-company industry comp sheet model | `/comp-sheet AAPL` | `reports/AAPL_comp_sheet.xlsx` |
 
 ### Investment Deliverables (.docx, .xlsx, .pdf)

@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Perform a comprehensive earnings analysis for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -63,6 +63,30 @@ Calculate and present:
 
 If the company has strong seasonality (e.g., retail Q4 holiday, back-to-school, cyclical patterns), add a note so the reader interprets QoQ swings correctly.
 
+## 4.5. Cost Structure & Margin Drivers
+Decompose what's driving margin trends. This turns the margin table from Section 4 into an analytical narrative.
+
+**COGS Analysis:**
+- Pull product COGS and services COGS (or equivalent cost breakdown) if available
+- Identify the 3-5 biggest cost line items and their YoY trends
+- Is COGS growing faster or slower than revenue? If slower, what's driving the efficiency — input costs, mix shift, pricing power, or scale leverage?
+
+**OpEx Breakdown:**
+- Pull R&D and SG&A separately for the last 8 quarters
+- Compute R&D % of revenue and SG&A % of revenue trends
+- Is the company investing more in R&D (growth mode) or cutting SG&A (efficiency mode)? Both? Neither?
+- Flag any quarter where OpEx growth materially exceeds revenue growth — that's operating deleverage
+
+**Margin Driver Synthesis:**
+For each major margin (gross, operating, net), write 1-2 sentences identifying what's driving expansion or compression:
+- Pricing power vs cost inflation
+- Mix shift (higher-margin products/services growing faster)
+- Scale leverage vs investment spending
+- One-time items distorting the trend
+- FX impact if material
+
+Include this as a commentary block after the margins table in the report. Cite specific Daloopa figures.
+
 ## 5. Guidance vs Actuals
 Search for guidance series (revenue guidance, EPS guidance, margin guidance, OpEx guidance, any KPI guidance). If available:
 - Pull guidance and actual results
@@ -74,7 +98,7 @@ Search for guidance series (revenue guidance, EPS guidance, margin guidance, OpE
 If no formal guidance series exist, note that the company does not provide quantitative guidance.
 
 ## 6. Consensus Context (if available)
-If consensus estimates are available (see data-access.md Section 3), add:
+If consensus estimates are available (see ../data-access.md Section 3), add:
 - Consensus revenue and EPS vs actual results — beat/miss vs Street
 - Estimate revision trends (are estimates moving up or down?)
 - Note the source of consensus data used
@@ -95,7 +119,20 @@ Extract:
 - Any notable call-outs (one-time items, macro commentary, strategic updates)
 - Direct management quotes where available (with document citations)
 
-## 7.5. Forward Outlook & Revenue Drivers
+## 7.5. News Context
+Run 2 WebSearch queries to add external context around the earnings:
+1. `"{TICKER} {company_name} earnings {latest_quarter} {year}"` — coverage and analyst reactions
+2. `"{TICKER} analyst price target {year}"` — sell-side sentiment
+
+Distill into a brief **Earnings Context** block (3-5 bullet points):
+- How did the stock react to earnings? (if available from search results)
+- What were the key analyst takeaways or debates?
+- Any price target changes or rating changes post-earnings?
+- Any macro/industry context that affected the quarter?
+
+Keep this concise — it supplements the Daloopa data with market reaction context. Include it as a short section in the report before the Forward Outlook.
+
+## 7.6. Forward Outlook & Revenue Drivers
 
 Synthesize the backward-looking data into a forward-looking view. This section turns the earnings analysis from "what happened" into "what it means for the future."
 
@@ -125,23 +162,25 @@ Synthesize the backward-looking data into a forward-looking view. This section t
 - If the bull case requires multiple things to go right simultaneously, flag that explicitly.
 
 ## 8. Save Report
-Save the complete analysis to `reports/{TICKER}_earnings_{PERIOD}.md` where PERIOD is the most recent quarter analyzed. The report should include:
+Save to `reports/{TICKER}_earnings_{PERIOD}.html` (where PERIOD is the most recent quarter analyzed) using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
+
+The report should include:
 - Executive summary (2-3 sentence overview of the quarter + 2-3 most notable findings)
 - Core financial metrics table (8 quarters, periods as columns, metrics as rows, including FCF)
 - Segment and geographic revenue breakdown tables
 - KPI table (with notes on any data gaps)
 - Margin trends table (8 quarters)
+- Cost structure & margin driver commentary (after margins table)
 - YoY growth rates table (last 4 quarters, showing each quarter's YoY)
 - Guidance vs actuals table (if applicable) with pattern analysis
+- News context (analyst reactions, price target changes, market sentiment)
+- Forward outlook and revenue drivers analysis
 - Management commentary with direct quotes and document citations
 - Seasonality note if applicable
-- All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-## 9. Render PDF
-Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
-`python3 infra/pdf_renderer.py --input reports/{TICKER}_earnings_{PERIOD}.md --output reports/{TICKER}_earnings_{PERIOD}.pdf`
+All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
 
-Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+Tell the user where the HTML report was saved.
 
 Highlight the 2-3 most notable findings with a critical lens:
 - **Quality of earnings**: Are the beats sustainable or driven by one-time items, favorable timing, or accounting changes? Is revenue growth real or pulled forward?

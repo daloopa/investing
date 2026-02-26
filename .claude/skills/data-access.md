@@ -1,6 +1,6 @@
 # Data Access Reference
 
-All skills that need financial data should follow this reference. Read `design-system.md` (co-located with this file) for formatting, analytical density, and styling conventions.
+All skills that need financial data should follow this reference. Read `design-system.md` (in this same directory) for formatting, analytical density, and styling conventions.
 
 ---
 
@@ -97,12 +97,9 @@ Available chart types: `time-series`, `waterfall`, `football-field`, `pie`, `sce
 
 For forward financial projections: `python infra/projection_engine.py --context input.json --output projections.json`
 
-### PDF Rendering (Building Block Skills)
+### HTML Report Output (Building Block Skills)
 
-After saving the markdown report, render it to PDF:
-`python3 infra/pdf_renderer.py --input reports/{file}.md --output reports/{file}.pdf`
-
-The PDF renderer applies the design system styling (typography, colors, table formatting) and produces a professional document. **All building block skills must render to PDF** — the markdown file is the intermediate format; the PDF is the deliverable. If rendering fails, the markdown file is still saved as a fallback.
+Building block skills generate styled HTML directly using the template in `design-system.md`. No external scripts needed — the HTML file IS the deliverable. Save to: `reports/{TICKER}_{skill}.html`
 
 ### Word / Excel / Comp Sheet Rendering
 
