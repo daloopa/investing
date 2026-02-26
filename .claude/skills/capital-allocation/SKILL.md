@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Perform a deep dive into capital allocation for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -14,7 +14,7 @@ Follow these steps:
 Look up the company by ticker. Note the company_id, full name, and latest available quarter.
 
 ## 2. Market Data
-Get the current stock price, market cap, and shares outstanding for {TICKER} (see data-access.md Section 2 for how to source market data in your environment).
+Get the current stock price, market cap, and shares outstanding for {TICKER} (see ../data-access.md Section 2 for how to source market data in your environment).
 - This is needed to compute yields and per-share metrics
 
 If market data is unavailable, note that market-derived metrics (yields, etc.) cannot be computed and proceed with Daloopa data only.
@@ -135,68 +135,74 @@ Assess whether the company is adequately reinvesting in its business or funding 
 - Net assessment: Is the company's capital allocation creating long-term value (reinvesting at high ROIC, buying back cheap stock, growing dividends sustainably) or extracting value (under-investing to fund buybacks at premium valuations, leveraging up for returns)?
 
 ## 7. Save Report
-Save to `reports/{TICKER}_capital_allocation.md`. Format:
+Save to `reports/{TICKER}_capital_allocation.html` using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
+
+Structure the report with these sections:
 
 ```
-# {Company Name} ({TICKER}) — Capital Allocation Analysis
-Generated: {date}
+<h1>{Company Name} ({TICKER}) — Capital Allocation Analysis</h1>
+<p>Generated: {date}</p>
 
-## Summary
+<h2>Summary</h2>
 {2-3 sentences: How does this company deploy its capital? Key takeaways.}
 
-## Current Snapshot
+<h2>Current Snapshot</h2>
+<table>
 | Metric | Value |
-|---|---|
 | Market Cap | $XXX |
 | Trailing 4Q FCF | $XXX |
 | FCF Yield | X.X% |
 | Shareholder Yield | X.X% |
 | Net Debt / EBITDA | X.Xx |
 | Remaining Buyback Authorization | $XXX |
+</table>
 
-## Cash Flow & FCF (8 Quarters)
+<h2>Cash Flow & FCF (8 Quarters)</h2>
+<table>
 | Metric | Q1 | Q2 | ... | Q8 |
 {OCF, CapEx, FCF, FCF Margin % — with Daloopa citations}
+</table>
 
-## Share Repurchases & Dividends (8 Quarters)
+<h2>Share Repurchases & Dividends (8 Quarters)</h2>
+<table>
 | Metric | Q1 | Q2 | ... | Q8 |
 {Buyback $, Dividends $, Total Return, Share Count — with Daloopa citations}
+</table>
 
-## Shareholder Yield Analysis
+<h2>Shareholder Yield Analysis</h2>
+<table>
 | Metric | Q1 | Q2 | ... | Q8 |
 {Buyback Yield, Div Yield, Total Yield, FCF Payout Ratio}
+</table>
 
-## Leverage & Balance Sheet (8 Quarters)
+<h2>Leverage & Balance Sheet (8 Quarters)</h2>
+<table>
 | Metric | Q1 | Q2 | ... | Q8 |
 {Cash, Debt, Net Debt, Net Debt/EBITDA — with Daloopa citations}
+</table>
 
-## Capital Allocation Framework
+<h2>Capital Allocation Framework</h2>
 {Management's stated priorities from filings, with document citations}
 
-## Reinvestment Assessment
+<h2>Reinvestment Assessment</h2>
+<table>
 | Metric | Q1 | Q2 | ... | Q8 |
 {R&D, R&D % Rev, CapEx, CapEx % Rev, key growth KPIs — with Daloopa citations}
-
+</table>
 {Analysis: Is the company adequately reinvesting? R&D/CapEx trends vs growth KPI trends. Value creation vs extraction verdict.}
 
-## Buyback Discipline Analysis
+<h2>Buyback Discipline Analysis</h2>
 {Analysis of buyback timing vs price, share count reduction trend, authorization remaining}
 
-## M&A Activity
+<h2>M&A Activity</h2>
 {Any acquisitions from filings, deal sizes, strategic rationale}
 
-## Key Observations
-- {3-5 bullet points on capital allocation quality, trends, and implications}
-
-Data sourced from Daloopa
+<h2>Key Observations</h2>
+<ul>{3-5 bullet points on capital allocation quality, trends, and implications}</ul>
 ```
 
-All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
+All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
 
-## 8. Render PDF
-Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
-`python3 infra/pdf_renderer.py --input reports/{TICKER}_capital_allocation.md --output reports/{TICKER}_capital_allocation.pdf`
-
-Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+Tell the user where the HTML report was saved.
 
 Highlight the key capital allocation story (e.g., "AAPL returned $XX billion to shareholders over the last year, a X.X% shareholder yield, with buybacks accelerating").

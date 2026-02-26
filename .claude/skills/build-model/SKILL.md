@@ -6,13 +6,13 @@ argument-hint: TICKER
 
 Build a comprehensive Excel financial model (.xlsx) for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 This skill gathers all available financial data and builds a multi-tab Excel model from scratch using openpyxl.
 
 ## Phase 1 — Company Setup
 Look up the company by ticker. Note company_id, full name, latest available quarter.
-Get current stock price, market cap, shares outstanding, beta, and trading multiples for {TICKER} (see data-access.md Section 2 for how to source market data).
+Get current stock price, market cap, shares outstanding, beta, and trading multiples for {TICKER} (see ../data-access.md Section 2 for how to source market data).
 
 ## Phase 2 — Comprehensive Data Pull
 Pull as much data as Daloopa has for this company. Target 8-16 quarters.
@@ -69,12 +69,12 @@ Pull as much data as Daloopa has for this company. Target 8-16 quarters.
 - All guidance series and corresponding actuals
 
 ## Phase 3 — Market Data & Peers
-- Identify 5-8 peers and get their trading multiples (see data-access.md Section 2)
-- Get risk-free rate (see data-access.md Section 2)
-- If consensus forward estimates are available (data-access.md Section 3), include NTM estimates for peers
+- Identify 5-8 peers and get their trading multiples (see ../data-access.md Section 2)
+- Get risk-free rate (see ../data-access.md Section 2)
+- If consensus forward estimates are available (../data-access.md Section 3), include NTM estimates for peers
 
 ## Phase 4 — Projections
-Build forward estimates. If a projection engine is available (see data-access.md Section 5), use it. Otherwise, project manually:
+Build forward estimates. If a projection engine is available (see ../data-access.md Section 5), use it. Otherwise, project manually:
 - Revenue: guidance + decay to long-term growth
 - Margins: mean-revert to trailing averages
 - CapEx, D&A, tax rate, share count: trailing trends

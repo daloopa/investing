@@ -8,7 +8,7 @@ Perform an industry comparison across the companies specified by the user: $ARGU
 
 The user will provide multiple tickers separated by spaces (e.g., "AAPL MSFT GOOG AMZN").
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -86,7 +86,9 @@ For each company, extract:
 Use these findings to enrich the rankings analysis — numbers tell you who's winning, filings tell you why.
 
 ## 7. Save Report
-Save to `reports/{INDUSTRY_LABEL}_industry_comp.md` where INDUSTRY_LABEL is derived from the tickers (e.g., "tech_megacap" or just the tickers joined: "AAPL_MSFT_GOOG_AMZN"). The report should include:
+Save to `reports/{INDUSTRY_LABEL}_industry_comp.html` (where INDUSTRY_LABEL is derived from the tickers, e.g., "AAPL_MSFT_GOOG_AMZN") using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
+
+The report should include:
 - Summary header listing all companies compared, with fiscal year end dates
 - Side-by-side financial metrics table (last 4 calendar quarters, companies as columns, metrics as rows, Daloopa citations)
 - Trailing 4-quarter totals for revenue, operating income, net income, EPS, OCF, CapEx, FCF
@@ -99,12 +101,9 @@ Save to `reports/{INDUSTRY_LABEL}_industry_comp.md` where INDUSTRY_LABEL is deri
 - Rankings summary table
 - Key competitive insights from filings (with document citations)
 - Note on calendar quarter alignment and any fiscal year differences
-- All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-## 8. Render PDF
-Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
-`python3 infra/pdf_renderer.py --input reports/{INDUSTRY_LABEL}_industry_comp.md --output reports/{INDUSTRY_LABEL}_industry_comp.pdf`
+All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
 
-Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+Tell the user where the HTML report was saved.
 
 Give a clear competitive verdict: Who is winning and who is losing? Which company has the strongest competitive position and why? Which company looks most vulnerable? Are any of the companies structurally mispriced relative to peers (too cheap or too expensive given the fundamentals)? Don't hedge — rank them honestly.

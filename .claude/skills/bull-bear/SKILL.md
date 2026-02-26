@@ -6,7 +6,7 @@ argument-hint: TICKER
 
 Build a bull/bear/base case scenario framework for the company specified by the user: $ARGUMENTS
 
-**Before starting, read the `data-access.md` reference (co-located with this skill) for data access methods and `design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
+**Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
 Follow these steps:
 
@@ -56,7 +56,7 @@ Search SEC filings/documents across multiple queries. If any search returns empt
 - **Macro/regulatory**: Try "tariff", "regulatory"; fallback to "geopolitical", "compliance"
 
 ## 5. Consensus Positioning (if available)
-If consensus estimates are available (see data-access.md Section 3), note:
+If consensus estimates are available (see ../data-access.md Section 3), note:
 - Where consensus revenue/EPS sits relative to your base case
 - Whether the market is positioned closer to your bull or bear case
 - Recent estimate revision trends (optimistic vs pessimistic drift)
@@ -99,7 +99,9 @@ Don't default to 25/50/25. Assign probabilities informed by the most recent data
 **Be honest about which scenario is most likely.** Don't default to a bullish framing or split the difference to seem balanced. If the data suggests the bear case is more probable, say so clearly. If the bull case requires multiple things to go right simultaneously, acknowledge that compounds the risk. The reader needs your honest assessment, not diplomatic equivocation.
 
 ## 7. Save Report
-Save to `reports/{TICKER}_bull_bear.md`. The report should include:
+Save to `reports/{TICKER}_bull_bear.html` using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
+
+The report should include:
 - Company overview and current state summary
 - Historical financial data table (8 quarters, Daloopa citations, including computed EBITDA/FCF)
 - Trailing 4-quarter totals as the scenario baseline
@@ -116,12 +118,9 @@ Save to `reports/{TICKER}_bull_bear.md`. The report should include:
 - Key risk factors and growth drivers from filings (with document citations)
 - Summary comparison table across scenarios
 - Key swing factors section — the 3-5 variables that most determine which scenario plays out
-- All financial figures must use Daloopa citation format: [$X.XX million](https://daloopa.com/src/{fundamental_id})
 
-## 8. Render PDF
-Render the markdown report to PDF (see data-access.md Section 5 for infrastructure):
-`python3 infra/pdf_renderer.py --input reports/{TICKER}_bull_bear.md --output reports/{TICKER}_bull_bear.pdf`
+All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
 
-Tell the user where the PDF was saved. If PDF rendering fails, note the error and point them to the markdown file.
+Tell the user where the HTML report was saved.
 
 Highlight: which scenario you believe is most likely and why, the key swing factors between bull and bear cases, and where you think the market is currently positioned (closer to bull, base, or bear). If the current stock price implies an overly optimistic or pessimistic scenario, flag it.
