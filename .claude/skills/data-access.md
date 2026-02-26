@@ -1,6 +1,6 @@
 # Data Access Reference
 
-All skills that need financial data should follow this reference. Read `design-system.md` (co-located with this file) for formatting, analytical density, and styling conventions.
+All skills that need financial data should follow this reference. Read `design-system.md` (in this same directory) for formatting, analytical density, and styling conventions.
 
 ---
 
@@ -29,7 +29,7 @@ If neither MCP nor API is available, tell the user to run `/setup`.
 
 ## Section 2: External Market Data
 
-Skills that need market-side data should gather the following. Use whatever tools or data sources are available in your environment.
+Skills that need market-side data should gather the following:
 
 | Data Need | What to Get |
 |---|---|
@@ -39,7 +39,12 @@ Skills that need market-side data should gather the following. Use whatever tool
 | **Peer multiples** | Side-by-side trading multiples for 5-10 comparable companies |
 | **Risk-free rate** | 10Y Treasury yield (for WACC/DCF calculations) |
 
-If market data is unavailable, note the limitation and proceed with Daloopa fundamentals only. Use reasonable defaults where needed (beta=1.0, risk-free rate=4.5%).
+**Resolution order — use the first available source:**
+
+1. **MCP tools** — Check your available tools for any MCP server that provides market data (stock quotes, multiples, historical prices). Use whatever the user has configured. This is the preferred path because it requires no local dependencies.
+2. **Infra scripts** (project repo only) — If no market-data MCP is available but `infra/market_data.py` exists, use it as a fallback (see Section 5 for commands).
+3. **Web search** — If neither MCP nor infra scripts are available, use web search to look up current stock price and key multiples.
+4. **Defaults** — If no market data source is available at all, use reasonable defaults (beta=1.0, risk-free rate=4.5%) and note the limitation. Proceed with Daloopa fundamentals only.
 
 ## Section 3: Consensus Estimates (Optional)
 
@@ -75,7 +80,9 @@ If you output a financial figure without a citation, it cannot be verified. Unci
 
 The following tools are available in the project repo environment. If these scripts are not available (e.g., in a plugin context), skip these steps — the skill's core analysis works without them.
 
-### Market Data Scripts
+### Market Data Scripts (Fallback)
+
+If no MCP provides market data, use these scripts as a fallback:
 
 | Operation | Command |
 |---|---|
@@ -97,12 +104,9 @@ Available chart types: `time-series`, `waterfall`, `football-field`, `pie`, `sce
 
 For forward financial projections: `python infra/projection_engine.py --context input.json --output projections.json`
 
-### PDF Rendering (Building Block Skills)
+### HTML Report Output (Building Block Skills)
 
-After saving the markdown report, render it to PDF:
-`python3 infra/pdf_renderer.py --input reports/{file}.md --output reports/{file}.pdf`
-
-The PDF renderer applies the design system styling (typography, colors, table formatting) and produces a professional document. **All building block skills must render to PDF** — the markdown file is the intermediate format; the PDF is the deliverable. If rendering fails, the markdown file is still saved as a fallback.
+Building block skills generate styled HTML directly using the template in `design-system.md`. No external scripts needed — the HTML file IS the deliverable. Save to: `reports/{TICKER}_{skill}.html`
 
 ### Word / Excel / Comp Sheet Rendering
 
