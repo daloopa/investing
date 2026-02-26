@@ -50,7 +50,7 @@ For each peer that is available in Daloopa:
 - Pull trailing 4Q revenue, operating income, net income
 - Compute revenue growth YoY, operating margin, net margin
 
-For peers not in Daloopa, rely on yfinance multiples only and note the data source limitation.
+For peers not in Daloopa, rely on market data multiples only (see ../data-access.md Section 2) and note the data source limitation.
 
 ## 5.5. Peer Operational KPIs
 
