@@ -1,0 +1,8 @@
+{
+  "name": "supply-chain",
+  "description": "Creates an interactive supply chain dashboard for any public company. Maps key suppliers, customer relationships, financial interdependencies, and multi-layer supply chain networks using Daloopa MCP financial data and web research. Newspaper-style design with clean, professional UX.",
+  "author": {
+    "name": "Thomas Li"
+  },
+  "version": "1.0.0"
+}
