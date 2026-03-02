@@ -15,8 +15,8 @@ fi
 
 echo "Syncing shared skills from project → plugin..."
 
-# Shared building block skills (9 skills — identical between repos)
-SHARED_SKILLS="tearsheet earnings bull-bear guidance-tracker industry inflection capital-allocation dcf comps"
+# Shared building block skills (10 skills — identical between repos)
+SHARED_SKILLS="tearsheet earnings bull-bear guidance-tracker industry inflection capital-allocation dcf comps supply-chain"
 
 for skill in $SHARED_SKILLS; do
     src="$PROJECT_DIR/.claude/skills/$skill/SKILL.md"

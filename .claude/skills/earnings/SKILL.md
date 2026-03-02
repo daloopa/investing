@@ -161,6 +161,40 @@ Synthesize the backward-looking data into a forward-looking view. This section t
 - Identify the 2-3 biggest risks to the forward trajectory: competitive threats, macro sensitivity, product cycle dependency, regulatory risk, customer concentration.
 - If the bull case requires multiple things to go right simultaneously, flag that explicitly.
 
+## 7.7. Read-Throughs & Competitive Implications
+
+This is one of the most valuable sections of the report. Every company's earnings contain signal about adjacent companies — suppliers, customers, competitors, and the broader industry. An analyst covering a sector doesn't just read one company's print; they read it for what it says about every other name in their portfolio.
+
+**Identify the Read-Through Universe:**
+Think about who is most affected by this company's results. Consider:
+- **Suppliers**: If this company's revenue/COGS/CapEx changed materially, which suppliers feel it? (e.g., AAPL iPhone strength → TSMC, Broadcom, Corning benefit; AAPL CapEx guidance up → supplier order books filling)
+- **Customers**: If this company is a major input to others, what do its pricing/volume trends imply? (e.g., TSMC price increases → margin pressure for AAPL, AMD, NVDA)
+- **Direct competitors**: How does this quarter compare to what peers have reported or guided? Is this company gaining or losing share? (e.g., MSFT cloud growth accelerating while AMZN AWS decelerates → share shift)
+- **Indirect competitors / substitutes**: Any signals about demand shifting between categories? (e.g., strong enterprise software spend → weak services/consulting spend)
+- **Industry bellwether signals**: If this is a large company, what do its results say about the macro/sector? (e.g., consumer discretionary weakness at WMT → read-through to all retail)
+
+**For each read-through (aim for 5-8), state:**
+1. **The affected company** (ticker + name)
+2. **The specific data point** from this earnings that creates the read-through — cite the Daloopa figure
+3. **The implication** — bullish or bearish for the adjacent company, and why
+4. **Confidence level** — is this a direct/disclosed relationship (high confidence) or an inferred/estimated one (moderate)?
+
+**Example read-throughs:**
+- "AAPL Services revenue grew +14% YoY to $26.3B → **Positive for APP (AppLovin)**: Apple's App Store is a major distribution channel; growing Services revenue confirms healthy app ecosystem spending. **Negative for GOOG**: AAPL's growing services monetization strengthens their negotiating leverage on the Google TAC agreement."
+- "TSMC guided CapEx up 25% YoY → **Positive for ASML, AMAT, LRCX, KLAC**: equipment spend is the most direct read-through to semicap names. ASML in particular given EUV concentration."
+- "NFLX added 19M subscribers vs 13M expected → **Negative for DIS, WBD, PARA**: In a zero-sum attention economy, NFLX's accelerating sub growth likely came partly at the expense of other streamers."
+
+**Sequencing context:**
+- Note whether this company reported before or after its peers this earnings season. If it's early in the cycle, the read-throughs are forward-looking predictions. If it's late, compare against what peers already reported — confirm or contradict the emerging narrative.
+- If a peer has already reported, note any divergence: "MSFT reported cloud growth of +29% last week; today's AMZN AWS at +19% confirms the share shift narrative."
+
+**Web research for validation:**
+Run 1-2 targeted searches to validate read-throughs:
+- `"{TICKER} earnings read through implications {year}"` — analyst commentary on cross-company signals
+- `"{TICKER} {peer_ticker} competitive positioning {year}"` — specific competitive dynamics
+
+Present as a structured list in the report, grouped by relationship type (Suppliers / Customers / Competitors / Industry). Each read-through should be a concise 2-3 sentence paragraph with the data citation, the affected name, and the implication.
+
 ## 8. Save Report
 Save to `reports/{TICKER}_earnings_{PERIOD}.html` (where PERIOD is the most recent quarter analyzed) using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
 
@@ -176,6 +210,7 @@ The report should include:
 - News context (analyst reactions, price target changes, market sentiment)
 - Forward outlook and revenue drivers analysis
 - Management commentary with direct quotes and document citations
+- Read-throughs & competitive implications (grouped by Suppliers / Customers / Competitors / Industry)
 - Seasonality note if applicable
 
 All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
