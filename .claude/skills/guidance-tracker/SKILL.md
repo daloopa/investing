@@ -82,6 +82,40 @@ Search SEC filings/documents across multiple queries to build a complete picture
 
 Extract direct management quotes where available and cite the document source.
 
+## 7.5. Guidance Read-Throughs to Adjacent Companies
+
+When a company raises, cuts, or materially changes its guidance, the implications often matter more for adjacent names than for the company itself. This section translates guidance signals into actionable read-throughs.
+
+**For each major guidance change identified in the tracker, analyze the implications for adjacent companies:**
+
+**Identify who is affected by this company's guidance:**
+- **Suppliers**: Revenue/CapEx guidance changes directly affect supplier order books. A CapEx guidance raise is a near-term purchase order for equipment/component suppliers. A revenue guide-down signals softer demand flowing upstream.
+- **Customers**: If this company supplies critical inputs, pricing or capacity guidance affects customer margins. Guiding for price increases = margin headwind for customers. Guiding for capacity expansion = supply relief.
+- **Competitors**: Guidance on market growth, pricing environment, or demand trends is often the most honest signal about the competitive landscape. If Company A guides for share gains, that's a direct share loss for Company B.
+- **Channel partners / distributors**: Volume guidance changes affect channel inventory and distributor revenue.
+
+**For each read-through (aim for 4-6), state:**
+1. **The guidance data point** — which metric changed, by how much, and in which quarter's call
+2. **The affected company** (ticker + name)
+3. **The implication** — bullish or bearish, with specific logic
+4. **Timing** — is this a next-quarter impact or a multi-quarter trend?
+
+**Focus on the highest-signal guidance changes:**
+- Guidance raises after a period of conservatism → strong signal that the underlying business is inflecting
+- Guidance cuts or "reaffirmed" when the market expected a raise → often more bearish than an explicit cut
+- New metrics being guided on (or old metrics withdrawn) → management is redirecting attention, which itself is a signal
+- Segment-level guidance changes → more specific read-throughs than consolidated figures
+- KPI guidance (subscriber adds, unit volumes, ARPU) → often the most direct read-through to suppliers and competitors
+
+**Example:**
+- "NFLX raised Q2 subscriber guidance from +5M to +8M → **Negative for DIS+, WBD**: attention economy is zero-sum; NFLX's accelerating growth likely pressures competing streamers' subscriber adds. **Positive for cloud/CDN names (AMZN/AWS, NET)**: more streaming = more infrastructure demand."
+- "TSMC raised full-year CapEx guidance by $4B (from $32B to $36B) → **Positive for ASML**: TSMC is ASML's largest customer; incremental CapEx skews toward EUV tools. **Positive for AMAT, LRCX, KLAC**: broader equipment spend benefits all semicap names."
+
+**Web research for validation:**
+Run 1 targeted search: `"{TICKER} guidance change implications read through {year}"` — analyst commentary on cross-company signals from guidance moves.
+
+Present as a structured section in the report after the Pattern Analysis, grouped by guidance change (each major guide raise/cut gets its own sub-block with the read-throughs beneath it).
+
 ## 8. Save Report
 Save to `reports/{TICKER}_guidance_tracker.html` using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
 
@@ -97,6 +131,7 @@ The report should include:
 - Main tracker table with columns: Guidance Source, Metric, Guidance, Actual Period, Actual, Delta, Beat/Miss (with Daloopa citations on all values)
 - Summary statistics (beat rate, avg beat/miss by metric)
 - Pattern analysis narrative
+- Guidance read-throughs to adjacent companies (grouped by guidance change, with affected tickers and implications)
 - Key guidance quotes from filings with document citations
 
 All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
