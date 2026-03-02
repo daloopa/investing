@@ -74,6 +74,7 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `/dcf TICKER` — Discounted cash flow valuation with sensitivity analysis
 - `/comps TICKER` — Trading comparables with peer multiples and implied valuation
 - `/comp-sheet TICKER` — Multi-company industry comp sheet Excel model with deep KPIs
+- `/supply-chain TICKER` — Interactive supply chain dashboard mapping suppliers, customers, and financial interdependencies
 
 ### Investment Deliverables (.docx, .xlsx, .pdf)
 - `/research-note TICKER` — Generate professional Word research note
