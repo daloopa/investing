@@ -168,10 +168,30 @@ For each skill, produce a Python function following this template:
 ```python
 @daloopa_mcp.prompt
 def skill_name(ticker: str) -> str:
-    """One-line description matching the skill's description field."""
+    """Display Name"""
     return f"""[PROMPT CONTENT]
 """
 ```
+
+The docstring is used as the **display name** in MCP clients (e.g., Claude). Without it, `bull_bear` renders as "Bull bear" — the docstring overrides this to show "Bull / Bear" instead. Use proper title case and formatting:
+
+| Function | Docstring |
+|----------|-----------|
+| `earnings` | `"""Earnings"""` |
+| `tearsheet` | `"""Tearsheet"""` |
+| `industry` | `"""Industry"""` |
+| `bull_bear` | `"""Bull / Bear"""` |
+| `guidance_tracker` | `"""Guidance Tracker"""` |
+| `inflection` | `"""Inflection"""` |
+| `capital_allocation` | `"""Capital Allocation"""` |
+| `dcf` | `"""DCF"""` |
+| `comps` | `"""Comps"""` |
+| `supply_chain` | `"""Supply Chain"""` |
+| `research_note` | `"""Research Note"""` |
+| `build_model` | `"""Build Model"""` |
+| `comp_sheet` | `"""Comp Sheet"""` |
+| `ib_deck` | `"""IB Deck"""` |
+| `initiate` | `"""Initiate"""` |
 
 ### Prompt Structure (for each skill)
 
