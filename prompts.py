@@ -238,6 +238,7 @@ Create a React artifact that builds and downloads the .xlsx in-browser:
 
 @daloopa_mcp.prompt
 def earnings(ticker: str) -> str:
+    """Earnings"""
     return f"""\
 Perform a comprehensive earnings analysis for {ticker}.
 
@@ -370,6 +371,7 @@ Highlight 2-3 findings with critical lens: quality of earnings, red flags, what 
 
 @daloopa_mcp.prompt
 def tearsheet(ticker: str) -> str:
+    """Tearsheet"""
     return f"""\
 Generate a concise company tearsheet for {ticker}. Quick one-page overview — the snapshot an analyst pulls up before a meeting.
 
@@ -443,6 +445,7 @@ Close with 2-3 sentence honest assessment: biggest risk, valuation warranted?
 
 @daloopa_mcp.prompt
 def industry(tickers: str) -> str:
+    """Industry"""
     return f"""\
 Perform an industry comparison across these companies: {tickers}
 
@@ -519,6 +522,7 @@ Give a clear competitive verdict: Who is winning/losing? Strongest position and 
 
 @daloopa_mcp.prompt
 def bull_bear(ticker: str) -> str:
+    """Bull / Bear"""
     return f"""\
 Build a bull/bear/base case scenario framework for {ticker}.
 
@@ -595,6 +599,7 @@ Highlight: most likely scenario and why, key swing factors, where the market is 
 
 @daloopa_mcp.prompt
 def guidance_tracker(ticker: str) -> str:
+    """Guidance Tracker"""
     return f"""\
 Track management guidance accuracy for {ticker}.
 
@@ -696,6 +701,7 @@ Highlight key patterns (e.g., "beat revenue guidance 7 of 8 quarters by avg 2.3%
 
 @daloopa_mcp.prompt
 def inflection(ticker: str) -> str:
+    """Inflection"""
     return f"""\
 Detect the biggest financial and operating inflections for {ticker}.
 
@@ -775,6 +781,7 @@ Highlight 2-3 most notable inflections and what they signal.
 
 @daloopa_mcp.prompt
 def capital_allocation(ticker: str) -> str:
+    """Capital Allocation"""
     return f"""\
 Perform a deep dive into capital allocation for {ticker}.
 
@@ -873,6 +880,7 @@ Highlight the capital allocation story.
 
 @daloopa_mcp.prompt
 def dcf(ticker: str) -> str:
+    """DCF"""
     return f"""\
 Build a discounted cash flow (DCF) valuation for {ticker}.
 
@@ -967,6 +975,7 @@ Summarize: implied vs current price, key drivers, biggest sensitivity.
 
 @daloopa_mcp.prompt
 def comps(ticker: str) -> str:
+    """Comps"""
     return f"""\
 Build a trading comparables analysis for {ticker}.
 
@@ -1043,6 +1052,7 @@ Highlight: relative position, implied valuation range, most relevant multiple.
 
 @daloopa_mcp.prompt
 def supply_chain(ticker: str) -> str:
+    """Supply Chain"""
     return f"""\
 Generate an interactive supply chain dashboard for {ticker}, mapping upstream (supplier) and downstream (customer) relationships and quantifying financial interdependencies in both directions.
 
@@ -1534,6 +1544,7 @@ Data sourced from Daloopa
 
 @daloopa_mcp.prompt
 def research_note(ticker: str) -> str:
+    """Research Note"""
     return f"""\
 Generate a comprehensive research note for {ticker}. This is the most thorough single-company analysis — equivalent to an institutional initiation note.
 
@@ -1650,6 +1661,7 @@ Data sourced from Daloopa
 
 @daloopa_mcp.prompt
 def build_model(ticker: str) -> str:
+    """Build Model"""
     return f"""\
 Build a comprehensive Excel financial model for {ticker}.
 
@@ -1730,6 +1742,7 @@ Data sourced from Daloopa
 
 @daloopa_mcp.prompt
 def comp_sheet(ticker: str) -> str:
+    """Comp Sheet"""
     return f"""\
 Build a multi-company industry comp sheet Excel model for {ticker} and its peers.
 
@@ -1796,6 +1809,7 @@ Data sourced from Daloopa
 
 @daloopa_mcp.prompt
 def ib_deck(ticker: str, category: str = "ib-advisory") -> str:
+    """IB Deck"""
     return f"""\
 Build an institutional-grade pitch deck for {ticker}.
 
@@ -1873,6 +1887,7 @@ Data sourced from Daloopa
 
 @daloopa_mcp.prompt
 def initiate(ticker: str) -> str:
+    """Initiate"""
     return f"""\
 Initiate coverage on {ticker}. Produce both a comprehensive research note AND an Excel financial model from a single data-gathering pass.
 
