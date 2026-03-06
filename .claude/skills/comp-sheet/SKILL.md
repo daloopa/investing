@@ -14,7 +14,9 @@ Follow these steps:
 
 ## 1. Company & Peer Setup
 
-Look up the target company by ticker. Then identify 6-10 comparable companies using the same logic as `/comps`:
+Look up the target company by ticker using `discover_companies`. Capture `company_id`, `latest_calendar_quarter` (anchor for all period calculations — see `../data-access.md` Section 1.5), and `latest_fiscal_quarter`. Note the firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5.
+
+Then identify 6-10 comparable companies using the same logic as `/comps`:
 - **Direct competitors** in the same market
 - **Business model peers** (similar revenue model)
 - **Size peers** (similar market cap range)
@@ -28,7 +30,7 @@ List the full peer group with brief justification for each.
 
 For each company (target + all peers), pull from Daloopa:
 
-**Last 8 quarters of financials:**
+**Calculate 8 quarters backward from `latest_calendar_quarter`. Pull financials:**
 - Revenue, Gross Profit, Operating Income, Net Income, Diluted EPS
 - Operating Cash Flow, Capital Expenditures, D&A
 - Free Cash Flow (compute as OCF - CapEx)

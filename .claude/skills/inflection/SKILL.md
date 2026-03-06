@@ -11,7 +11,11 @@ Detect the biggest financial and operating inflections for the company specified
 Follow these steps:
 
 ## 1. Company Lookup
-Look up the company by ticker. Note the company_id, full name, and latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
 ## 2. Broad Series Discovery
 Cast a wide net to discover ALL available series for this company. Search with multiple keyword sets to maximize coverage:
@@ -24,7 +28,7 @@ Cast a wide net to discover ALL available series for this company. Search with m
 Collect all unique series IDs. The goal is comprehensiveness — capture every metric Daloopa tracks for this company.
 
 ## 3. Pull 8 Quarters of Data
-Pull the last 8 quarters for ALL discovered series. This gives enough history to compute both QoQ and YoY rates plus their second derivatives.
+Calculate 8 quarters backward from `latest_calendar_quarter`. Pull all discovered series for those periods. This gives enough history to compute both QoQ and YoY rates plus their second derivatives.
 
 ## 4. Compute Growth Rates and Inflections
 For each series with sufficient data (at least 5 quarters):

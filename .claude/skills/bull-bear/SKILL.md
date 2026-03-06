@@ -11,10 +11,14 @@ Build a bull/bear/base case scenario framework for the company specified by the 
 Follow these steps:
 
 ## 1. Company Lookup
-Look up the company by ticker. Extract company_id and latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
 ## 2. Historical Financial Baseline
-Pull at least 8 quarters of:
+Calculate 8 quarters backward from `latest_calendar_quarter`. Pull:
 - Revenue
 - Gross Profit / Gross Margin %
 - Operating Income / Operating Margin %

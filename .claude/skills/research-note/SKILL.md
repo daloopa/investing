@@ -11,13 +11,18 @@ Generate a professional research note (.docx) for the company specified by the u
 This is an orchestrator skill that gathers comprehensive data, then renders a Word document. Work through each phase sequentially, building up a context object that gets written to JSON and rendered.
 
 ## Phase A — Company Setup
-Look up the company by ticker. Note company_id, full name, latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
+
 Get current stock price, market cap, shares outstanding, beta, and trading multiples for {TICKER} (see ../data-access.md Section 2 for how to source market data).
 
-Initialize context: `context = {company_name, ticker, date, price, market_cap, ...}`
+Initialize context: `context = {company_name, ticker, date, price, market_cap, firm_name, ...}`
 
 ## Phase B — Core Financials + Cost Structure
-Pull 8 quarters of Income Statement metrics:
+Calculate 8 quarters backward from `latest_calendar_quarter`. Pull Income Statement metrics:
 - Revenue, Gross Profit, Operating Income, Net Income, Diluted EPS
 - EBITDA (compute as Op Income + D&A if not direct, label "(calc.)")
 - Operating Expenses (SG&A, R&D where available)
@@ -49,7 +54,7 @@ Think about what KPIs matter most for THIS company's business model. Search for:
 - Geographic revenue breakdown
 - Share count and buyback activity
 
-Pull 8 quarters. Build `context.kpis` and `context.segments`.
+Pull the same 8 quarters (from `latest_calendar_quarter`). Build `context.kpis` and `context.segments`.
 
 ### Industry-Specific Deep Dive (NEW)
 After the KPI/segment pull, determine the company's sector and apply the relevant analysis template:

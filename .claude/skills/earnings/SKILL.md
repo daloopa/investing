@@ -11,10 +11,14 @@ Perform a comprehensive earnings analysis for the company specified by the user:
 Follow these steps:
 
 ## 1. Company Lookup
-Look up the company by ticker to get the company_id and latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
 ## 2. Core Financial Metrics
-Search for these metrics, then pull the last 8 quarters of data:
+Calculate 8 quarters backward from `latest_calendar_quarter`. Search for these metrics, then pull:
 
 **Income Statement:**
 - Revenue / Net Sales
