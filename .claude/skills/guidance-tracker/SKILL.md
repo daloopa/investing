@@ -11,7 +11,11 @@ Track management guidance accuracy for the company specified by the user: $ARGUM
 Follow these steps:
 
 ## 1. Company Lookup
-Look up the company by ticker. Extract company_id and latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
 ## 2. Discover Guidance Series
 Search for series with keywords like "guidance", "outlook", "estimate", "forecast", "target" to find all available guidance metrics. Common guidance series include:
@@ -38,7 +42,7 @@ Search for series with keywords like "guidance", "outlook", "estimate", "forecas
 Search explicitly for KPI-specific guidance series using terms like "subscriber guidance", "unit guidance", "ARPU guidance", "same-store sales outlook", "deliveries forecast", "bookings target". These are separate from financial guidance and often reside in different series.
 
 ## 3. Pull Guidance Data
-Pull all discovered guidance series for the last 8+ quarters.
+Calculate 8+ quarters backward from `latest_calendar_quarter`. Pull all discovered guidance series for those periods.
 
 ## 4. Pull Actual Results
 For each guidance metric, pull the corresponding actual result series for the same periods.

@@ -14,14 +14,19 @@ This is the capstone skill that produces both a research note and an Excel model
 Rather than running `/research-note` and `/build-model` independently (which would duplicate data gathering), this skill gathers a superset of data once, then renders both outputs.
 
 ## Phase 1 — Company Setup
-Look up the company by ticker. Note company_id, full name, latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
+
 Get market data (see ../data-access.md Section 2):
 - Current price, market cap, shares outstanding, beta
 - Trading multiples (P/E, EV/EBITDA, P/S, P/B)
 - Risk-free rate (for DCF)
 
 ## Phase 2 — Comprehensive Data Gathering
-Follow the `/build-model` skill's Phase 2 data pull (the most comprehensive). Pull 8-16 quarters of:
+Follow the `/build-model` skill's Phase 2 data pull (the most comprehensive). Calculate 8-16 quarters backward from `latest_calendar_quarter`. Pull:
 - Full Income Statement (Revenue through EPS, including D&A for EBITDA calc)
 - Full Balance Sheet (Cash through Equity)
 - Full Cash Flow Statement (OCF, CapEx, FCF, Dividends, Buybacks)

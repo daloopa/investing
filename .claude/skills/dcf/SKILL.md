@@ -11,7 +11,11 @@ Build a discounted cash flow (DCF) valuation for the company specified by the us
 Follow these steps:
 
 ## 1. Company Lookup
-Look up the company by ticker. Note the company_id, full name, and latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
 ## 2. Market Data
 Get market-side inputs for {TICKER} (see ../data-access.md Section 2 for how to source market data in your environment):
@@ -21,7 +25,7 @@ Get market-side inputs for {TICKER} (see ../data-access.md Section 2 for how to 
 If market data is unavailable, use reasonable defaults: beta=1.0, risk-free rate=4.5%, and note the assumptions.
 
 ## 3. Historical Financials from Daloopa
-Pull 8 quarters of:
+Calculate 8 quarters backward from `latest_calendar_quarter`. Pull:
 - Revenue
 - Operating Income
 - Net Income

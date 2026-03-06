@@ -45,10 +45,10 @@ This is a multi-phase research process. Each phase builds on the previous one. M
 
 ### Phase 1: Target Company Identification
 
-1. Use `discover_companies` with the ticker symbol to get the `company_id`, `latest_calendar_quarter`, and `latest_fiscal_quarter`.
+1. Use `discover_companies` with the ticker symbol to get the `company_id`, `latest_calendar_quarter`, and `latest_fiscal_quarter`. Note the firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5.
 2. Pull key financials for the target company:
    - Use `discover_company_series` with keywords: ["revenue", "cost of goods", "gross profit", "operating income", "net income", "total cost"]
-   - Use `get_company_fundamentals` for the last 4 quarters to get TTM figures
+   - Calculate 4 quarters backward from `latest_calendar_quarter`. Use `get_company_fundamentals` for those periods to get TTM figures.
 3. Note the target company's total COGS / cost of revenue (TTM) — this is the denominator for supplier % calculations.
 
 ### Phase 2: Supplier Identification
@@ -86,7 +86,7 @@ For each identified supplier (aim for 8-15 key suppliers):
 1. **Discover the supplier** using `discover_companies` with their ticker
 2. **Pull key financials** from Daloopa:
    - `discover_company_series` with keywords: ["revenue", "net income", "gross margin", "operating margin"]
-   - `get_company_fundamentals` for last 4 quarters
+   - `get_company_fundamentals` for the same 4 calendar quarters as the target company
 3. **Determine revenue concentration**:
    - Search Daloopa documents for the supplier: keywords ["[target company name]", "customer", "concentration"]
    - Web search: `"[supplier name] [target company] revenue percentage customer"`
@@ -107,7 +107,7 @@ For the target company AND each identified supplier (8-15 companies), pull **10 
    - Look for separate RM, WIP, FG series, plus a total inventory series
    - Some companies report "carrying amount" breakdowns — use those for RM/WIP/FG splits
 2. **Discover financial series** using `discover_company_series` with keywords: ["revenue", "gross profit", "net income", "gross margin"]
-3. **Pull 10 quarters** using `get_company_fundamentals` with periods spanning Q3 of 2.5 years ago through the latest available quarter
+3. **Pull 10 quarters** using `get_company_fundamentals`. Calculate 10 quarters backward from `latest_calendar_quarter`.
    - Example: if latest is Q4'25, pull ["2023Q3", "2023Q4", "2024Q1", "2024Q2", "2024Q3", "2024Q4", "2025Q1", "2025Q2", "2025Q3", "2025Q4"]
 4. **Compute inventory composition**: For each quarter, calculate RM%, WIP%, FG% of total inventory
    - High WIP% can signal production bottlenecks
@@ -153,7 +153,7 @@ For each identified customer (aim for 6-10 key customers):
 1. **Discover the customer** using `discover_companies` with their ticker
 2. **Pull key financials** from Daloopa:
    - `discover_company_series` with keywords: ["revenue", "net income", "gross margin", "cost of goods", "operating income"]
-   - `get_company_fundamentals` for last 4 quarters
+   - `get_company_fundamentals` for the same 4 calendar quarters as the target company
 3. **Determine revenue attribution** (what % of target's revenue comes from this customer):
    - Search Daloopa documents for the target company: keywords ["[customer name]", "customer", "concentration", "accounts receivable"]
    - Web search: `"[target company] [customer name] revenue percentage"`
@@ -176,7 +176,7 @@ Mirror Phase 3b for the customer side. For each identified customer (6-10 compan
 1. **Discover inventory series** using `discover_company_series` with keywords: ["raw material", "work in process", "finished good", "inventory", "inventories"]
    - Look for separate RM, WIP, FG series, plus a total inventory series
 2. **Discover financial series** using `discover_company_series` with keywords: ["revenue", "gross profit", "net income", "gross margin"]
-3. **Pull 10 quarters** using `get_company_fundamentals` with the same period range as suppliers
+3. **Pull 10 quarters** using `get_company_fundamentals` with the same 10 calendar quarters as the target company and suppliers (calculated from `latest_calendar_quarter`)
 4. **Compute inventory composition**: RM%, WIP%, FG% of total inventory
    - For customers, inventory signals have different meaning:
    - Rising RM% at a customer → they're stocking up on target company's inputs (bullish for target's near-term revenue, but may mean future destocking)
@@ -1055,8 +1055,8 @@ Summary of concentration risk on BOTH sides of the value chain:
 ### Section 10: Footer
 ```html
   <div class="page-footer">
-    Data sourced from <a href="https://daloopa.com">Daloopa</a>. All financial figures link to original source filings.
-    Prepared [Date]. Supply chain relationships are based on public filings, analyst research, and industry reports. Not investment advice.
+    Prepared by {FIRM_NAME} | Data sourced from <a href="https://daloopa.com">Daloopa</a>. All financial figures link to original source filings.
+    [Date]. Supply chain relationships are based on public filings, analyst research, and industry reports. Not investment advice.
   </div>
 </div><!-- end container -->
 </body>

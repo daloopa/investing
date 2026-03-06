@@ -65,10 +65,11 @@ All analysis is written from the perspective of a **long/short equity investor**
 
 ## Report Structure
 
-- **Header**: Company name, ticker, date
+- **Header**: Company name, ticker, date, "Prepared by {FIRM_NAME}"
 - **Executive summary first**: 3-5 key takeaways, each one sentence
 - **Daloopa citations on every financial figure** — no uncited numbers
-- **"Data sourced from Daloopa" footer** on every report
+- **Footer**: "Prepared by {FIRM_NAME} | Data sourced from Daloopa" on every report
+- Firm defaults to "Daloopa" if user doesn't specify `--firm`; see `data-access.md` Section 4.5
 - Section ordering follows each skill's defined structure
 
 ## Color Palette
@@ -317,7 +318,8 @@ img {
 
 <!-- Report content goes here: use <h1>, <h2>, <table>, <blockquote>, <p>, <a>, etc. -->
 
-<div class="footer">Data sourced from Daloopa</div>
+<!-- Replace {FIRM_NAME} with user's --firm argument, or "Daloopa" if not specified -->
+<div class="footer">Prepared by {FIRM_NAME} | Data sourced from Daloopa</div>
 </body>
 </html>
 ```
