@@ -58,6 +58,8 @@ body {
     font-size: 8px;
     color: var(--dark-gray);
 }
+/* Slide footer should contain: left="Prepared by {FIRM_NAME}", center="CONFIDENTIAL" (if IB Advisory), right="Page N" */
+/* Replace {FIRM_NAME} with user-specified firm or "Daloopa" (default). NEVER hallucinate a firm name. */
 
 .confidential {
     color: var(--red);
@@ -74,6 +76,8 @@ body {
     <div style="color: white; font-size: 36px; font-weight: 700; margin-bottom: 8px;">{COMPANY_NAME}</div>
     <div style="color: var(--gold); font-size: 20px; margin-bottom: 40px;">{DECK_TITLE}</div>
     <div style="color: rgba(255,255,255,0.7); font-size: 14px;">{DATE}</div>
+    <!-- Replace {FIRM_NAME} with user-specified firm or "Daloopa" (default). NEVER hallucinate a firm name. -->
+    <div style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 8px;">Prepared by {FIRM_NAME}</div>
     <div style="position: absolute; bottom: 30px; color: var(--red); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">CONFIDENTIAL</div>
 </div>
 ```

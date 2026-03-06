@@ -11,7 +11,11 @@ Build a trading comparables analysis for the company specified by the user: $ARG
 Follow these steps:
 
 ## 1. Company Lookup
-Look up the company by ticker. Note the company_id, full name, and latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
 ## 2. Identify Peer Group
 Based on the company's business model, sector, size, and competitive landscape, identify 5-10 comparable companies. Consider:
@@ -25,7 +29,7 @@ Prioritize relevance over size matching. A direct competitor at a different scal
 List the peer tickers and briefly justify each selection (1 sentence).
 
 ## 3. Target Company Fundamentals
-Pull from Daloopa for the target company (last 4 quarters):
+Calculate 4 quarters backward from `latest_calendar_quarter`. Pull from Daloopa for the target company:
 - Revenue (compute trailing 4Q total)
 - EBITDA (compute trailing 4Q; if not available, use Op Income + D&A, label "(calc.)")
 - Net Income (trailing 4Q)
@@ -47,7 +51,7 @@ If a peer ticker fails (delisted, no data), drop it and note why.
 ## 5. Peer Fundamentals from Daloopa
 For each peer that is available in Daloopa:
 - Look up the company
-- Pull trailing 4Q revenue, operating income, net income
+- Calculate 4 quarters backward from `latest_calendar_quarter`. Pull revenue, operating income, net income for those periods.
 - Compute revenue growth YoY, operating margin, net margin
 
 For peers not in Daloopa, rely on market data multiples only (see ../data-access.md Section 2) and note the data source limitation.
@@ -66,7 +70,7 @@ For each company (target + all peers available in Daloopa), discover and pull co
 - **Pharma/Biotech**: pipeline stage, patient starts, scripts, market share
 - **Industrials/Energy**: backlog, book-to-bill, utilization, production volumes, reserves
 
-Pull trailing 4Q for each peer. Not all peers will have the same KPIs — build a sparse matrix and note which are comparable across the group vs company-specific.
+Pull the same 4 calendar quarters for each peer. Not all peers will have the same KPIs — build a sparse matrix and note which are comparable across the group vs company-specific.
 
 Add KPI columns to the comps table in Section 6 where comparable metrics exist (e.g., subscriber growth, ARPU, units alongside P/E and EV/EBITDA). This shows whether valuation premiums are supported by operational outperformance.
 

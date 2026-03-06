@@ -11,11 +11,16 @@ Build a comprehensive Excel financial model (.xlsx) for the company specified by
 This skill gathers all available financial data and builds a multi-tab Excel model from scratch using openpyxl.
 
 ## Phase 1 — Company Setup
-Look up the company by ticker. Note company_id, full name, latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
+
 Get current stock price, market cap, shares outstanding, beta, and trading multiples for {TICKER} (see ../data-access.md Section 2 for how to source market data).
 
 ## Phase 2 — Comprehensive Data Pull
-Pull as much data as Daloopa has for this company. Target 8-16 quarters.
+Calculate periods backward from `latest_calendar_quarter`. Pull as much data as Daloopa has for this company. Target 8-16 quarters.
 
 **Income Statement — search and pull all available:**
 - Revenue / Net Sales

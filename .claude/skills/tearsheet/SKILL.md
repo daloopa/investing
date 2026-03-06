@@ -13,10 +13,15 @@ This should be a quick, one-page overview — the kind of snapshot an analyst pu
 Follow these steps:
 
 ## 1. Company Lookup
-Look up the company by ticker. Note the ticker, full name, and latest available quarter.
+Look up the company by ticker using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
 ## 2. Key Financials
-Pull the last 4 quarters PLUS the year-ago quarter for each of those 4 (i.e., 8 quarters total to enable YoY for every recent quarter):
+Calculate periods backward from `latest_calendar_quarter` (8 quarters total: last 4 + year-ago for each to enable YoY):
+Pull:
 - Revenue
 - Gross Profit
 - Operating Income

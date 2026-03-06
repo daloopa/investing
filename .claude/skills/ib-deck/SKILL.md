@@ -18,6 +18,11 @@ Determine the deck category and scope:
 - **IB Advisory** — M&A advisory, fairness opinions, board presentations. Navy/steel/gold palette. "CONFIDENTIAL" marking.
 - **Activist / L-S Equity** — Shareholder campaigns, investment memos as decks. Navy/blue/orange or navy/sky/green palette.
 
+**Firm Attribution:**
+- Firm name defaults to "Daloopa". If the user specifies a firm name in their prompt, use that instead.
+- **NEVER hallucinate a firm name** (Goldman Sachs, Morgan Stanley, JPMorgan, etc.). See `../data-access.md` Section 4.5.
+- Include firm name on the cover slide and in all slide footers.
+
 **Gather from the user or infer:**
 - Target company (ticker)
 - Purpose (M&A pitch, fairness opinion, investment memo, activist campaign)
@@ -26,8 +31,10 @@ Determine the deck category and scope:
 
 ## Phase 2 — Data Gathering
 
+Look up the company by ticker using `discover_companies`. Capture `company_id`, `latest_calendar_quarter`, and `latest_fiscal_quarter`. Use `latest_calendar_quarter` to anchor all period calculations (see `../data-access.md` Section 1.5).
+
 Use Daloopa MCP for all financial data. Target comprehensive coverage:
-- **5+ years of quarterly financials** (income statement, balance sheet, cash flow)
+- **5+ years of quarterly financials** — calculate 20+ quarters backward from `latest_calendar_quarter` (income statement, balance sheet, cash flow)
 - **Segment and geographic breakdowns**
 - **All company-specific operating KPIs**
 - **6-10 peers** — get trading multiples and fundamentals from Daloopa + market data (see ../data-access.md Section 2)

@@ -13,10 +13,15 @@ The user will provide multiple tickers separated by spaces (e.g., "AAPL MSFT GOO
 Follow these steps:
 
 ## 1. Company Lookups
-Look up all provided tickers. Collect company_ids for each. Note each company's fiscal year end — this is critical for calendar quarter alignment.
+Look up all provided tickers using `discover_companies`. For each company, capture:
+- `company_id`
+- `latest_calendar_quarter` — use the earliest `latest_calendar_quarter` across all companies as the anchor for period calculations (see `../data-access.md` Section 1.5)
+- `latest_fiscal_quarter`
+- Note each company's fiscal year end — this is critical for calendar quarter alignment
+- Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
 ## 2. Comparable Financial Metrics
-For each company, find and pull these metrics for the last 4 quarters PLUS the year-ago quarter for each (i.e., 8 quarters total to compute YoY for every recent quarter):
+Calculate 8 quarters backward from the anchor `latest_calendar_quarter`. For each company, find and pull these metrics:
 
 **Income Statement:**
 - Revenue

@@ -148,6 +148,20 @@ def chart_time_series(data, output_path):
     label = data.get("label", "Value")
     title = data.get("title", label)
 
+    # Normalize series from list-of-dicts to dict
+    if isinstance(series, list):
+        normalized = {}
+        for i, item in enumerate(series):
+            if isinstance(item, dict) and "name" in item and "values" in item:
+                normalized[item["name"]] = item["values"]
+            elif isinstance(item, dict) and "name" in item and "data" in item:
+                normalized[item["name"]] = item["data"]
+            elif isinstance(item, list):
+                normalized[f"Series {i + 1}"] = item
+            else:
+                _error(f"time-series: unrecognized series format at index {i}.")
+        series = normalized
+
     if not periods:
         _error("time-series requires 'periods'.")
     if not values and not series:
