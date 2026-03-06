@@ -10,7 +10,7 @@ Check your available tools. If you see Daloopa MCP tools (`discover_companies`, 
 
 | Operation | MCP Tool |
 |---|---|
-| Find company by ticker/name | `discover_companies(keywords=["TICKER"])` |
+| Find company by ticker/name | `discover_companies(keywords=["TICKER"])` → returns `company_id`, `latest_calendar_quarter`, `latest_fiscal_quarter` |
 | Find available series/metrics | `discover_company_series(company_id, keywords, periods)` |
 | Pull financial data | `get_company_fundamentals(company_id, periods, series_ids)` |
 | Search SEC filings | `search_documents(keywords, company_ids, periods)` |
@@ -26,6 +26,30 @@ If MCP is not available, check for API credentials (`recipes/daloopa_client.py` 
 | Search SEC filings | `python recipes/document_search.py "KEYWORDS" --companies TICKER1 TICKER2` |
 
 If neither MCP nor API is available, tell the user to run `/setup`.
+
+## Section 1.5: Period Determination
+
+After `discover_companies`, capture `latest_calendar_quarter` and `latest_fiscal_quarter`. Use `latest_calendar_quarter` to calculate all period arrays:
+
+| Skill Need | Calculation |
+|---|---|
+| Last 4 quarters | Work backward 4Q from `latest_calendar_quarter` |
+| Last 8 quarters | Work backward 8Q from `latest_calendar_quarter` |
+| Last 10 quarters | Work backward 10Q from `latest_calendar_quarter` |
+| Last 4Q + YoY | 8 quarters: latest 4 + same 4 one year prior |
+| Document search (recent) | Latest 2 quarters from `latest_calendar_quarter` |
+
+Example: if `latest_calendar_quarter` = "2025Q4", last 8Q = ["2024Q1", "2024Q2", "2024Q3", "2024Q4", "2025Q1", "2025Q2", "2025Q3", "2025Q4"]
+
+**NEVER assume the current calendar date determines the latest available quarter — always use the field returned by `discover_companies`.**
+
+### Fiscal Year Context
+
+Note that `get_company_fundamentals` returns both `calendar_period` and `fiscal_period` for each data point.
+
+- **Single-company analysis** (tearsheet, earnings, guidance-tracker, bull-bear, etc.): Note the company's fiscal year end and use `fiscal_period` labels when presenting data (e.g., "FQ1'26" for Apple's Oct-Dec quarter).
+- **Multi-company comparison** (industry, comps, comp-sheet): Use `calendar_period` labels to normalize across different fiscal year ends.
+- **API input is always calendar quarters** — never pass `latest_fiscal_quarter` values to the API. Fiscal notation (e.g., "FQ2'25") will be misinterpreted. Always calculate period arrays from `latest_calendar_quarter`.
 
 ## Section 2: External Market Data
 
@@ -73,6 +97,18 @@ The `fundamental_id` (or `id`) is returned in every `get_company_fundamentals` r
 4. **Document citations** — when quoting SEC filings from `search_documents`, link to: `[Document Name](https://marketplace.daloopa.com/document/{document_id})`
 
 If you output a financial figure without a citation, it cannot be verified. Uncitable numbers are useless to an analyst.
+
+## Section 4.5: Firm Attribution
+
+Every output (HTML report, Word document, Excel model, pitch deck) must display "Prepared by {FIRM_NAME}":
+- **Default**: "Daloopa"
+- **User override**: If the user specifies a firm name in their prompt (e.g., "use firm name Acme Capital"), use that instead
+- **NEVER hallucinate a firm name** (Goldman Sachs, Morgan Stanley, JPMorgan, etc.). If no firm name is provided, use "Daloopa". Period.
+
+For HTML reports, the footer reads: `Prepared by {FIRM_NAME} | Data sourced from Daloopa`
+For Word documents, include firm name on the cover page and in document headers.
+For Excel models, include firm name on the cover/summary tab.
+For pitch decks, include firm name on the cover slide and in slide footers.
 
 ---
 

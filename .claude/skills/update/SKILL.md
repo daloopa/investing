@@ -20,7 +20,7 @@ If neither exists, tell the user: "No existing coverage found for {TICKER}. Run 
 Read the existing context(s) to understand what periods and data were previously gathered.
 
 ## Phase 2 — Identify New Data
-Look up the company to find the latest available quarter.
+Look up the company using `discover_companies`. Capture `company_id`, `latest_calendar_quarter` (anchor for all period calculations — see `../data-access.md` Section 1.5), and `latest_fiscal_quarter`. Note the firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5.
 Compare to the periods in existing context. Determine which new quarters need to be pulled.
 
 If no new quarters are available, tell the user: "Coverage is already current through {latest_period}. No new data to update." and stop.
