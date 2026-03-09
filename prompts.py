@@ -11,7 +11,7 @@
 # Skipped: setup (interactive setup wizard — not an analytical skill)
 # Skipped: update (requires prior context JSON from file system — not portable to MCP prompt)
 # Shared references inlined: data-access.md, design-system.md
-# Date: 2026-03-02
+# Date: 2026-03-09
 
 from app.daloopa_mcp import daloopa_mcp
 
@@ -26,10 +26,33 @@ _DALOOPA_TOOLS = """\
 
 | Operation | Tool |
 |---|---|
-| Find company by ticker/name | `discover_companies(keywords=["TICKER"])` |
+| Find company by ticker/name | `discover_companies(keywords=["TICKER"])` → returns `company_id`, `latest_calendar_quarter`, `latest_fiscal_quarter` |
 | Find available series/metrics | `discover_company_series(company_id, keywords, periods)` |
 | Pull financial data | `get_company_fundamentals(company_id, periods, series_ids)` |
 | Search SEC filings | `search_documents(keywords, company_ids, periods)` |
+"""
+
+_PERIOD_DETERMINATION = """\
+## Period Determination
+
+After `discover_companies`, capture `latest_calendar_quarter` and `latest_fiscal_quarter`. Use `latest_calendar_quarter` to calculate all period arrays:
+
+| Need | Calculation |
+|---|---|
+| Last 4 quarters | Work backward 4Q from `latest_calendar_quarter` |
+| Last 8 quarters | Work backward 8Q from `latest_calendar_quarter` |
+| Last 10 quarters | Work backward 10Q from `latest_calendar_quarter` |
+| Last 4Q + YoY | 8 quarters: latest 4 + same 4 one year prior |
+| Document search (recent) | Latest 2 quarters from `latest_calendar_quarter` |
+
+Example: if `latest_calendar_quarter` = "2025Q4", last 8Q = ["2024Q1", "2024Q2", "2024Q3", "2024Q4", "2025Q1", "2025Q2", "2025Q3", "2025Q4"]
+
+**NEVER assume the current calendar date determines the latest available quarter — always use the field returned by `discover_companies`.**
+
+### Fiscal Year Context
+- **Single-company analysis**: Use `fiscal_period` labels when presenting data (e.g., "FQ1'26" for Apple's Oct-Dec quarter).
+- **Multi-company comparison**: Use `calendar_period` labels to normalize across different fiscal year ends.
+- **API input is always calendar quarters** — never pass `latest_fiscal_quarter` values to the API. Always calculate period arrays from `latest_calendar_quarter`.
 """
 
 _CITATIONS = """\
@@ -243,6 +266,7 @@ def earnings(ticker: str) -> str:
 Perform a comprehensive earnings analysis for {ticker}.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -252,10 +276,14 @@ Perform a comprehensive earnings analysis for {ticker}.
 ## Analysis Steps
 
 ### 1. Company Lookup
-Look up {ticker} using `discover_companies` to get company_id and latest available quarter.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
 
 ### 2. Core Financial Metrics
-Search for and pull the last 8 quarters:
+Calculate 8 quarters backward from `latest_calendar_quarter`. Search for and pull:
 
 **Income Statement:** Revenue, Gross Profit, Operating Income/EBIT, EBITDA (compute as Op Income + D&A if not reported — label "(calc.)"), Net Income, Diluted EPS, SG&A, R&D.
 
@@ -376,6 +404,7 @@ def tearsheet(ticker: str) -> str:
 Generate a concise company tearsheet for {ticker}. Quick one-page overview — the snapshot an analyst pulls up before a meeting.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -384,10 +413,14 @@ Generate a concise company tearsheet for {ticker}. Quick one-page overview — t
 ## Analysis Steps
 
 ### 1. Company Lookup
-Look up {ticker}. Note ticker, full name, latest available quarter.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
 
 ### 2. Key Financials
-Pull last 4 quarters PLUS year-ago quarters (8 total for YoY): Revenue, Gross Profit, Operating Income, EBITDA (compute as Op Income + D&A if needed — "(calc.)"), Net Income, Diluted EPS, Operating Cash Flow, CapEx, Free Cash Flow (OCF - CapEx — "(calc.)").
+Calculate periods backward from `latest_calendar_quarter` (8 quarters total: last 4 + year-ago for each to enable YoY). Revenue, Gross Profit, Operating Income, EBITDA (compute as Op Income + D&A if needed — "(calc.)"), Net Income, Diluted EPS, Operating Cash Flow, CapEx, Free Cash Flow (OCF - CapEx — "(calc.)").
 
 ### 3. Key Operating KPIs
 Strictly **business-driver metrics** — NOT financial statement items.
@@ -452,6 +485,7 @@ Perform an industry comparison across these companies: {tickers}
 (Tickers are space-separated. Look up each one.)
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -460,10 +494,15 @@ Perform an industry comparison across these companies: {tickers}
 ## Analysis Steps
 
 ### 1. Company Lookups
-Look up all tickers. Collect company_ids. Note each company's fiscal year end — critical for calendar quarter alignment.
+Look up all tickers using `discover_companies`. For each company, capture:
+- `company_id`
+- `latest_calendar_quarter` — use the earliest `latest_calendar_quarter` across all companies as the anchor for period calculations
+- `latest_fiscal_quarter`
+- Note each company's fiscal year end — critical for calendar quarter alignment
+- Firm name for report attribution (default: "Daloopa")
 
 ### 2. Comparable Financial Metrics
-For each company, pull last 8 quarters:
+Calculate 8 quarters backward from the anchor `latest_calendar_quarter`. For each company, pull:
 
 **Income Statement:** Revenue, Gross Profit/Margin, Operating Income/Margin, EBITDA (compute if needed — "(calc.)"), Net Income/Margin, Diluted EPS, R&D Expense, Stock-Based Compensation.
 
@@ -527,6 +566,7 @@ def bull_bear(ticker: str) -> str:
 Build a bull/bear/base case scenario framework for {ticker}.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -535,10 +575,14 @@ Build a bull/bear/base case scenario framework for {ticker}.
 ## Analysis Steps
 
 ### 1. Company Lookup
-Look up {ticker}. Extract company_id and latest available quarter.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
 
 ### 2. Historical Financial Baseline
-Pull at least 8 quarters: Revenue, Gross Profit/Margin, Operating Income/Margin, EBITDA (compute if needed — "(calc.)"), Net Income, Diluted EPS, Operating Cash Flow, CapEx, Free Cash Flow (OCF - CapEx — "(calc.)"), Segment revenue, Geographic revenue.
+Calculate 8 quarters backward from `latest_calendar_quarter`. Pull: Revenue, Gross Profit/Margin, Operating Income/Margin, EBITDA (compute if needed — "(calc.)"), Net Income, Diluted EPS, Operating Cash Flow, CapEx, Free Cash Flow (OCF - CapEx — "(calc.)"), Segment revenue, Geographic revenue.
 
 Compute trailing 4Q totals for revenue, EBITDA, net income, EPS, FCF — these are the scenario baseline. Flag one-time items.
 
@@ -604,6 +648,7 @@ def guidance_tracker(ticker: str) -> str:
 Track management guidance accuracy for {ticker}.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -613,7 +658,11 @@ Track management guidance accuracy for {ticker}.
 ## Analysis Steps
 
 ### 1. Company Lookup
-Look up {ticker}. Extract company_id and latest available quarter.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
 
 ### 2. Discover Guidance Series
 Search with keywords: "guidance", "outlook", "estimate", "forecast", "target".
@@ -623,7 +672,7 @@ Search with keywords: "guidance", "outlook", "estimate", "forecast", "target".
 **Operational KPI guidance** (often more informative than financial): subscriber/user count, unit shipments, ARPU/ASP, same-store sales, GMV/bookings, net revenue retention, store openings, production volume guidance. Search explicitly: "subscriber guidance", "unit guidance", "ARPU guidance", etc.
 
 ### 3. Pull Guidance Data
-Pull all discovered guidance series for last 8+ quarters.
+Calculate 8+ quarters backward from `latest_calendar_quarter`. Pull all discovered guidance series for those periods.
 
 ### 4. Pull Actual Results
 For each guidance metric, pull corresponding actual result series for the same periods.
@@ -706,6 +755,7 @@ def inflection(ticker: str) -> str:
 Detect the biggest financial and operating inflections for {ticker}.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -714,7 +764,11 @@ Detect the biggest financial and operating inflections for {ticker}.
 ## Analysis Steps
 
 ### 1. Company Lookup
-Look up {ticker}. Note company_id, full name, latest available quarter.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
 
 ### 2. Broad Series Discovery
 Cast a wide net to discover ALL available series. Search with multiple keyword sets:
@@ -727,7 +781,7 @@ Cast a wide net to discover ALL available series. Search with multiple keyword s
 Collect all unique series IDs. Goal is comprehensiveness.
 
 ### 3. Pull 8 Quarters
-Pull last 8 quarters for ALL discovered series.
+Calculate 8 quarters backward from `latest_calendar_quarter`. Pull all discovered series for those periods. This gives enough history to compute both QoQ and YoY rates plus their second derivatives.
 
 ### 4. Compute Growth Rates and Inflections
 For each series with 5+ quarters of data:
@@ -786,6 +840,7 @@ def capital_allocation(ticker: str) -> str:
 Perform a deep dive into capital allocation for {ticker}.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -795,13 +850,17 @@ Perform a deep dive into capital allocation for {ticker}.
 ## Analysis Steps
 
 ### 1. Company Lookup
-Look up {ticker}. Note company_id, full name, latest available quarter.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
 
 ### 2. Market Data
 Get current stock price, market cap, shares outstanding for {ticker}. Needed for yields and per-share metrics. If unavailable, note that market-derived metrics cannot be computed.
 
 ### 3. Capital Allocation Data
-Pull 8 quarters:
+Calculate 8 quarters backward from `latest_calendar_quarter`. Pull:
 
 **Shares & Buybacks:** Diluted shares outstanding, share repurchase amounts ($), shares retired (units if available).
 
@@ -885,6 +944,7 @@ def dcf(ticker: str) -> str:
 Build a discounted cash flow (DCF) valuation for {ticker}.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -894,13 +954,17 @@ Build a discounted cash flow (DCF) valuation for {ticker}.
 ## Analysis Steps
 
 ### 1. Company Lookup
-Look up {ticker}. Note company_id, full name, latest quarter.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
 
 ### 2. Market Data
 Get: current price, market cap, shares outstanding, beta, 10Y Treasury yield (risk-free rate). If unavailable, use defaults (beta=1.0, Rf=4.5%).
 
 ### 3. Historical Financials
-Pull 8 quarters: Revenue, Operating Income, Net Income, Diluted EPS, Operating Cash Flow, CapEx, FCF (OCF - CapEx — "(calc.)"), D&A, Tax expense and pre-tax income (for effective tax rate), Interest expense, Total debt, Cash and equivalents, Shares outstanding. Also pull segment revenue and guidance series.
+Calculate 8 quarters backward from `latest_calendar_quarter`. Pull: Revenue, Operating Income, Net Income, Diluted EPS, Operating Cash Flow, CapEx, FCF (OCF - CapEx — "(calc.)"), D&A, Tax expense and pre-tax income (for effective tax rate), Interest expense, Total debt, Cash and equivalents, Shares outstanding. Also pull segment revenue and guidance series.
 
 ### 4. Calculate WACC
 
@@ -980,6 +1044,7 @@ def comps(ticker: str) -> str:
 Build a trading comparables analysis for {ticker}.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -989,19 +1054,28 @@ Build a trading comparables analysis for {ticker}.
 ## Analysis Steps
 
 ### 1. Company Lookup
-Look up {ticker}. Note company_id, full name, latest quarter.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
 
 ### 2. Identify Peer Group
 Identify 5-10 comparable companies based on: direct competitors, business model peers, size peers, growth profile peers. Prioritize relevance over size. List tickers with 1-sentence justification each.
 
 ### 3. Target Company Fundamentals
-Pull from Daloopa (last 4 quarters): Revenue (trailing 4Q total), EBITDA (trailing 4Q; compute from Op Income + D&A if needed — "(calc.)"), Net Income (trailing 4Q), Diluted EPS (trailing 4Q sum), Free Cash Flow (trailing 4Q; OCF - CapEx — "(calc.)"), Revenue YoY growth (most recent Q), Operating Margin, Net Margin.
+Calculate 4 quarters backward from `latest_calendar_quarter`. Pull from Daloopa: Revenue (trailing 4Q total), EBITDA (trailing 4Q; compute from Op Income + D&A if needed — "(calc.)"), Net Income (trailing 4Q), Diluted EPS (trailing 4Q sum), Free Cash Flow (trailing 4Q; OCF - CapEx — "(calc.)"), Revenue YoY growth (most recent Q), Operating Margin, Net Margin.
 
 ### 4. Peer Market Multiples
 For each peer, get trading multiples: P/E (trailing + forward), EV/EBITDA, P/S, P/B, dividend yield, PEG ratio, price, market cap, enterprise value. If a peer fails, drop and note why.
 
 ### 5. Peer Fundamentals from Daloopa
-For each peer available in Daloopa: trailing 4Q revenue, operating income, net income. Compute revenue growth YoY, operating margin, net margin. For peers not in Daloopa, use market data multiples only and note limitation.
+For each peer available in Daloopa:
+- Look up the company
+- Calculate 4 quarters backward from `latest_calendar_quarter`. Pull revenue, operating income, net income for those periods.
+- Compute revenue growth YoY, operating margin, net margin
+
+For peers not in Daloopa, use market data multiples only and note limitation.
 
 ### 5.5. Peer Operational KPIs
 {_KPI_TAXONOMY}
@@ -1059,6 +1133,7 @@ Generate an interactive supply chain dashboard for {ticker}, mapping upstream (s
 The output enables an analyst to understand: Who are the critical suppliers and customers? Where is concentration risk on both sides? Which suppliers depend heavily on this company for revenue? Which customers depend on this company's products as critical inputs? How does a shock propagate both upstream (demand shock to suppliers) and downstream (supply disruption to customers)?
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -1071,10 +1146,10 @@ This is a multi-phase research process. Each phase builds on the previous one. M
 
 ### Phase 1: Target Company Identification
 
-1. Use `discover_companies` with "{ticker}" to get `company_id`, `latest_calendar_quarter`, and `latest_fiscal_quarter`.
+1. Use `discover_companies` with "{ticker}" to get `company_id`, `latest_calendar_quarter`, and `latest_fiscal_quarter`. Note the firm name for report attribution (default: "Daloopa").
 2. Pull key financials for the target company:
    - Use `discover_company_series` with keywords: ["revenue", "cost of goods", "gross profit", "operating income", "net income", "total cost"]
-   - Use `get_company_fundamentals` for the last 4 quarters to get TTM figures
+   - Calculate 4 quarters backward from `latest_calendar_quarter`. Use `get_company_fundamentals` for those periods to get TTM figures.
 3. Note the target company's total COGS / cost of revenue (TTM) — this is the denominator for supplier % calculations.
 
 ### Phase 2: Supplier Identification
@@ -1133,8 +1208,8 @@ For the target company AND each identified supplier (8-15 companies), pull **10 
    - Look for separate RM, WIP, FG series, plus a total inventory series
    - Some companies report "carrying amount" breakdowns — use those for RM/WIP/FG splits
 2. **Discover financial series** using `discover_company_series` with keywords: ["revenue", "gross profit", "net income", "gross margin"]
-3. **Pull 10 quarters** using `get_company_fundamentals` with periods spanning Q3 of 2.5 years ago through the latest available quarter
-   - Example: if latest is Q4'25, pull ["2023Q3", "2023Q4", "2024Q1", "2024Q2", "2024Q3", "2024Q4", "2025Q1", "2025Q2", "2025Q3", "2025Q4"]
+3. **Pull 10 quarters** using `get_company_fundamentals`. Calculate 10 quarters backward from `latest_calendar_quarter`.
+   - Example: if `latest_calendar_quarter` = "2025Q4", pull ["2023Q3", "2023Q4", "2024Q1", "2024Q2", "2024Q3", "2024Q4", "2025Q1", "2025Q2", "2025Q3", "2025Q4"]
 4. **Compute inventory composition**: For each quarter, calculate RM%, WIP%, FG% of total inventory
    - High WIP% can signal production bottlenecks
    - Rising FG% can signal demand weakness
@@ -1202,7 +1277,7 @@ Mirror Phase 3b for the customer side. For each identified customer (6-10 compan
 1. **Discover inventory series** using `discover_company_series` with keywords: ["raw material", "work in process", "finished good", "inventory", "inventories"]
    - Look for separate RM, WIP, FG series, plus a total inventory series
 2. **Discover financial series** using `discover_company_series` with keywords: ["revenue", "gross profit", "net income", "gross margin"]
-3. **Pull 10 quarters** using `get_company_fundamentals` with the same period range as suppliers
+3. **Pull 10 quarters** using `get_company_fundamentals` with the same 10 calendar quarters as the target company and suppliers (calculated from `latest_calendar_quarter`)
 4. **Compute inventory composition**: RM%, WIP%, FG% of total inventory
    - For customers, inventory signals have different meaning:
    - Rising RM% at a customer → they're stocking up on target company's inputs (bullish for target's near-term revenue, but may mean future destocking)
@@ -1551,6 +1626,7 @@ Generate a comprehensive research note for {ticker}. This is the most thorough s
 NOTE: The original skill produces a .docx Word document via infra scripts. This prompt produces the full analytical content as structured markdown. For .docx rendering, use the project repo's `infra/docx_renderer.py`.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -1561,10 +1637,16 @@ NOTE: The original skill produces a .docx Word document via infra scripts. This 
 ## Analysis Phases
 
 ### Phase A — Company Setup
-Look up {ticker}. Get company_id, full name, latest quarter. Get current stock price, market cap, shares outstanding, beta, trading multiples.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
+
+Get current stock price, market cap, shares outstanding, beta, and trading multiples for {ticker} (see market data resolution order above).
 
 ### Phase B — Core Financials + Cost Structure
-Pull 8 quarters of Income Statement: Revenue, Gross Profit, Operating Income, Net Income, Diluted EPS, EBITDA (compute if needed — "(calc.)"), SG&A, R&D.
+Calculate 8 quarters backward from `latest_calendar_quarter`. Pull Income Statement: Revenue, Gross Profit, Operating Income, Net Income, Diluted EPS, EBITDA (compute if needed — "(calc.)"), SG&A, R&D.
 
 Cash Flow & Balance Sheet: Operating Cash Flow, CapEx, FCF (OCF - CapEx — "(calc.)"), Cash, Total Debt, Net Debt, D&A.
 
@@ -1577,7 +1659,7 @@ Compute margins and YoY growth. Every Daloopa number must include citation link.
 ### Phase C — KPIs, Segments & Industry Deep Dive
 {_KPI_TAXONOMY}
 
-Search for company-specific KPIs, segment revenue, geographic revenue, share count, buybacks. Pull 8 quarters.
+Search for company-specific KPIs, segment revenue, geographic revenue, share count, buybacks. Pull the same 8 quarters (from `latest_calendar_quarter`).
 
 **Industry Deep Dive** — determine sector and apply:
 - Manufacturing: bookings, backlog, book-to-bill, capacity utilization
@@ -1666,6 +1748,7 @@ def build_model(ticker: str) -> str:
 Build a comprehensive Excel financial model for {ticker}.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -1676,10 +1759,16 @@ Build a comprehensive Excel financial model for {ticker}.
 ## Analysis Phases
 
 ### Phase 1 — Company Setup
-Look up {ticker}. Get company_id, full name, latest quarter. Get current price, market cap, shares outstanding, beta, trading multiples.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
+
+Get current stock price, market cap, shares outstanding, beta, and trading multiples.
 
 ### Phase 2 — Comprehensive Data Pull
-Pull as much as Daloopa has, targeting 8-16 quarters:
+Calculate periods backward from `latest_calendar_quarter`. Pull as much data as Daloopa has for this company. Target 8-16 quarters.
 
 **Income Statement:** Revenue, COGS, Gross Profit, R&D, SG&A, Total OpEx, Operating Income, Interest Expense/Income, Pre-tax Income, Tax Expense, Net Income, Diluted EPS, Diluted Shares, EBITDA (or compute), D&A.
 
@@ -1747,6 +1836,7 @@ def comp_sheet(ticker: str) -> str:
 Build a multi-company industry comp sheet Excel model for {ticker} and its peers.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -1757,12 +1847,14 @@ Build a multi-company industry comp sheet Excel model for {ticker} and its peers
 ## Analysis Steps
 
 ### 1. Company & Peer Setup
-Look up {ticker}. Identify 6-10 comparable companies (direct competitors, business model peers, size peers, growth peers). Look up all company_ids. List with justification.
+Look up the target company by ticker using `discover_companies`. Capture `company_id`, `latest_calendar_quarter` (anchor for all period calculations), and `latest_fiscal_quarter`. Note the firm name for report attribution (default: "Daloopa").
+
+Then identify 6-10 comparable companies (direct competitors, business model peers, size peers, growth peers). Look up all company_ids. List with justification.
 
 ### 2. Deep Data Gathering
 For EACH company (target + all peers), pull from Daloopa:
 
-**8 quarters of financials:** Revenue, Gross Profit, Operating Income, Net Income, Diluted EPS, OCF, CapEx, D&A, FCF (OCF - CapEx), R&D, SG&A.
+**Calculate 8 quarters backward from `latest_calendar_quarter`. Pull financials:** Revenue, Gross Profit, Operating Income, Net Income, Diluted EPS, OCF, CapEx, D&A, FCF (OCF - CapEx), R&D, SG&A.
 
 **Segment revenue** (all segments, 8 quarters).
 
@@ -1816,6 +1908,7 @@ Build an institutional-grade pitch deck for {ticker}.
 Category: {category} (options: "ib-advisory" for M&A/fairness opinions, "activist-ls" for shareholder campaigns/investment memos)
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -1832,8 +1925,10 @@ Determine deck scope based on category:
 - **Activist / L-S Equity**: Shareholder campaigns, investment memos. Navy/blue/orange palette.
 
 ### Phase 2 — Data Gathering
-Use Daloopa for all financial data:
-- 5+ years of quarterly financials (IS, BS, CF)
+Look up the company by ticker using `discover_companies`. Capture `company_id`, `latest_calendar_quarter`, and `latest_fiscal_quarter`. Use `latest_calendar_quarter` to anchor all period calculations.
+
+Use Daloopa MCP for all financial data. Target comprehensive coverage:
+- **5+ years of quarterly financials** — calculate 20+ quarters backward from `latest_calendar_quarter` (income statement, balance sheet, cash flow)
 - Segment and geographic breakdowns
 - All company-specific KPIs
 - 6-10 peers with trading multiples and Daloopa fundamentals
@@ -1894,6 +1989,7 @@ Initiate coverage on {ticker}. Produce both a comprehensive research note AND an
 NOTE: The original skill produces .docx + .xlsx via infra scripts. This prompt produces: (1) full research note content as structured markdown, and (2) the Excel model as a React artifact with SheetJS.
 
 {_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
 {_CITATIONS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
@@ -1906,10 +2002,16 @@ NOTE: The original skill produces .docx + .xlsx via infra scripts. This prompt p
 ## Phases
 
 ### Phase 1 — Company Setup
-Look up {ticker}. Get company_id, full name, latest quarter. Get market data: price, market cap, shares, beta, multiples, risk-free rate.
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
+
+Get market data: price, market cap, shares, beta, multiples, risk-free rate.
 
 ### Phase 2 — Comprehensive Data Gathering
-Pull the superset needed for both outputs (8-16 quarters):
+Calculate 8-16 quarters backward from `latest_calendar_quarter`. Pull the superset needed for both outputs:
 
 **Full Income Statement:** Revenue, COGS, Gross Profit, R&D, SG&A, Total OpEx, Operating Income, Interest, Pre-tax Income, Tax, Net Income, Diluted EPS, Shares, EBITDA/D&A.
 
