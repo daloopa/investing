@@ -1924,6 +1924,11 @@ Determine deck scope based on category:
 - **IB Advisory**: M&A advisory, fairness opinions, board presentations. Navy/steel/gold palette. "CONFIDENTIAL" marking.
 - **Activist / L-S Equity**: Shareholder campaigns, investment memos. Navy/blue/orange palette.
 
+**Firm Attribution:**
+- Firm name defaults to "Daloopa". If the user specifies a firm name in their prompt, use that instead.
+- **NEVER hallucinate a firm name** (Goldman Sachs, Morgan Stanley, JPMorgan, etc.).
+- Include firm name on the cover slide and in all slide footers.
+
 ### Phase 2 — Data Gathering
 Look up the company by ticker using `discover_companies`. Capture `company_id`, `latest_calendar_quarter`, and `latest_fiscal_quarter`. Use `latest_calendar_quarter` to anchor all period calculations.
 
@@ -1943,10 +1948,12 @@ Get market data for target and all peers: price, market cap, shares, beta, multi
 - **Capital allocation**: Buybacks, dividends, yield, leverage — flag value-destructive patterns
 - **Projections**: 3-5 year forward — challenge assumptions
 
+**Critical assessment:** The deck should present an honest analytical view, not a promotional pitch. If the valuation looks stretched, say so. If growth is decelerating, show it clearly. If risks are material, give them proper weight. Institutional investors will dismiss analysis that reads as advocacy rather than research.
+
 ### Phase 4 — Build Presentation
 Structure as 14 slides. Present each as a section with content:
 
-1. **Cover** — Company name, deck title, date, confidential marking (if IB Advisory)
+1. **Cover** — Company name, deck title, date, "Prepared by {{FIRM_NAME}}", "CONFIDENTIAL" marking (if IB Advisory)
 2. **Disclaimer** — Standard legal boilerplate
 3. **Table of Contents** — Numbered sections
 4. **Section Divider: Situation Overview**
@@ -1962,6 +1969,8 @@ Structure as 14 slides. Present each as a section with content:
 14. **Appendix** — Raw data tables
 
 Every content slide must have 2-3+ data-rich elements. No sparse slides. All figures with Daloopa citations.
+
+**Slide footer** (on every slide except cover): left="Prepared by {{FIRM_NAME}}", center="CONFIDENTIAL" (if IB Advisory), right="Page N". Replace {{FIRM_NAME}} with user-specified firm or "Daloopa" (default). NEVER hallucinate a firm name.
 
 ## Output
 
