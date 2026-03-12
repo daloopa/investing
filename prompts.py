@@ -239,12 +239,24 @@ _EXCEL_ARTIFACT = """\
 ## Excel Output via Artifact
 
 Create a React artifact that builds and downloads the .xlsx in-browser:
-- Use SheetJS (`import * as XLSX from 'sheetjs'`) to construct the workbook
+- Use SheetJS (`import * as XLSX from "xlsx"`) to construct the workbook — the package name is "xlsx", NOT "sheetjs"
 - Create the sheets listed below with headers in row 1, data from row 2
 - Apply number formatting (currency, percentages, multiples), column widths, frozen header rows
-- Include a prominent "Download .xlsx" button that generates and downloads the file
+- Include a prominent "Download .xlsx" button using the base64 + data URI method (see below)
 - Show interactive HTML table previews of key sheets above the download button
 - Include Daloopa citation hyperlinks in cells where supported
+
+CRITICAL — Download method (sandbox-safe):
+```js
+const wbout = XLSX.write(wb, { bookType: "xlsx", type: "base64" });
+const a = document.createElement("a");
+a.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + wbout;
+a.download = "file.xlsx";
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+```
+NEVER use `XLSX.writeFile()` or `URL.createObjectURL()` — both are blocked in the artifact sandbox.
 """
 
 
