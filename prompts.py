@@ -175,6 +175,18 @@ _GUIDANCE_RULES = """\
 _HTML_TEMPLATE = """\
 ## HTML Report Output
 
+**CRITICAL — OUTPUT FORMAT:**
+Your response must be a **complete, self-contained HTML document** (starting with `<!DOCTYPE html>`) containing the actual financial analysis with real data from the Daloopa MCP tools.
+
+**DO NOT** generate any of the following instead of the HTML report:
+- React/JSX components or artifacts that wrap MCP calls
+- JavaScript code that programmatically calls MCP endpoints
+- A "MCP client" or "MCP wrapper" application
+- Any code that imports React, useState, useEffect, or similar frameworks
+- Any code that defines API URLs like `https://mcp.daloopa.com/...`
+
+You must **call the Daloopa MCP tools yourself** (discover_companies, discover_company_series, get_company_fundamentals, search_documents), gather the data, and then produce the final HTML report with that data already embedded.
+
 Present the analysis as a **complete, self-contained HTML document** using the template below. The HTML must include all CSS inlined in a `<style>` tag — no external dependencies.
 
 **Citation format in HTML:**
@@ -237,6 +249,8 @@ hr { border: none; border-top: 1px solid var(--mid-gray); margin: 20px 0; }
 
 _EXCEL_ARTIFACT = """\
 ## Excel Output via Artifact
+
+**NOTE:** This is the ONE case where a React artifact is appropriate — for building a downloadable .xlsx file. Do NOT use React/JSX for any other output type (HTML reports, analysis, etc.).
 
 Create a React artifact that builds and downloads the .xlsx in-browser:
 - Use SheetJS (`import * as XLSX from "xlsx"`) to construct the workbook — the package name is "xlsx", NOT "sheetjs"
