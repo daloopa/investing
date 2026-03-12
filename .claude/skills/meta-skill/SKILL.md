@@ -103,6 +103,8 @@ For this specific skill, determine:
 The original skills produce files (.html, .docx, .xlsx, .pdf). MCP prompts return text to a client. For each skill type:
 
 - **HTML report skills** (including ib-deck, supply-chain): The prompt should instruct the LLM to produce the analysis as a **complete, self-contained HTML document** using the design-system.md CSS template. Inline the full HTML template in the prompt so the LLM produces styled HTML matching the original skill's output format.
+
+  **CRITICAL anti-hallucination guard:** The `_HTML_TEMPLATE` block (or equivalent section in each HTML skill prompt) MUST include an explicit instruction telling the LLM to NOT generate React/JSX components, MCP wrapper code, or JavaScript applications that programmatically call MCP endpoints. The LLM sometimes hallucinates a React app that imports `useState`/`useEffect` and defines `const DALOOPA_MCP = "https://mcp.daloopa.com/..."` instead of actually calling the tools and producing the HTML report. The prompt must explicitly forbid this and state that the LLM must call the MCP tools itself and return the final HTML with real data embedded.
 - **Excel skills** (.xlsx): Instruct the LLM to produce a React artifact with SheetJS that builds and downloads the file in-browser (see "Excel Output via Artifacts" in Step 2d).
 - **Word skills** (.docx): Produce the full analytical content as structured text/markdown — binary rendering still requires the infra scripts or a capable client.
 
@@ -126,11 +128,22 @@ When a skill references infra scripts, adapt as follows:
 
 For skills that originally produce .xlsx files (build-model, comp-sheet, and the Excel portion of initiate/update), the prompt should instruct the LLM to create a **React artifact** that:
 
-1. Builds the workbook in-browser using SheetJS (`import * as XLSX from 'sheetjs'`)
+1. Builds the workbook in-browser using SheetJS (`import * as XLSX from "xlsx"`) — the npm package is `"xlsx"`, NOT `"sheetjs"`
 2. Constructs multiple tabs/sheets matching the original skill's sheet structure
 3. Applies formatting: column widths, number formats, header styling, frozen panes where appropriate
-4. Provides a prominent download button that triggers the .xlsx download
+4. Provides a prominent download button using the **base64 + data URI method** (NEVER use `XLSX.writeFile()` or `URL.createObjectURL()` — both are blocked in the artifact sandbox)
 5. Also renders a preview of the key sheets as HTML tables so the user can see the data before downloading
+
+The download handler must use this pattern:
+```js
+const wbout = XLSX.write(wb, { bookType: "xlsx", type: "base64" });
+const a = document.createElement("a");
+a.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + wbout;
+a.download = "file.xlsx";
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+```
 
 The prompt should include the sheet structure (tab names, what goes in each tab, column layout) from the original skill so the LLM knows exactly what to build.
 
@@ -138,10 +151,11 @@ Example pattern to include in the prompt:
 
 ```
 When presenting the Excel model, create a React artifact that:
-- Uses SheetJS (`import * as XLSX from 'sheetjs'`) to build the workbook
+- Uses SheetJS (`import * as XLSX from "xlsx"`) to build the workbook — the package is "xlsx", NOT "sheetjs"
 - Creates these sheets: [list from original skill]
 - Each sheet should have: headers in row 1, data starting row 2, number-formatted columns
-- Include a "Download .xlsx" button that generates and downloads the file
+- Include a "Download .xlsx" button using the base64 + data URI method (NEVER use XLSX.writeFile() or URL.createObjectURL())
+- Download code: `const wbout = XLSX.write(wb, { bookType: "xlsx", type: "base64" }); const a = document.createElement("a"); a.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + wbout; a.download = "file.xlsx"; document.body.appendChild(a); a.click(); document.body.removeChild(a);`
 - Show an interactive preview of the key sheets as HTML tables above the download button
 - All Daloopa-sourced values should include hyperlink citations in the spreadsheet cells where SheetJS supports it
 ```
