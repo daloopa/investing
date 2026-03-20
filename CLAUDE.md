@@ -65,6 +65,8 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 ### Building Block Skills (HTML reports)
 - `/setup` — Walk through initial setup and authentication
 - `/earnings TICKER` — Full earnings analysis with guidance tracking
+- `/earnings-prep TICKER` — Pre-earnings preparation report for the night before a company reports
+- `/earnings-flash TICKER` — Rapid first-read earnings flash
 - `/tearsheet TICKER` — Quick one-page company overview
 - `/industry TICKER1 TICKER2 ...` — Cross-company industry comparison
 - `/bull-bear TICKER` — Bull/bear/base scenario framework
