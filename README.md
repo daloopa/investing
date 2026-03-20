@@ -38,6 +38,8 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 |---------|-------------|---------|--------|
 | `/setup` | Interactive setup wizard | `/setup` | — |
 | `/earnings` | Full earnings analysis with guidance tracking | `/earnings AAPL` | `reports/AAPL_earnings_2025Q3.html` |
+| `/earnings-prep` | Pre-earnings preparation report | `/earnings-prep AAPL` | `reports/AAPL_earnings_prep_2026Q1.html` |
+| `/earnings-flash` | Rapid first-read earnings flash | `/earnings-flash AAPL` | `reports/AAPL_earnings_flash_2025Q4.html` |
 | `/tearsheet` | Quick one-page company overview | `/tearsheet MSFT` | `reports/MSFT_tearsheet.html` |
 | `/industry` | Cross-company industry comparison | `/industry AAPL MSFT GOOG AMZN` | `reports/AAPL_MSFT_GOOG_AMZN_industry_comp.html` |
 | `/bull-bear` | Bull/bear/base scenario framework | `/bull-bear TSLA` | `reports/TSLA_bull_bear.html` |
@@ -160,6 +162,8 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │       ├── design-system.md   # Formatting and styling conventions
 │       ├── setup/             # /setup — interactive setup wizard
 │       ├── earnings/          # /earnings — earnings analysis
+│       ├── earnings-prep/     # /earnings-prep — pre-earnings preparation
+│       ├── earnings-flash/    # /earnings-flash — rapid first-read flash
 │       ├── tearsheet/         # /tearsheet — company one-pager
 │       ├── industry/          # /industry — cross-company comp
 │       ├── bull-bear/         # /bull-bear — scenario analysis
