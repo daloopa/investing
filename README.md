@@ -48,6 +48,7 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 | `/capital-allocation` | Buybacks, dividends, shareholder yield | `/capital-allocation MSFT` | `reports/MSFT_capital_allocation.html` |
 | `/dcf` | DCF valuation with sensitivity analysis | `/dcf AAPL` | `reports/AAPL_dcf.html` |
 | `/comps` | Trading comparables with peer multiples | `/comps AAPL` | `reports/AAPL_comps.html` |
+| `/precedent-transactions` | Precedent M&A deal comps and multiples | `/precedent-transactions CRM` | `reports/CRM_precedent_transactions.html` |
 | `/supply-chain` | Interactive supply chain dashboard | `/supply-chain AAPL` | `reports/AAPL_supply-chain.html` |
 | `/comp-sheet` | Multi-company industry comp sheet model | `/comp-sheet AAPL` | `reports/AAPL_comp_sheet.xlsx` |
 
@@ -172,6 +173,7 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │       ├── capital-allocation/# /capital-allocation — capital deployment
 │       ├── dcf/               # /dcf — DCF valuation
 │       ├── comps/             # /comps — trading comparables
+│       ├── precedent-transactions/ # /precedent-transactions — M&A deal comps
 │       ├── comp-sheet/        # /comp-sheet — industry comp Excel model
 │       ├── supply-chain/      # /supply-chain — interactive supply chain dashboard
 │       ├── meta-skill/        # Internal: convert skills to MCP prompt functions
