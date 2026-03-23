@@ -75,6 +75,7 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `/capital-allocation TICKER` — Deep dive into buybacks, dividends, shareholder yield
 - `/dcf TICKER` — Discounted cash flow valuation with sensitivity analysis
 - `/comps TICKER` — Trading comparables with peer multiples and implied valuation
+- `/precedent-transactions TICKER` — Precedent M&A transactions with deal multiples and implied valuation
 - `/comp-sheet TICKER` — Multi-company industry comp sheet Excel model with deep KPIs
 - `/supply-chain TICKER` — Interactive supply chain dashboard mapping suppliers, customers, and financial interdependencies
 
