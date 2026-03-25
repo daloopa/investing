@@ -5,9 +5,10 @@
 # the same analysis as the corresponding Claude Code skill, using only
 # Daloopa MCP tools (no file system, no infra scripts).
 #
-# Skills converted: earnings, tearsheet, industry, bull_bear, guidance_tracker,
-#   inflection, capital_allocation, dcf, comps, supply_chain, research_note,
-#   build_model, comp_sheet, ib_deck, initiate
+# Skills converted: earnings, earnings_flash, earnings_prep, tearsheet, industry,
+#   bull_bear, guidance_tracker, inflection, capital_allocation, dcf, comps,
+#   precedent_transactions, supply_chain, research_note, build_model, comp_sheet,
+#   ib_deck, initiate
 # Skipped: setup (interactive setup wizard — not an analytical skill)
 # Skipped: update (requires prior context JSON from file system — not portable to MCP prompt)
 # Shared references inlined: data-access.md, design-system.md
@@ -1633,6 +1634,564 @@ function drillDown(companyTicker) {{
   }}
 }}
 ```
+
+Data sourced from Daloopa
+"""
+
+
+@daloopa_mcp.prompt
+def earnings_flash(ticker: str) -> str:
+    """Earnings Flash"""
+    return f"""\
+Generate a rapid earnings flash for {ticker}. This is a lightweight, speed-focused first read — just enough context to frame BEAT/MISS verdicts and highlight what's new and surprising.
+
+{_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
+{_CITATIONS}
+{_NUMBER_FMT}
+{_TABLE_CONV}
+{_ANALYTICAL_VOICE}
+{_GUIDANCE_RULES}
+
+## Analysis Steps
+
+### 1. Company Lookup
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
+
+### 2. Prior Quarter Context (4 Quarters)
+Calculate 4 quarters backward from `latest_calendar_quarter`. Search for and pull these core metrics:
+
+**Income Statement:** Revenue / Net Sales, Gross Profit, Operating Income / EBIT, Net Income, Diluted EPS.
+
+**Cash Flow:** Operating Cash Flow, Free Cash Flow (or CapEx to compute it — label "(calc.)").
+
+This is lighter than a full earnings analysis (4Q vs 8Q, no cost structure breakdown). The goal is just enough history to frame the latest quarter's results.
+
+### 3. Company-Specific KPIs
+Think about the 3-5 most important KPIs for THIS company based on its business model:
+{_KPI_TAXONOMY}
+
+Search for those specific KPIs and pull for the same 4-quarter period. Also search for:
+- Segment/product revenue breakdown
+- Geographic revenue breakdown (if material)
+
+Keep this targeted — discover the critical operating metrics, not everything available.
+
+### 4. Guidance Series
+Search for guidance series (revenue guidance, EPS guidance, margin guidance, any KPI guidance). If available, pull guidance data for the latest 2 quarters so you can compare the most recent actual results against what management guided.
+
+CRITICAL: Apply +1 quarter offset — guidance from Q(N) applies to Q(N+1) results.
+
+### 5. Get the Earnings Document
+Use `search_documents` to find the most recent earnings-related filing. Search strategy:
+1. Search for keywords `["results", "earnings"]` in the latest 1-2 calendar quarters
+2. If that returns nothing, try `["revenue"]` or `["financial"]` as broader terms
+
+Read the document content from the search results. Focus on:
+- **Earnings transcripts**: Full document (management commentary, prepared remarks, Q&A)
+- **10-Q / 10-K**: Financial statements and MD&A sections
+- **8-K**: Full document (short event-driven filings)
+
+If no document is found, proceed with the MCP fundamentals data only and note "No earnings document found — analysis based on financial data only."
+
+### 6. Executive Flash
+Write 3-5 bullet-point verdicts. Each bullet MUST compare the latest quarter's results against prior periods from Step 2 and/or guidance from Step 4. Format:
+
+**[BEAT/MISS/INLINE/MIXED] | Key number (YoY change) | One-sentence context**
+
+Examples:
+- **BEAT | Revenue $95.4bn (+6.1% YoY) | Acceleration from +4.8% last quarter driven by iPhone 16 cycle**
+- **MISS | EPS $1.46 vs $1.52 prior year | Higher opex from AI investments weighed on margins**
+- **GUIDANCE UP | FY2026 revenue guided $400-405bn | Management raised full-year outlook on cloud strength**
+
+Use Daloopa citation links for all figures sourced from MCP. Use "(per filing)" for figures only found in the document.
+
+Also include a one-line **Management Tone** assessment (confident/cautious/defensive/evasive/optimistic) if an earnings document was available. Support with specific language from the document.
+
+### 7. Key Numbers Table
+Present the latest quarter's results with comparison context:
+
+| Metric | Latest Quarter | Prior Quarter | YoY Change | vs Guidance |
+
+Include: revenue, EPS, margins, segment breakdowns, KPIs — all sourced from MCP with Daloopa citation links. Add a "vs Guidance" column if guidance data was available from Step 4 (show beat/miss amount).
+
+Group by category: P&L, Segments, KPIs, Cash Flow.
+
+For figures only available from the document (not in MCP), include them in a separate "Per Filing" sub-section below the table and note they are not cross-referenced.
+
+### 8. Guidance & Outlook
+Extract forward-looking statements from the earnings document (if available):
+- Explicit numerical guidance (revenue, EPS, margin ranges)
+- Changes from prior guidance (raised, lowered, narrowed, withdrawn)
+- Qualitative outlook language
+- Capex/investment plans
+
+If guidance data was pulled from Daloopa in Step 4, compare new guidance against prior guidance with a table:
+
+| Metric | New Guidance | Prior Guidance | Change |
+
+If no document was found, summarize any guidance series data from Step 4 and note that no new guidance language is available.
+
+### 9. Risk Flags
+Call out concerning signals — this section should be sharp and skeptical:
+- Guidance cuts or narrowing
+- Missing disclosures or metrics that were previously reported
+- Growing gap between GAAP and non-GAAP
+- Cash flow divergence from earnings
+- One-time items that flatter the headline numbers
+- Management hedging or qualifying language (from document)
+
+If no material risk flags, say so clearly: "No material risk flags identified."
+
+### 10. Quick Read-Throughs
+Write 2-3 bullets on what this filing implies for adjacent companies:
+- **Suppliers**: Positive or negative signal for key input providers
+- **Customers**: Demand signal for downstream buyers
+- **Competitors**: Share shift, pricing, or market growth implications
+
+Format: `**[COMPANY/SECTOR]**: [implication] (based on [specific data point])`
+
+## Output
+
+{_HTML_TEMPLATE}
+
+Add a **FLASH** banner right after the opening `<body>` tag, before the `<h1>`:
+```html
+<div style="background: #C0392B; color: white; text-align: center; padding: 8px 16px; font-size: 14px; font-weight: bold; letter-spacing: 2px; margin-bottom: 16px;">
+    EARNINGS FLASH — FIRST READ
+</div>
+```
+
+The `<h1>` should be: `{ticker} Earnings Flash — {{PERIOD}}`
+
+Add a disclaimer after the flash banner:
+```html
+<p style="font-size: 10px; color: #6C757D; font-style: italic; margin-bottom: 16px;">
+    This is a rapid first-read summary. For full analysis with 8-quarter trends, cost structure,
+    and competitive read-throughs, run /earnings {ticker}.
+</p>
+```
+
+Include these sections in the HTML report:
+- FLASH banner + disclaimer
+- Executive Flash (3-5 BEAT/MISS/INLINE verdicts + Management Tone)
+- Key Numbers Table (grouped: P&L, Segments, KPIs, Cash Flow; with vs Guidance column)
+- Guidance & Outlook (new vs prior guidance table)
+- Risk Flags
+- Quick Read-Throughs
+
+Highlight the 2-3 most notable findings.
+
+Data sourced from Daloopa
+"""
+
+
+@daloopa_mcp.prompt
+def earnings_prep(ticker: str) -> str:
+    """Earnings Prep"""
+    return f"""\
+Generate a pre-earnings preparation report for {ticker}. This is the note a L/S equity analyst reads the night before a company reports — it tells them exactly what to focus on when the print drops.
+
+{_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
+{_CITATIONS}
+{_NUMBER_FMT}
+{_TABLE_CONV}
+{_ANALYTICAL_VOICE}
+{_GUIDANCE_RULES}
+{_MARKET_DATA}
+{_CONSENSUS}
+
+## Analysis Steps
+
+### 1. Company Lookup
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
+
+Determine the **upcoming quarter** — the one AFTER `latest_calendar_quarter`. This is the quarter the company is about to report. All analysis is oriented around preparing the analyst for this print.
+
+### 2. Last Quarter Recap
+Pull the most recent quarter's full financials from Daloopa. Calculate 4 quarters backward from `latest_calendar_quarter` (for YoY context).
+
+**Pull:** Revenue, Gross Profit, Operating Income, EBITDA, Net Income, Diluted EPS, Operating Cash Flow, CapEx, FCF (calc.), Segment/product revenue breakdown.
+
+**Company-specific KPIs:**
+{_KPI_TAXONOMY}
+
+**Summarize the story of last quarter in 3-5 bullets:**
+- What beat expectations (guidance or consensus)?
+- What missed or disappointed?
+- What was the stock reaction? (use web search: "{{ticker}} earnings reaction {{latest_quarter_label}} {{year}}")
+- What narrative emerged from the call? (e.g., "AI monetization acceleration," "margin expansion story intact," "consumer weakness")
+- What was the single most debated metric?
+
+This is the baseline everyone on the upcoming call will be anchoring to.
+
+### 3. Outstanding Guidance for Upcoming Quarter
+Search for ALL guidance series using keywords: "guidance", "outlook", "estimate", "forecast", "target". Apply the +1 quarter offset to identify which guidance applies to the upcoming print:
+- CRITICAL: Guidance from Q(N) earnings call applies to Q(N+1) results
+- The guidance issued during the `latest_calendar_quarter` earnings call is what applies to the upcoming quarter
+
+**Pull and present:**
+- Revenue guidance (point estimate or range)
+- EPS guidance
+- Margin guidance (gross, operating, EBITDA)
+- CapEx guidance
+- Segment-level guidance (if available)
+- KPI guidance (subscriber adds, unit volumes, ARPU targets, etc.)
+
+**Search filings for directional/qualitative guidance:**
+- Search documents for: "expect", "anticipate", "similar to", "consistent with"
+- Search documents for: "low single digit", "mid single digit", "double digit", "sequential"
+- Search documents for: "headwind", "tailwind", "conservatively", "assumes"
+- Capture exact management quotes with document citations
+
+**Flag any guidance updates between quarters:**
+- Search for "pre-announce", "update", "revise" in the most recent quarter's filings
+- Check if the company issued an 8-K updating guidance after the last earnings call
+
+Present all guidance in a single table: Metric | Guidance Value | Source Quarter | Type (Quantitative/Directional).
+
+### 4. Guidance Credibility & Whisper Number
+This section MUST be built entirely from Daloopa data — guidance series AND actual result series pulled via `get_company_fundamentals`. Do not use web search or estimates for this analysis.
+
+**Step 1: Pull 8 quarters of guidance data.**
+You already discovered guidance series in Section 3. Now pull ALL of those guidance series for the last 8 quarters (from `latest_calendar_quarter` backward). These are the guidance values management provided each quarter.
+
+**Step 2: Pull 8 quarters of corresponding actuals.**
+For every guided metric, identify the corresponding actual result series (e.g., if there is a "Revenue guidance" series, pull the actual "Revenue" series). Pull these actuals for the same 8-quarter period.
+
+**Step 3: Build the complete beat/miss table.**
+Apply the +1 quarter offset: guidance from Q(N) is compared to the actual result in Q(N+1). For EVERY quarter where both a guidance value and a corresponding actual exist, compute:
+- Guidance value (midpoint if range)
+- Actual value
+- Delta (Actual - Guidance midpoint)
+- Beat/Miss % ((Actual - Guidance midpoint) / |Guidance midpoint| x 100)
+- Classification: Beat / In-line / Miss (use +/-1% threshold for in-line)
+
+**Present a FULL detail table — every quarter, every guided metric.** This is the core analytical engine of the whisper number. Do not summarize or abbreviate — show all rows. Format:
+
+| Guidance Source Qtr | Metric | Guidance (Mid) | Actual Qtr | Actual | Delta | Beat/Miss % |
+
+If a company provides range guidance (low/high), show the midpoint and note the range width. If a company only provides directional guidance for some metrics (e.g., "revenue growth in low teens"), convert to an implied numeric value for comparison (e.g., 12-13% → midpoint ~12.5% applied to prior year actual).
+
+**Step 4: Compute summary statistics from the detail table:**
+- Beat rate per metric (% of quarters where actual > guidance midpoint)
+- Average beat magnitude per metric (in absolute terms and %)
+- Beat pattern trend: is the beat getting larger (sandbagging increasing), shrinking (guidance getting more accurate), or volatile? Look at the last 4 vs. prior 4.
+- Range width trend: is management tightening or widening guidance ranges?
+
+**Step 5: Calculate the implied "whisper number":**
+- Whisper = Current guidance midpoint + Average historical beat (from the detail table above)
+- This is the REAL bar the stock is trading against, not the stated guidance
+- If the company beats by 2% on average, the market expects a 2% beat — an in-line result to guidance is effectively a miss
+- Calculate whisper for EVERY guided metric, not just revenue
+
+**Present the whisper summary:**
+| Metric | Current Guidance (Mid) | Avg Historical Beat | Implied Whisper | Beat Rate (n/N) |
+
+**Credibility verdict:** Is management's guidance informative (tight, accurate) or performative (always sandbagged, uninformative)? If the beat rate is >90%, say so — it means the guidance number is a floor, not a forecast. If the beat magnitude is increasing, management is becoming MORE conservative over time.
+
+### 5. Peer & Adjacent Company Read-Throughs
+This is the most differentiated section. For companies in the same sector that have ALREADY reported this earnings season, their results contain direct signal about the upcoming print.
+
+**Identify the read-through universe (aim for 5-8 companies):**
+- **Competitors**: Direct rivals in the same market
+- **Suppliers**: Companies that sell to the target company
+- **Customers**: Companies that buy from the target company
+- **Industry bellwethers**: Large companies whose results signal sector trends
+
+**CRITICAL: Always use Daloopa as the primary data source for peer analysis.** For each peer:
+
+1. **Look up the peer in Daloopa:** `discover_companies` with the peer's ticker. If Daloopa has the company, check `latest_calendar_quarter` to determine whether they have already reported the relevant quarter.
+2. **If the peer has data for the current earnings season quarter:** Pull their financials from Daloopa (`discover_company_series` → `get_company_fundamentals`). Focus on 2-4 metrics most relevant to the read-through (e.g., for a supplier: revenue, segment breakdown, inventory; for a competitor: revenue growth, market share proxies, pricing commentary).
+3. **Search the peer's filings in Daloopa:** `search_documents` with keywords related to the target company's products, markets, or industry.
+4. **Use web search only to supplement Daloopa data** — for earnings-season timing confirmation, stock price reactions, or analyst commentary that Daloopa filings don't cover.
+
+**For each read-through, extract (with Daloopa citations):**
+1. **The specific data point** — the peer's metric that creates signal. Cite the Daloopa `fundamental_id`.
+2. **The implication** — bullish or bearish for the target company, and why
+3. **Confidence level** — High (direct disclosed relationship), Moderate (inferred from industry), Low (circumstantial)
+
+**For peers that haven't reported yet:** Note them as "reports after {ticker}" — their results will be a read-through in the opposite direction.
+
+**Group read-throughs by:**
+- **Competitors** — share shift signals, pricing environment, demand trends
+- **Suppliers** — order book signals, inventory levels, capacity commentary
+- **Customers** — demand signals, inventory destocking/restocking, spending priorities
+- **Industry Bellwethers** — macro/sector health, end-market demand
+
+**Web research for sector context (supplementary only — after Daloopa pulls):**
+- Search: "{{ticker}} sector earnings season {{year}} read through" — analyst commentary on cross-company signals
+- Search: "{{ticker}} competitors results {{upcoming_quarter_label}} {{year}}" — what peers have already signaled
+
+### 6. Key Metrics to Watch
+Identify the 5-7 metrics the analyst should focus on when the print drops. For each metric:
+
+| Metric | Current Level | Guidance/Expected | Bullish Threshold | Bearish Threshold | Why It Matters |
+
+**Be specific with thresholds** — not "revenue growth" but "revenue above $95B signals iPhone cycle acceleration; below $92B confirms China weakness." Not "margins" but "gross margin above 47% confirms services mix shift; below 45% signals hardware pricing pressure."
+
+**Prioritize by information value:**
+1. Metrics where guidance has been vague or directional (highest uncertainty)
+2. Metrics where peer read-throughs are conflicting (the print will resolve the debate)
+3. Metrics that drive the forward multiple (the ones the market will re-rate on)
+4. KPIs that lead revenue by 1-2 quarters (predictive of next quarter's financials)
+
+### 7. Consensus & Positioning
+Gather available consensus context:
+
+**From data sources (consensus estimates if available):**
+- Consensus revenue and EPS for the upcoming quarter
+- Number of analysts at Buy / Hold / Sell
+- Consensus price target (median and range)
+- Recent estimate revision trends (last 30/60/90 days — moving up or down?)
+
+**From web search (supplement or replace if consensus data unavailable):**
+- Search: "{{ticker}} earnings preview consensus estimates {{upcoming_quarter_label}} {{year}}" — sell-side previews
+- Search: "{{ticker}} analyst expectations {{year}}" — positioning and sentiment
+
+**Note limitations** if consensus data is not directly available. Even directional context ("estimates have been revised up 3% over the last 90 days") is valuable.
+
+### 8. Historical Earnings Reaction
+Use web search to find how the stock has reacted to the last 4-6 earnings prints:
+- Search: "{{ticker}} earnings stock reaction history {{year}}" — post-earnings moves
+- Search: "{{ticker}} options implied move earnings {{upcoming_quarter_label}}" — current implied volatility
+
+**Present as a table:**
+| Quarter | Revenue Beat/Miss | EPS Beat/Miss | Next-Day Move | Notes |
+
+**Pattern identification:**
+- Does the stock tend to sell off on beats? (buy-the-rumor, sell-the-news pattern)
+- Does it rally on in-line results? (low expectations already embedded)
+- Is there a pattern of post-earnings drift (continued move in the days after)?
+- What's the current implied move from the options market? If it's elevated vs. history, the market expects a big move.
+
+### 9. Macro & Sector Backdrop
+Web search for developments since last quarter that could affect results:
+- Search: "{{ticker}} {{industry}} outlook {{current_year}}" — sector developments
+- Search: "{{ticker}} headwinds tailwinds {{current_year}}" — company-specific macro factors
+
+**Distill into 5-8 bullets, each with a directional tag (Positive / Negative / Uncertain):**
+- Industry-specific: new regulations, competitor product launches, market share shifts
+- Macro: FX moves (specify currencies and direction), commodity prices, interest rates
+- Policy: tariffs, trade restrictions, tax changes
+- Channel: inventory levels in the channel, distributor commentary, supply chain status
+- Company-specific: product launches since last quarter, management changes, M&A
+
+Keep each bullet to one sentence. The analyst needs context, not a macro essay.
+
+### 10. Potential Surprises & Call Catalysts
+Beyond the numbers, what could management announce that would move the stock? Search filings and news for signals:
+- Search documents: "restructuring", "acquisition", "buyback", "dividend" in recent filings
+- Search: "{{ticker}} potential announcement catalyst {{year}}" — speculative but grounded
+
+**Categories:**
+- **Capital allocation**: New buyback authorization, dividend change (hike/cut/initiation), M&A announcement, asset sale/spinoff
+- **Operational**: Restructuring/layoffs, new product launch, partnership/contract win, segment reporting changes
+- **Strategic**: New guidance metrics, long-term targets update, management changes, investor day announcement
+- **Accounting/Disclosure**: Guidance methodology change, segment redefinition, one-time charge pre-announcement
+
+For each potential surprise, note the signal strength (rumored / speculated / no signal) and the likely stock impact direction.
+
+### 11. Pre-Earnings Checklist
+A concise, actionable summary that fits on a single card. This is what the analyst tapes to their monitor:
+
+**The Numbers:**
+- Revenue whisper: $X.XX (guidance: $X.XX, avg beat: +X.X%)
+- EPS whisper: $X.XX (guidance: $X.XX, avg beat: +X.X%)
+
+**Top 3 Metrics to Watch:**
+1. [Metric] — current: X, bull: >Y, bear: <Z
+2. [Metric] — current: X, bull: >Y, bear: <Z
+3. [Metric] — current: X, bull: >Y, bear: <Z
+
+**The Bull Catalyst:** What would make this stock go up 5%+ after the print? (one sentence)
+
+**The Bear Risk:** What would make this stock go down 5%+ after the print? (one sentence)
+
+**Read-Through Signal:** After this company reports, what does it mean for [2-3 other names]?
+
+**Historical Pattern:** Last 4 prints averaged +/-X% next-day move; options imply +/-X% this time.
+
+## Output
+
+{_HTML_TEMPLATE}
+
+Include these sections in the HTML report:
+- Executive summary (2-3 sentences: what quarter is coming, what the key debate is, what the whisper number implies)
+- Last quarter recap (story + key metrics table)
+- Outstanding guidance table with source citations
+- Whisper number calculation with historical beat/miss detail table
+- Peer read-throughs (grouped by Competitors / Suppliers / Customers / Industry, with Daloopa citations on peer data)
+- Key metrics to watch (table with specific thresholds)
+- Consensus & positioning summary
+- Historical earnings reaction table
+- Macro & sector backdrop (bulleted list with directional tags)
+- Potential surprises & call catalysts
+- Pre-earnings checklist (prominently styled — this is the payoff of the whole report)
+
+Highlight what makes this print particularly interesting: Is the whisper number meaningfully above guidance (setting up for disappointment even on a beat)? Are peer read-throughs conflicting (creating genuine uncertainty)? Is there a potential surprise catalyst that could overshadow the numbers? Give the analyst the single most important thing to watch.
+
+Data sourced from Daloopa
+"""
+
+
+@daloopa_mcp.prompt
+def precedent_transactions(ticker: str) -> str:
+    """Precedent Transactions"""
+    return f"""\
+Build a precedent transactions analysis for {ticker}. This is the third pillar of valuation (alongside trading comps and DCF) — it answers: what have acquirers actually paid for businesses like this one? The output is two tables: comparable M&A transactions with deal multiples, and the subject company's own acquisition history.
+
+{_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
+{_CITATIONS}
+{_NUMBER_FMT}
+{_TABLE_CONV}
+{_ANALYTICAL_VOICE}
+{_MARKET_DATA}
+
+## Analysis Steps
+
+### 1. Company Lookup
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
+
+Identify:
+- Full legal company name
+- Primary stock exchange and reporting currency
+- Country of domicile and primary operations
+- Industry and sub-sector
+- Approximate revenue and EBITDA scale (to calibrate comparable deal sizing)
+
+### 2. Subject Company Financials
+Calculate 4 quarters backward from `latest_calendar_quarter`. Pull from Daloopa:
+- Revenue (compute trailing 4Q / LTM total)
+- EBITDA (compute trailing 4Q; if not available, use Operating Income + D&A, label "(calc.)")
+- Operating Income
+- Net Income
+- Free Cash Flow (OCF - CapEx, label "(calc.)")
+
+These serve as the reference point for comparing deal multiples — what would an acquirer be paying relative to this company's current financials?
+
+### 3. Identify Comparable Precedent Transactions
+Find 8-15 completed M&A transactions from the last 7-10 years involving target companies comparable to the subject. "Comparable" means:
+- Same industry and sub-sector
+- Similar business model (e.g., SaaS, semiconductor IP, consumer internet, industrials)
+- Roughly comparable scale — within ~0.5x-4x of the subject's revenue
+- Completed transactions only (not rumored, not pending)
+
+**Research sources in priority order:**
+1. **SEC EDGAR** (for US targets) — SC TO, DEFM14A, 8-K filings disclose EV and deal terms
+2. **Equivalent regulators for non-US targets:** FCA (UK), EDINET (Japan), HKEx (Hong Kong), SEDAR+ (Canada), ASX (Australia)
+3. **Official investor relations press releases** from acquirer or target
+4. **Reputable financial news:** Reuters, Bloomberg, Wall Street Journal, Financial Times
+
+Use web search to identify deals: "{{industry}} acquisitions {{sub-sector}} last 10 years", "{{ticker}} comparable M&A transactions", "{{sector}} deal comps precedent transactions".
+
+**Do NOT use:** finance blogs, Seeking Alpha, Reddit, anonymous wiki contributions, or aggregators without a traceable primary source.
+
+For each transaction, capture:
+- Announcement date
+- Acquirer name
+- Target name
+- Transaction Enterprise Value
+- Deal consideration (All Cash / All Stock / Cash + Stock)
+- Source (press release URL, SEC filing, or regulatory filing)
+
+### 4. Source Target Financials via Daloopa
+For each target company in the precedent transactions table, source LTM Revenue and EBITDA from Daloopa:
+
+1. **Look up the target** using `discover_companies` with the target's ticker or name
+2. **Find relevant series** using `discover_company_series` with keywords `["revenue", "EBITDA"]` and the appropriate period (the last complete fiscal year before the deal announcement)
+3. **Pull the data** using `get_company_fundamentals` with the discovered series IDs
+4. For EBITDA, look for series containing "Adjusted EBITDA", "EBITDA", or fall back to "Operating Income" + D&A
+5. If a target is not in Daloopa (e.g., pre-IPO targets, private companies), fall back to SEC filings, press releases, or regulatory filings
+
+**Daloopa is the primary source.** Only fall back to other sources when a target is genuinely unavailable in the database.
+
+### 5. Compute Deal Multiples
+For each transaction where both EV and financials are available:
+- **EV/Revenue** = Transaction EV / LTM Revenue
+- **EV/EBITDA** = Transaction EV / LTM EBITDA
+- Round to one decimal, append "x"
+- If a figure cannot be sourced, mark as **N/A** — do not estimate
+
+Compute summary statistics (excluding N/A values):
+- 75th Percentile
+- **Average** (bold)
+- **Median** (bold)
+- 25th Percentile
+
+If fewer than 3 valid data points exist for a multiple, note that the statistic is not meaningful.
+
+### 6. Subject Company's Acquisition History
+Find deals where the subject company itself was the acquirer. Sources: company IR page, SEC 8-K or equivalent filings, Reuters/Bloomberg/WSJ.
+
+For each acquisition, capture:
+- Date
+- Target name
+- Deal value (if disclosed)
+- Consideration (Cash / Stock / Mix)
+- Strategic rationale (one sentence from press release or filing)
+
+### 7. Implied Valuation for Subject Company
+Apply the precedent transaction multiples to the subject's current financials:
+
+| Methodology | Percentile | Multiple | Subject LTM Metric | Implied EV |
+|---|---|---|---|---|
+| EV/Revenue | Median | XX.Xx | $XXX | $XXX |
+| EV/Revenue | 25th-75th | XX.Xx-XX.Xx | $XXX | $XXX-$XXX |
+| EV/EBITDA | Median | XX.Xx | $XXX | $XXX |
+| EV/EBITDA | 25th-75th | XX.Xx-XX.Xx | $XXX | $XXX-$XXX |
+
+Convert implied EV to implied equity value (EV - Net Debt) and implied share price where market data is available. Compare to current market price.
+
+**Context matters more than precision:**
+- Precedent transaction multiples are snapshots from specific deal contexts (competitive auctions, strategic premiums, distressed sales). Note which deals had unusual dynamics.
+- Control premiums are embedded in these multiples — a public market investor should not expect to realize the full precedent transaction value unless a takeout actually happens.
+- If the current market cap is well below precedent transaction implied value, that's a signal of takeout optionality, not necessarily undervaluation.
+
+### 8. Deal Environment Commentary
+Search filings and news for context on the M&A environment:
+- Search: "{{industry}} M&A outlook {{current_year}}" — deal activity trends
+- Search: "{{ticker}} acquisition target rumors" — is the subject itself a takeout candidate?
+
+Summarize in 3-5 bullets:
+- Is deal activity in this sector accelerating or declining?
+- What are typical premiums being paid (control premium trends)?
+- Are strategic buyers or financial sponsors (PE) driving activity?
+- Any regulatory headwinds to deals in this space (antitrust scrutiny)?
+- Is the subject company a plausible acquisition target? Why or why not?
+
+## Output
+
+{_HTML_TEMPLATE}
+
+The report should include interactive features:
+- **Clickable acquirer names** in the precedent transactions table that open a modal showing all source links for that transaction (press release, SEC filing, Daloopa data links). Implement with `data-` attributes and safe DOM methods (`createElement`, `textContent`, `appendChild`) — never `innerHTML`.
+- **Consideration badges** styled inline: All Cash (green background `#27AE60`), All Stock (purple background `#8E44AD`), Cash + Stock (amber background `#F39C12`).
+
+Include these sections in the HTML report:
+- Summary (2-3 sentences: What do precedent transactions imply for this company's valuation? How does it compare to the current market price?)
+- Subject Company Overview (exchange, currency, industry, LTM Revenue and EBITDA with Daloopa citations)
+- Selected Precedent Transactions table (Date, Acquirer, Target, EV, LTM Rev, LTM EBITDA, EV/Rev, EV/EBITDA, Consideration — with Daloopa-cited financials, clickable acquirers, 75th/Average/Median/25th summary rows)
+- Implied Valuation table (Methodology, Multiple, Subject Metric, Implied EV, Implied Equity, Implied Price, vs Current)
+- Subject Company Acquisition History table (Date, Target, Deal Value, Consideration, Strategic Rationale)
+- Deal Environment (3-5 bullets on sector M&A trends, control premiums, takeout potential)
+- Sources (numbered footnote list — each deal with press release link, SEC filing, Daloopa data links)
+
+Highlight: what precedent transactions imply about the company's takeout value, how it compares to the current market price, and whether the sector M&A environment supports deal activity.
 
 Data sourced from Daloopa
 """

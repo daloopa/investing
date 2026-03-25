@@ -192,6 +192,8 @@ The docstring is used as the **display name** in MCP clients (e.g., Claude). Wit
 | Function | Docstring |
 |----------|-----------|
 | `earnings` | `"""Earnings"""` |
+| `earnings_flash` | `"""Earnings Flash"""` |
+| `earnings_prep` | `"""Earnings Prep"""` |
 | `tearsheet` | `"""Tearsheet"""` |
 | `industry` | `"""Industry"""` |
 | `bull_bear` | `"""Bull / Bear"""` |
@@ -200,6 +202,7 @@ The docstring is used as the **display name** in MCP clients (e.g., Claude). Wit
 | `capital_allocation` | `"""Capital Allocation"""` |
 | `dcf` | `"""DCF"""` |
 | `comps` | `"""Comps"""` |
+| `precedent_transactions` | `"""Precedent Transactions"""` |
 | `supply_chain` | `"""Supply Chain"""` |
 | `research_note` | `"""Research Note"""` |
 | `build_model` | `"""Build Model"""` |
