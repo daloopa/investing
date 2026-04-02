@@ -78,6 +78,8 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `/precedent-transactions TICKER` — Precedent M&A transactions with deal multiples and implied valuation
 - `/comp-sheet TICKER` — Multi-company industry comp sheet Excel model with deep KPIs
 - `/supply-chain TICKER` — Interactive supply chain dashboard mapping suppliers, customers, and financial interdependencies
+- `/unit-economics TICKER` — Bottoms-up unit economics decomposition
+- `/working-capital TICKER` — Cash conversion cycle, earnings quality & working capital deep-dive
 
 ### Investment Deliverables (.docx, .xlsx, .pdf)
 - `/research-note TICKER` — Generate professional Word research note

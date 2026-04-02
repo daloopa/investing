@@ -7,6 +7,7 @@ Setup:
 
 Or create a .env file in the project root with those values.
 """
+from __future__ import annotations
 
 import base64
 import os
@@ -28,7 +29,10 @@ def _load_dotenv():
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
                 key, _, value = line.partition("=")
-                os.environ.setdefault(key.strip(), value.strip())
+                key, value = key.strip(), value.strip()
+                if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+                    value = value[1:-1]
+                os.environ.setdefault(key, value)
 
 
 _load_dotenv()
