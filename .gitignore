@@ -37,6 +37,9 @@ wheels/
 
 # Generated reports (each analyst generates their own)
 reports/*.md
+reports/*.html
+reports/*.pdf
+reports/*.png
 reports/*.docx
 reports/*.xlsx
 reports/.charts/
@@ -44,13 +47,33 @@ reports/.tmp/
 !reports/.gitkeep
 
 # Log files
-logs/*.log
+logs/
 !logs/.gitkeep
 
 # Temporary files
 *.tmp
 *.bak
 *.backup
+
+# Documentation (hosted on ReadMe.com)
+docs/
+
+# Internal dev/benchmarking tools
+.claude/skills/benchmark/
+scripts/benchmark_*.py
+scripts/simulate_webhook.py
+scripts/start_webhook.sh
+scripts/transform_skill_prompt.md
+
+# Internal infra (webhook, email, document fetcher)
+infra/document_fetcher.py
+infra/email_sender.py
+infra/webhook_listener.py
+infra/webhook_config.json
+
+# One-off scratch files
+fetch_aapl.py
+temp_aapl_data.py
 
 # Claude Code local settings (user-specific)
 .claude/settings.local.json
