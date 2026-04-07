@@ -70,7 +70,7 @@ All reports are saved to the `reports/` directory. You can also just ask Claude 
 
 The 10 building block analysis skills are also available as a standalone **Claude Code plugin** that works in any project — no Python infrastructure needed, just a Daloopa account.
 
-See [`../daloopa-plugin/`](../daloopa-plugin/) or install from the Claude Code marketplace.
+See [daloopa/plugin](https://github.com/daloopa/plugin) or install from the Claude Code marketplace.
 
 ## Data Access
 
