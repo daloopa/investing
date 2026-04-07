@@ -6,8 +6,8 @@
 # Daloopa MCP tools (no file system, no infra scripts).
 #
 # Skills converted: earnings, tearsheet, industry, bull_bear, guidance_tracker,
-#   inflection, capital_allocation, dcf, comps, supply_chain, research_note,
-#   build_model, comp_sheet, ib_deck, initiate
+#   inflection, capital_allocation, dcf, comps, supply_chain, unit_economics,
+#   working_capital, research_note, build_model, comp_sheet, ib_deck, initiate
 # Skipped: setup (interactive setup wizard — not an analytical skill)
 # Skipped: update (requires prior context JSON from file system — not portable to MCP prompt)
 # Shared references inlined: data-access.md, design-system.md
@@ -1612,6 +1612,391 @@ Data sourced from Daloopa
 """
 
 
+@daloopa_mcp.prompt
+def unit_economics(ticker: str) -> str:
+    """Unit Economics"""
+    return f"""\
+Perform a bottoms-up unit economics decomposition for {ticker}.
+
+{_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
+{_CITATIONS}
+{_NUMBER_FMT}
+{_TABLE_CONV}
+{_ANALYTICAL_VOICE}
+{_MARKET_DATA}
+{_KPI_TAXONOMY}
+
+## Analysis Steps
+
+### 1. Company Lookup
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
+
+### 2. Series Discovery & Business Archetype Detection
+Cast a wide net to discover ALL available series for {ticker}. Search with multiple keyword sets to maximize coverage:
+- Financial: "revenue", "income", "profit", "margin", "eps", "cost"
+- Operating KPIs: "subscriber", "user", "customer", "unit", "arpu", "retention", "churn"
+- Segment/Product: "segment", "product", "service", "geographic"
+- Business-specific: "store", "gmv", "order", "booking", "backlog", "premium", "loan", "aum", "room", "seat", "bed", "acreage"
+
+Collect all unique series IDs. Read every series name and description returned. **This is how you learn what kind of business this is and what unit-level KPIs Daloopa tracks for it.**
+
+Based on series availability, classify the business into one of these archetypes (or a hybrid). This classification drives the entire report structure:
+
+| If you find series like... | Archetype | Unit = |
+|---|---|---|
+| ARR, MRR, net dollar retention, customers, ACV, churn, CAC, LTV | **SaaS / Subscription** | Customer or subscription |
+| Store count, same-store sales, AUV, restaurant-level margin, new openings | **Unit-based retail / Restaurant** | Store or unit |
+| GMV, take rate, orders, AOV, active buyers/sellers | **Marketplace / E-commerce** | Order or transaction |
+| Subscribers, ARPU, churn, content spend per sub | **Consumer subscription (media/streaming)** | Subscriber |
+| Premiums written, loss ratio, combined ratio, policies in force | **Insurance** | Policy |
+| NIM, loans, deposits, provision for credit losses, NCOs | **Banking / Lending** | Loan or account |
+| ASP, units shipped, cost per unit, gross margin per unit | **Hardware / Manufacturing** | Unit shipped |
+| AUM, management fee rate, performance fees, fund flows | **Asset Management** | Dollar of AUM |
+| Revenue per available room (RevPAR), occupancy, ADR | **Hospitality / Lodging** | Room night |
+| RPM, RASM, CASM, load factor, ASMs | **Airlines / Transportation** | Available seat mile |
+| Revenue per user, DAU, MAU, ARPU, engagement | **Digital platform / Advertising** | User |
+| Beds, admissions, revenue per admission, case mix | **Healthcare facilities** | Admission or bed |
+| Acreage, production per acre, realized price per unit | **Commodity / E&P** | Unit of production |
+
+If the business is a hybrid or doesn't fit neatly, construct a custom framework from the available series. The archetype is a starting guide, not a constraint.
+
+**Edge cases:**
+- **Diversified / multi-segment companies**: Pick the largest or most analytically interesting segment for primary analysis. Note other segments briefly. If the user specifies a segment, focus there.
+- **Pre-revenue / early-stage companies**: Focus on burn rate per unit of growth, cash efficiency, and path to unit profitability.
+- **Financial companies (banks, insurance, asset managers)**: These have specialized unit economics. For banks, the "unit" is a dollar of assets — focus on NIM, fee income/assets, efficiency ratio, credit costs. For insurance, focus on the combined ratio decomposition. Don't force a SaaS or retail framework onto financials.
+- **Companies with no obvious unit-level KPIs in Daloopa**: Fall back to a margin bridge / operating leverage analysis using standard income statement data. Decompose revenue into whatever sub-components are available (segment, geography, product line) and analyze profitability at that level. Note the limitation.
+- **Companies that stopped disclosing unit data**: Some major companies (e.g., Apple post-2018) no longer report unit shipments or ASPs. If unit-level data is not available, adapt to the highest-resolution decomposition the data supports (e.g., segment revenue x segment margin). Clearly flag the data gap and explain what proxy you used. Do not fabricate unit estimates.
+
+### 3. Unit Economics Data Pull
+Calculate 10 quarters backward from `latest_calendar_quarter`. Pull all archetype-relevant series identified in Step 2 for those periods, plus standard financials:
+- Revenue (total and segment)
+- COGS / cost of revenue
+- Gross profit
+- Operating income
+- Net income
+- All operating KPIs relevant to the detected archetype
+
+**Derived metrics** (calculate from pulled data, label each as "(calc.)" and show formulas):
+- Revenue per unit (Revenue / units)
+- Gross margin per unit
+- Contribution margin per unit (if variable costs are available)
+- Unit growth rate (QoQ and YoY)
+- Revenue per unit growth rate (QoQ and YoY)
+- Any archetype-specific derived metrics (e.g., CAC payback = CAC / (ARPU x gross margin), LTV/CAC, 4-wall margin, take rate, combined ratio)
+
+### 4. Qualitative Research
+Search SEC filings via `search_documents` for context on the unit economics. Use archetype-specific search terms:
+- **SaaS**: Try "net dollar retention", "customer acquisition cost"; fallback to "expansion", "churn", "upsell"
+- **Restaurant/Retail**: Try "average unit volume", "restaurant-level margin"; fallback to "same-store", "new unit", "unit opening"
+- **Marketplace**: Try "take rate", "gross merchandise value"; fallback to "active buyers", "order volume", "monetization"
+- **Hardware/Manufacturing**: Try "average selling price", "units shipped"; fallback to "ASP", "volume", "mix"
+- **Insurance**: Try "combined ratio", "loss ratio"; fallback to "underwriting", "premium", "policy"
+- **Banking**: Try "net interest margin", "provision"; fallback to "loan growth", "credit quality", "efficiency"
+- **Digital platform**: Try "average revenue per user", "monthly active users"; fallback to "engagement", "monetization", "ARPU"
+- **General (all archetypes)**: Try "unit economics", "pricing"; fallback to "profitability", "margin", "per unit"
+
+Extract management commentary on pricing, retention, expansion, new unit openings, margin levers, etc. with document citations.
+
+## Report Sections
+
+### Section 1: Business Model & Unit Definition (brief)
+- 2-3 sentence description of what the "unit" is for this business
+- Why this decomposition matters for understanding the company's economics
+- What the revenue build-up looks like: units x revenue-per-unit, or equivalent
+
+### Section 2: Revenue Decomposition
+- Show the bottoms-up revenue build: how units x price/rate x utilization (or equivalent) bridges to reported revenue
+- Table: quarterly history (10 quarters) showing each component
+- Highlight which lever is driving growth: volume vs. price vs. mix
+- Include growth rates (YoY) as sub-rows beneath each metric
+
+### Section 3: Unit-Level Profitability
+The core of the report. Show margin/profitability at the unit level over time:
+- For SaaS: gross margin per customer, CAC payback period, LTV/CAC ratio
+- For restaurants: 4-wall EBITDA margin, new unit payback, cash-on-cash return
+- For marketplace: contribution margin per order, after accounting for fulfillment/transaction costs
+- For insurance: loss ratio + expense ratio = combined ratio per policy
+- For hardware: gross margin per unit, cost per unit breakdown
+- Adapt to whatever the business actually is
+- Table: historical trend with period-over-period change
+- Explicitly call out whether unit economics are improving or deteriorating and by how much
+
+### Section 4: Cohort / Vintage Analysis (if data supports it)
+- For subscription businesses: net retention curves, expansion vs. contraction
+- For unit-based businesses: same-store vs. new-store contribution, unit maturation
+- For lending: vintage loss curves, seasoning
+- If insufficient data for true cohort analysis, note this and substitute with proxy analysis (e.g., new customer growth rate vs. retention rate implies cohort behavior)
+
+### Section 5: Scalability & Operating Leverage
+- How do unit economics change as the business scales?
+- Fixed cost absorption: which costs are truly fixed vs. variable per unit?
+- Show operating leverage by plotting revenue growth vs. cost growth
+- Incremental margins: are they expanding or compressing as the business grows?
+
+### Section 6: Key Drivers & What to Watch
+This is the most analytically valuable section. Based on the data, identify:
+- **The 3-5 metrics that matter most** for this company's unit economics, ranked by sensitivity / impact
+- For each metric: current level, historical range, direction of travel, and what would cause it to inflect
+- **Bull case drivers**: what would improve unit economics (e.g., pricing power, mix shift to higher-margin products, operating leverage kicking in, retention improving)
+- **Bear case risks**: what would deteriorate unit economics (e.g., competitive pricing pressure, rising CAC, input cost inflation, regulatory impact on take rates)
+- Connect each driver to its P&L impact: "a 100bps improvement in net retention would add ~$X to ARR" or "each new store generates ~$Xm in 4-wall EBITDA in year 2"
+
+### Section 7: Summary Assessment
+- 3-4 sentence verdict on the health and trajectory of the company's unit economics
+- Is this a business with improving, stable, or deteriorating unit economics?
+- What is the single most important thing to monitor going forward?
+
+## Analytical Standards
+- **Three-layer density**: every data point should have context (vs. prior period, vs. peers if known) and an implication (what it means for the investment case)
+- **Show your math**: when you derive a metric (e.g., implied CAC = S&M expense / new customers added), show the calculation explicitly so the reader can verify
+- **Flag data gaps**: if a key metric for the archetype isn't available in Daloopa's data, say so explicitly and explain what proxy you used or why the analysis is limited
+- **No generic filler**: if you don't have data to support a section, skip it or shorten it. Never pad with boilerplate
+- **Source everything**: every number should be traceable. Use Daloopa source citations
+- **Prefer rates and ratios over absolutes**: unit economics are about efficiency, not scale. Lead with margins, returns, and per-unit metrics. Include absolutes as context
+
+## Output
+
+{_HTML_TEMPLATE}
+
+Include these sections in the HTML report:
+- Summary (2-3 sentences: what is the "unit"? Are unit economics improving or deteriorating? Key takeaway)
+- Business Model & Unit Definition
+- Revenue Decomposition table (10 quarters: units, revenue per unit, revenue — with Daloopa citations and YoY growth sub-rows) + commentary on volume vs. price drivers
+- Unit-Level Profitability table (10 quarters: archetype-specific unit margins — with Daloopa citations) + commentary on unit economics trajectory
+- Cohort / Vintage Analysis (or note if insufficient data)
+- Scalability & Operating Leverage table (10 quarters: revenue growth vs cost growth, incremental margins) + operating leverage assessment
+- Key Drivers & What to Watch (ranked drivers with sensitivity analysis and bull/bear scenarios)
+- Summary Assessment (3-4 sentence verdict)
+
+Highlight the 2-3 most important findings about the company's unit economics and what they signal for the investment case.
+
+Data sourced from Daloopa
+"""
+
+
+@daloopa_mcp.prompt
+def working_capital(ticker: str) -> str:
+    """Working Capital"""
+    return f"""\
+Perform a cash conversion cycle, earnings quality, and working capital deep-dive for {ticker}.
+
+{_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
+{_CITATIONS}
+{_NUMBER_FMT}
+{_TABLE_CONV}
+{_ANALYTICAL_VOICE}
+
+## Analysis Steps
+
+### 1. Company Lookup
+Look up {ticker} using `discover_companies`. Capture:
+- `company_id`
+- `latest_calendar_quarter` — anchor for all period calculations below
+- `latest_fiscal_quarter`
+- Firm name for report attribution (default: "Daloopa")
+
+### 2. Series Discovery & Working Capital Profile Detection
+Cast a wide net to discover ALL available series for {ticker}. Search with multiple keyword sets to maximize coverage:
+- Balance sheet: "receivable", "inventory", "payable", "deferred revenue", "contract", "prepaid", "accrued", "current asset", "current liabilit"
+- Cash flow: "cash flow from operations", "working capital", "depreciation", "amortization", "stock-based comp", "capital expenditure", "free cash flow"
+- Income statement: "revenue", "cost of goods", "cost of revenue", "operating income", "net income"
+- Business-specific: "backlog", "billing", "remaining performance obligation", "provision", "allowance", "reserve", "unearned premium", "loss ratio"
+
+Collect all unique series IDs. Read every series name carefully. Understand what balance sheet line items, cash flow details, and business-specific KPIs are available.
+
+Based on series availability, classify the business's working capital profile:
+
+| If you find series like... | Profile | Primary focus |
+|---|---|---|
+| Inventory, COGS, accounts payable, accounts receivable | **Inventory-intensive (manufacturing, retail, consumer goods)** | Full CCC decomposition: DIO + DSO - DPO. Inventory is the core risk. Watch for inventory-to-sales divergence, channel stuffing signals, obsolescence risk |
+| Deferred revenue, contract liabilities, billings, remaining performance obligations | **Negative working capital / SaaS / subscription** | Deferred revenue is the key asset — cash collected before revenue recognized. Focus on billings vs. revenue spread, deferred revenue growth vs. revenue growth, and whether the cash-first dynamic is strengthening or weakening |
+| Receivables and payables but minimal/no inventory | **Asset-light services (consulting, staffing, advertising, tech services)** | DSO is the main event. Receivables quality, aging, concentration. Unbilled receivables or contract assets as early warning. DPO as a secondary lever |
+| Loans, deposits, allowance for credit losses, provision expense, net charge-offs | **Financial institutions (banks, specialty finance)** | Traditional CCC is meaningless. Focus on provision adequacy (allowance/loans, provision/NCOs, reserve coverage), deposit cost and mix, and the gap between provision expense and actual cash losses realized as the earnings quality signal |
+| Policy reserves, loss reserves, unearned premiums, LAE | **Insurance** | Reserve adequacy is the working capital equivalent. Prior-year reserve development (favorable/adverse), loss ratio trends, reserve-to-premium ratios. Cash flow from underwriting vs. reported underwriting income |
+| Contract assets, unbilled receivables, costs to obtain contracts, progress billings | **Long-cycle / contract-based (construction, defense, engineering)** | Percentage-of-completion dynamics. Overbilling vs. underbilling, contract asset growth vs. revenue, cash collection timing on milestones. Watch for aggressive revenue recognition through under-reserved contract losses |
+| Deferred commissions, capitalized content/software, prepaid expenses dominate | **High-intangible / platform** | "Hidden" working capital in capitalized costs. Focus on capitalization rate vs. amortization, whether capitalizing faster than amortizing (building a balloon), and the cash flow impact of these non-traditional working capital items |
+
+If the company is a hybrid or doesn't map cleanly, construct a blended framework.
+
+**Edge cases:**
+- **SaaS / negative working capital businesses**: Traditional CCC is misleading or meaningless. Pivot to deferred revenue dynamics, billings analysis, and RPO trends. Working capital is a source of cash, not a use. Earnings quality analysis still applies (accruals ratio, CFO/NI) but interpret directionally opposite: declining deferred revenue growth is the red flag, not rising receivables.
+- **Financial institutions**: Skip CCC entirely. The balance sheet IS the product. Focus on credit quality and reserve adequacy: allowance for loan losses / total loans, provision expense / net charge-offs (reserve build/release), vintage analysis if available, and the gap between provision expense booked through earnings and actual cash losses realized.
+- **Insurance companies**: Skip CCC. Focus on loss reserve adequacy and development. Prior-year reserve development (favorable = over-reserved; adverse = insufficient). Show the trend. Connect reserve movements to reported combined ratio and operating income.
+- **Pre-revenue / early-stage companies**: Focus on burn rate and cash runway. Frame as "how much cash is being consumed by the operating cycle" rather than earnings quality.
+- **Conglomerates / multi-segment**: Use consolidated working capital data but flag if segment mix makes the consolidated CCC misleading.
+- **Seasonal businesses**: Normalize for seasonality by comparing each quarter to the same quarter prior year, not prior sequential quarter. Call out the seasonal pattern.
+- **Companies with large non-cash charges**: SBC, amortization of intangibles, and impairments can distort the CFO/NI ratio. Provide both unadjusted and adjusted (ex-SBC, ex-amortization) versions.
+
+### 3. Working Capital Data Pull
+Calculate 10 quarters backward from `latest_calendar_quarter`. Pull all working capital components identified in Step 2:
+
+**Balance sheet:** Accounts receivable, Inventory (total + breakdown if available), Accounts payable, Deferred revenue / contract liabilities, Contract assets / unbilled receivables, Prepaid expenses, Accrued liabilities / other current liabilities, Total current assets, Total current liabilities.
+
+**Income statement:** Revenue, COGS / cost of revenue (if applicable), Operating income, Net income.
+
+**Cash flow:** CFO, Changes in each working capital component (if available as separate line items), D&A, Stock-based compensation, CapEx, Free cash flow (compute as CFO - CapEx if not available directly — "(calc.)").
+
+**Important: YTD-to-quarterly conversion.** Some companies report cash flow items on a fiscal year-to-date basis. Check whether CF data appears to be YTD (values increasing monotonically through the fiscal year, then resetting). If so, convert to quarterly values by subtracting the prior quarter's YTD figure. Note this conversion in the report.
+
+**Business-specific KPIs** as identified in Step 2.
+
+**Derived metrics** (calculate from pulled data, label each as "(calc.)" and show formulas):
+- DSO = (Accounts Receivable / Revenue) x days-in-period
+- DIO = (Inventory / COGS) x days-in-period (if inventory-intensive)
+- DPO = (Accounts Payable / COGS) x days-in-period
+- CCC = DSO + DIO - DPO (if applicable)
+- Accrual ratio = (Net Income - CFO) / Average Total Assets
+- Cash conversion ratio = CFO / Net Income
+- Working capital intensity = Delta Net Working Capital / Delta Revenue
+- Profile-specific derived metrics (e.g., deferred revenue days for SaaS, allowance/loans for banks, reserve-to-premium for insurance)
+
+### 4. Qualitative Research
+Search SEC filings for context on working capital dynamics. Use profile-specific search terms:
+- **Inventory-intensive**: Try "inventory reserves", "inventory write-down"; fallback to "excess and obsolete", "channel inventory", "sell-through"
+- **SaaS/subscription**: Try "remaining performance obligations", "deferred revenue"; fallback to "billings", "contract liabilities", "revenue recognition"
+- **Services**: Try "unbilled receivables", "days sales outstanding"; fallback to "allowance for doubtful accounts", "contract assets"
+- **Financials**: Try "allowance for credit losses", "provision"; fallback to "net charge-offs", "reserve adequacy", "CECL"
+- **General (all profiles)**: Try "accounts receivable", "accounts payable"; fallback to "working capital", "cash conversion", "liquidity"
+
+Extract management commentary on working capital trends, collection issues, inventory management, supplier terms, etc. with document citations.
+
+### 5. Analysis & Report Synthesis
+
+**Section 1: Working Capital Profile**
+- 2-3 sentences identifying the business's working capital archetype and why it matters
+- What is the "unit of working capital risk" for this business? (inventory for manufacturer, receivables for services, deferred revenue for SaaS, reserves for insurance)
+- One sentence on headline finding: is working capital a source of strength, neutral, or a red flag right now?
+
+**Section 2: Cash Conversion Cycle (or profile-adapted equivalent)**
+For inventory-intensive businesses, show the full CCC decomposition:
+- DSO, DIO, DPO, CCC — quarterly history (10 quarters)
+- Include YoY change as sub-rows
+- Highlight any quarter where a component moved more than 5 days
+
+For non-inventory businesses, adapt the framework:
+- SaaS/subscription: "Days Deferred Revenue Outstanding" (deferred revenue / revenue x days), billings-to-revenue ratio, net working capital as % of revenue
+- Services: DSO decomposition (billed vs. unbilled), DPO, net working capital days
+- Financials: Skip CCC — use provision/NCO coverage, allowance/loans, deposit mix
+- Insurance: Skip CCC — use reserve development, combined ratio decomposition, cash flow from underwriting vs. reported income
+
+**Section 3: Earnings Quality Assessment**
+Three sub-analyses:
+
+*3a. Accruals Analysis*
+- Sloan accrual ratio: (Net Income - CFO) / Average Total Assets
+  - Persistent high positive accruals = low earnings quality = earnings running ahead of cash
+  - Negative accruals (CFO > Net Income) = high earnings quality
+- Show quarterly trend. Decompose the accrual: which specific working capital line items are driving the gap between earnings and cash flow?
+
+*3b. Cash Conversion Ratio*
+- CFO / Net Income, quarterly and trailing-twelve-month
+- Healthy business should convert >80% of NI to CFO (SaaS may be >100%; capex-heavy need FCF/NI)
+- Flag any quarter where conversion drops below 60% and explain why
+
+*3c. Revenue-to-Receivables Divergence*
+- Revenue growth vs. receivables growth on the same basis (YoY)
+- When receivables growth persistently exceeds revenue growth: potential term extensions, deteriorating credits, or collection issues
+- Calculate divergence spread (receivables growth - revenue growth), show whether widening or narrowing
+
+**Section 4: Working Capital Intensity & Growth Drag**
+- Calculate: Delta Net Working Capital / Delta Revenue for each period (use YoY changes, not QoQ, to avoid seasonal noise)
+- Trend: is the business becoming more or less capital-efficient as it scales?
+- Quantify FCF impact: "In the last four quarters, working capital consumed $Xm of cash, reducing FCF by X% vs. stable working capital"
+- Contextualize with capex intensity: total investment = capex + working capital investment, both as % of revenue
+
+**Section 5: Component Deep-Dives**
+For each material working capital component (2-3 that matter most for this business type):
+- Current level (absolute and as days / % of revenue)
+- Historical trend (10 quarters)
+- Rate of change: improving or deteriorating, and is the rate of change accelerating?
+- Context: management commentary from filings if available
+- Benchmark: vs. company's own history (don't fabricate peer comps)
+
+Which components depends on profile:
+- Inventory-intensive: Inventory (raw/WIP/finished if available), Receivables, Payables
+- SaaS: Deferred Revenue, Contract Assets, Deferred Commissions
+- Services: Receivables (billed + unbilled), Accrued Liabilities
+- Financials: Loan Loss Allowance, Provision Expense, Net Charge-Offs
+- Insurance: Loss Reserves, Unearned Premiums, Prior-Year Development
+
+**Section 6: Red Flags & Green Flags**
+Explicit, concise checklist format. Scan the data for each and report findings:
+
+*Red flags (earnings quality / liquidity concerns):*
+- DSO increasing while revenue growth is slowing (demand deterioration masked by term extensions)
+- Inventory growing faster than COGS or revenue (demand softening, potential write-down ahead)
+- DPO declining (suppliers tightening terms — potential credit deterioration signal)
+- Accrual ratio rising above +5% (earnings quality deteriorating)
+- CFO/Net Income < 0.6x for two or more consecutive quarters
+- Receivables growth > revenue growth for 3+ consecutive quarters
+- Deferred revenue growth decelerating faster than revenue growth (pipeline weakening for subscription businesses)
+- Unbilled receivables / contract assets growing rapidly (aggressive percentage-of-completion or ASC 606 recognition)
+- Capitalized costs (software, commissions, content) growing faster than associated revenue (building an amortization balloon)
+- Working capital intensity ratio rising (growth becoming more capital-consumptive)
+- Allowance/loans declining while loan growth accelerates (under-reserving for banks)
+
+*Green flags (strong cash generation / conservative accounting):*
+- DSO declining or stable while revenue grows (pricing power, healthy demand)
+- CCC shortening over time (operational improvement)
+- CFO/Net Income persistently > 1.0x (earnings over-earned in cash)
+- Negative net working capital (float-funded business model — customers pay before you deliver)
+- Deferred revenue growing faster than revenue (strong forward visibility)
+- Accrual ratio consistently negative (cash earnings exceed reported earnings)
+- Allowance/loans stable or rising modestly while credit metrics are benign (conservative reserving)
+
+For each flag triggered, include the specific data that triggered it and the implication. Use Daloopa citations for every figure.
+
+**Section 7: Key Drivers & What to Watch**
+- 3-5 working capital metrics that matter most for {ticker}, ranked by sensitivity to the investment thesis
+- For each: current level, direction, historical range, and what would cause an inflection
+- Scenario analysis: "If DSO increases another 5 days from here, the company would need an additional ~$Xm in working capital, reducing FCF by ~X%"
+- What to watch next quarter: specific items to monitor in the next earnings release or 10-Q filing
+
+**Section 8: Summary Assessment**
+- 3-4 sentence verdict on working capital health and earnings quality
+- Is this a cash-generative business with conservative accounting, or is there a gap between reported earnings and economic reality?
+- What is the single biggest risk (or source of comfort) in the working capital profile?
+
+**Analytical standards:**
+- Three-layer density: every metric has a data point, context (vs. history), and implication (so what?)
+- Show your math: all derived metrics show formula and inputs
+- Use quarterly data, show TTM where appropriate (accruals ratio more meaningful on TTM basis)
+- Flag seasonality: compare YoY not just QoQ for directional conclusions
+- Distinguish levels from changes: high DSO may be the business model (not a flag) — rising DSO is the concern
+- No false precision: quarterly balance sheets are point-in-time snapshots, acknowledge limitations
+- Source everything: every number traceable to Daloopa with citations
+- Flag data gaps: if key components aren't broken out, note what that limits
+
+## Output
+
+{_HTML_TEMPLATE}
+
+Include these sections in the HTML report:
+- Summary (2-3 sentences: working capital profile, headline earnings quality finding, key risk or comfort)
+- Working Capital Profile (archetype and unit of risk)
+- Cash Conversion Cycle table (10 quarters: DSO, DIO, DPO, CCC or profile equivalent, with YoY change sub-rows)
+- Earnings Quality Assessment with three sub-sections:
+  - Accruals Analysis table (10 quarters: Net Income, CFO, Accrual Ratio)
+  - Cash Conversion Ratio table (10 quarters: CFO, NI, CFO/NI, TTM CFO/NI)
+  - Revenue vs. Receivables Divergence table (10 quarters: Revenue YoY, Receivables YoY, Divergence spread)
+- Working Capital Intensity & Growth Drag table (Delta NWC, Delta Revenue, WC Intensity, CapEx % Rev, Total Investment % Rev)
+- Component Deep-Dives (2-3 focused analyses on the most material components)
+- Red Flags & Green Flags (checklist format with specific data citations)
+- Key Drivers & What to Watch (ranked drivers, scenario analysis, next-quarter monitoring)
+- Summary Assessment (3-4 sentence verdict)
+
+Highlight the key findings: Is this a cash-generative business? Are there earnings quality concerns? What should an analyst focus on in the next filing?
+
+Data sourced from Daloopa
+"""
+
+
 # ============================================================================
 # 2. DELIVERABLE SKILLS
 # ============================================================================
@@ -2077,3 +2462,4 @@ Summary: key valuation range (DCF + comps), top 3 findings.
 
 Data sourced from Daloopa
 """
+
