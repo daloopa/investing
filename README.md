@@ -50,6 +50,8 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 | `/comps` | Trading comparables with peer multiples | `/comps AAPL` | `reports/AAPL_comps.html` |
 | `/precedent-transactions` | Precedent M&A deal comps and multiples | `/precedent-transactions CRM` | `reports/CRM_precedent_transactions.html` |
 | `/supply-chain` | Interactive supply chain dashboard | `/supply-chain AAPL` | `reports/AAPL_supply-chain.html` |
+| `/unit-economics` | Bottoms-up unit economics decomposition | `/unit-economics SHAK` | `reports/SHAK_unit_economics.html` |
+| `/working-capital` | Cash conversion, earnings quality & working capital | `/working-capital AAPL` | `reports/AAPL_working_capital.html` |
 | `/comp-sheet` | Multi-company industry comp sheet model | `/comp-sheet AAPL` | `reports/AAPL_comp_sheet.xlsx` |
 
 ### Investment Deliverables (.docx, .xlsx, .pdf)
@@ -68,7 +70,7 @@ All reports are saved to the `reports/` directory. You can also just ask Claude 
 
 The 10 building block analysis skills are also available as a standalone **Claude Code plugin** that works in any project — no Python infrastructure needed, just a Daloopa account.
 
-See [`../daloopa-plugin/`](../daloopa-plugin/) or install from the Claude Code marketplace.
+See [daloopa/plugin](https://github.com/daloopa/plugin) or install from the Claude Code marketplace.
 
 ## Data Access
 
@@ -176,6 +178,8 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │       ├── precedent-transactions/ # /precedent-transactions — M&A deal comps
 │       ├── comp-sheet/        # /comp-sheet — industry comp Excel model
 │       ├── supply-chain/      # /supply-chain — interactive supply chain dashboard
+│       ├── unit-economics/    # /unit-economics — unit economics decomposition
+│       ├── working-capital/   # /working-capital — cash conversion & earnings quality
 │       ├── meta-skill/        # Internal: convert skills to MCP prompt functions
 │       ├── ib-deck/           # /ib-deck — pitch deck builder
 │       ├── research-note/     # /research-note — Word document output
