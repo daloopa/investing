@@ -5,14 +5,14 @@
 # the same analysis as the corresponding Claude Code skill, using only
 # Daloopa MCP tools (no file system, no infra scripts).
 #
-# Skills converted: earnings, earnings_flash, earnings_prep, tearsheet, industry,
+# Skills converted: earnings_review, earnings_flash, earnings_prep, tearsheet, industry,
 #   bull_bear, guidance_tracker, inflection, capital_allocation, dcf, comps,
 #   precedent_transactions, supply_chain, unit_economics, working_capital,
 #   research_note, build_model, comp_sheet, ib_deck, initiate
 # Skipped: setup (interactive setup wizard — not an analytical skill)
 # Skipped: update (requires prior context JSON from file system — not portable to MCP prompt)
 # Shared references inlined: data-access.md, design-system.md
-# Date: 2026-03-09
+# Date: 2026-05-21
 
 from app.daloopa_mcp import daloopa_mcp
 
@@ -31,6 +31,7 @@ _DALOOPA_TOOLS = """\
 | Find available series/metrics | `discover_company_series(company_id, keywords, periods)` |
 | Pull financial data | `get_company_fundamentals(company_id, periods, series_ids)` |
 | Search SEC filings | `search_documents(keywords, company_ids, periods)` |
+| Get stock prices (OHLCV) | `get_stock_prices(company_ids, dates?, start_date?, end_date?)` |
 """
 
 _PERIOD_DETERMINATION = """\
@@ -49,6 +50,26 @@ After `discover_companies`, capture `latest_calendar_quarter` and `latest_fiscal
 Example: if `latest_calendar_quarter` = "2025Q4", last 8Q = ["2024Q1", "2024Q2", "2024Q3", "2024Q4", "2025Q1", "2025Q2", "2025Q3", "2025Q4"]
 
 **NEVER assume the current calendar date determines the latest available quarter — always use the field returned by `discover_companies`.**
+
+## Section 1.7: Stock Price Conventions
+
+`get_stock_prices` returns daily OHLCV (open, high, low, close, volume) data. Use it for current quotes, historical price context, valuation multiples, and post-earnings price reactions.
+
+**Parameter usage — use `dates` OR `start_date`/`end_date`, not both:**
+
+| Use Case | Parameters | Example |
+|---|---|---|
+| **Spot / current price** | `dates=[TODAY-2, TODAY-1, TODAY]` — pass 3 recent calendar days to guard against weekends/holidays. Use the most recent returned. | `dates=["2026-05-19", "2026-05-20", "2026-05-21"]` |
+| **Quarter-end prices (for multiples)** | `dates=[list of quarter-end dates]` — Q1→YYYY-03-31, Q2→YYYY-06-30, Q3→YYYY-09-30, Q4→YYYY-12-31 | `dates=["2025-12-31", "2026-03-31"]` |
+| **Post-earnings reaction** | `start_date` 1 day before earnings, `end_date` 2-3 days after | `start_date="2026-01-28", end_date="2026-01-31"` |
+| **Historical range** | `start_date` / `end_date` for a continuous period | `start_date="2025-01-01", end_date="2026-05-21"` |
+
+**Batch all company_ids into one call** when fetching prices for multiple peers — don't make separate calls per company.
+
+**Computing valuation multiples from stock prices + fundamentals:**
+- P/E = Close price × Diluted shares / Net income (trailing 4Q)
+- EV/EBITDA = (Market cap + Debt - Cash) / EBITDA (trailing 4Q)
+- Use quarter-end close prices matched to the corresponding quarter's fundamentals
 
 ### Fiscal Year Context
 - **Single-company analysis**: Use `fiscal_period` labels when presenting data (e.g., "FQ1'26" for Apple's Oct-Dec quarter).
@@ -127,10 +148,13 @@ _MARKET_DATA = """\
 ## Market Data
 
 Gather using the following resolution order (use the first available source):
-1. **MCP tools** — Check available tools for any MCP server that provides market data (stock quotes, multiples, historical prices). This is the preferred path.
-2. **Infra scripts** — If no market-data MCP is available, use `python infra/market_data.py` as fallback (quote, multiples, history, peers, risk-free-rate subcommands).
-3. **Web search** — If neither MCP nor infra scripts are available, use web search.
-4. **Defaults** — If no source is available, use defaults (beta=1.0, risk-free rate=4.5%) and note the limitation.
+1. **Daloopa `get_stock_prices`** — Use the Daloopa MCP tool (see Section 1.7) for OHLCV data. This is the preferred path for current price, historical prices, post-earnings reactions, and quarter-end prices for valuation multiples. Requires the `company_id` from `discover_companies`.
+2. **Other MCP tools** — Check your available tools for any additional MCP server that provides market data (beta, multiples, real-time quotes). Use whatever the user has configured.
+3. **Infra scripts** (project repo only) — If MCP is insufficient but `infra/market_data.py` exists, use it as a fallback for beta, pre-computed multiples, or risk-free rate (quote, multiples, history, peers, risk-free-rate subcommands).
+4. **Web search** — If neither MCP nor infra scripts provide what's needed, use web search to look up beta, analyst targets, or other market context.
+5. **Defaults** — If no market data source is available at all, use reasonable defaults (beta=1.0, risk-free rate=4.5%) and note the limitation. Proceed with Daloopa fundamentals only.
+
+**Note:** `get_stock_prices` gives you raw OHLCV, not pre-computed multiples or beta. To compute P/E, EV/EBITDA, etc., combine the stock price with fundamentals from `get_company_fundamentals` (see Section 1.7). For beta, use infra scripts or web search.
 
 Data needed:
 - **Stock quote**: Current price, market cap, shares outstanding, beta
@@ -287,8 +311,8 @@ NEVER use `XLSX.writeFile()` or `URL.createObjectURL()` — both are blocked in 
 
 
 @daloopa_mcp.prompt
-def earnings(ticker: str) -> str:
-    """Earnings"""
+def earnings_review(ticker: str) -> str:
+    """Earnings Review"""
     return f"""\
 Perform a comprehensive earnings analysis for {ticker}.
 
@@ -359,12 +383,22 @@ Search SEC filings via `search_documents` with multiple keyword sets:
 
 Extract: results/drivers, forward outlook, segment highlights, notable call-outs, direct quotes with document citations.
 
-### 7.5. News Context
+### 7.5. News Context & Stock Reaction
+**Stock price reaction (from Daloopa):**
+Use `get_stock_prices` (see Section 1.7) to get the actual post-earnings price move. Pull prices for a window around the earnings date: `start_date` = 1 trading day before the likely earnings date (estimate from the `latest_calendar_quarter` end + ~30-45 days), `end_date` = 3 trading days after. Compute the next-day percentage change from the pre-earnings close to the post-earnings close. This gives you the hard number for "how did the stock react."
+
+Also pull the current stock price (3 most recent calendar days) so the report includes where the stock trades NOW relative to the post-earnings reaction.
+
+**Web search for context:**
 Web search for:
 1. "{ticker} [company name] earnings [latest quarter]" — analyst reactions
 2. "{ticker} analyst price target" — sell-side sentiment
 
-Distill into 3-5 bullets: stock reaction, analyst takeaways, price target changes, macro context.
+Distill into 3-5 bullets:
+- How did the stock react to earnings? (use the actual price data from `get_stock_prices`, not just search results)
+- What were the key analyst takeaways or debates?
+- Any price target changes or rating changes post-earnings?
+- Any macro/industry context that affected the quarter?
 
 ### 7.6. Forward Outlook & Revenue Drivers
 
@@ -445,6 +479,9 @@ Look up {ticker} using `discover_companies`. Capture:
 - `latest_calendar_quarter` — anchor for all period calculations below
 - `latest_fiscal_quarter`
 - Firm name for report attribution (default: "Daloopa")
+
+### 1b. Current Stock Price
+Get the current stock price using `get_stock_prices` (see Section 1.7). Pass `company_id` and `dates` for the 3 most recent calendar days — use the most recent returned close price. Include the price, date, and a simple context line (e.g., 52-week range or YTD change if you have enough history from a quick `start_date`/`end_date` pull of the last 12 months). Display this prominently at the top of the report next to the company name.
 
 ### 2. Key Financials
 Calculate periods backward from `latest_calendar_quarter` (8 quarters total: last 4 + year-ago for each to enable YoY). Revenue, Gross Profit, Operating Income, EBITDA (compute as Op Income + D&A if needed — "(calc.)"), Net Income, Diluted EPS, Operating Cash Flow, CapEx, Free Cash Flow (OCF - CapEx — "(calc.)").
@@ -607,6 +644,9 @@ Look up {ticker} using `discover_companies`. Capture:
 - `latest_calendar_quarter` — anchor for all period calculations below
 - `latest_fiscal_quarter`
 - Firm name for report attribution (default: "Daloopa")
+
+### 1b. Current Stock Price
+Get the current stock price using `get_stock_prices` (see Section 1.7). Pass `company_id` and `dates` for the 3 most recent calendar days — use the most recent returned close price. This is the anchor for scenario comparison: each scenario's implied value will be compared against this price to show upside/downside.
 
 ### 2. Historical Financial Baseline
 Calculate 8 quarters backward from `latest_calendar_quarter`. Pull: Revenue, Gross Profit/Margin, Operating Income/Margin, EBITDA (compute if needed — "(calc.)"), Net Income, Diluted EPS, Operating Cash Flow, CapEx, Free Cash Flow (OCF - CapEx — "(calc.)"), Segment revenue, Geographic revenue.
@@ -884,7 +924,7 @@ Look up {ticker} using `discover_companies`. Capture:
 - Firm name for report attribution (default: "Daloopa")
 
 ### 2. Market Data
-Get current stock price, market cap, shares outstanding for {ticker}. Needed for yields and per-share metrics. If unavailable, note that market-derived metrics cannot be computed.
+Use `get_stock_prices` (see Section 1.7) with `company_id` and `dates` for the 3 most recent calendar days to get current stock price. Combine with Daloopa fundamentals (shares outstanding, total debt, cash) to compute market cap and enterprise value. Needed for yields and per-share metrics. For beta, use infra scripts or web search. If unavailable, note that market-derived metrics cannot be computed.
 
 ### 3. Capital Allocation Data
 Calculate 8 quarters backward from `latest_calendar_quarter`. Pull:
@@ -988,7 +1028,7 @@ Look up {ticker} using `discover_companies`. Capture:
 - Firm name for report attribution (default: "Daloopa")
 
 ### 2. Market Data
-Get: current price, market cap, shares outstanding, beta, 10Y Treasury yield (risk-free rate). If unavailable, use defaults (beta=1.0, Rf=4.5%).
+Use `get_stock_prices` (see Section 1.7) with `company_id` and `dates` for the 3 most recent calendar days to get current price. Combine with Daloopa fundamentals (shares outstanding, total debt, cash) to compute market cap and enterprise value. For beta and 10Y Treasury yield (risk-free rate), use infra scripts or web search. If unavailable, use defaults (beta=1.0, Rf=4.5%).
 
 ### 3. Historical Financials
 Calculate 8 quarters backward from `latest_calendar_quarter`. Pull: Revenue, Operating Income, Net Income, Diluted EPS, Operating Cash Flow, CapEx, FCF (OCF - CapEx — "(calc.)"), D&A, Tax expense and pre-tax income (for effective tax rate), Interest expense, Total debt, Cash and equivalents, Shares outstanding. Also pull segment revenue and guidance series.
@@ -1093,8 +1133,22 @@ Identify 5-10 comparable companies based on: direct competitors, business model 
 ### 3. Target Company Fundamentals
 Calculate 4 quarters backward from `latest_calendar_quarter`. Pull from Daloopa: Revenue (trailing 4Q total), EBITDA (trailing 4Q; compute from Op Income + D&A if needed — "(calc.)"), Net Income (trailing 4Q), Diluted EPS (trailing 4Q sum), Free Cash Flow (trailing 4Q; OCF - CapEx — "(calc.)"), Revenue YoY growth (most recent Q), Operating Margin, Net Margin.
 
-### 4. Peer Market Multiples
-For each peer, get trading multiples: P/E (trailing + forward), EV/EBITDA, P/S, P/B, dividend yield, PEG ratio, price, market cap, enterprise value. If a peer fails, drop and note why.
+### 4. Stock Prices & Valuation Multiples
+Use `get_stock_prices` (see Section 1.7) to pull current prices for the target AND all peers in a single batch call — pass all `company_ids` together with `dates` = 3 most recent calendar days.
+
+Compute valuation multiples by combining stock prices with the fundamentals pulled in Sections 3 and 5:
+- **Market Cap** = Close price × Diluted shares outstanding
+- **Enterprise Value** = Market Cap + Total Debt - Cash (from Daloopa balance sheet if available)
+- **P/E (trailing)** = Market Cap / Net Income (trailing 4Q)
+- **EV/EBITDA** = EV / EBITDA (trailing 4Q)
+- **P/S** = Market Cap / Revenue (trailing 4Q)
+- **P/B** = Market Cap / Total Equity
+- **FCF Yield** = FCF (trailing 4Q) / Market Cap
+- **Dividend Yield** = Dividends Paid (trailing 4Q) / Market Cap
+
+For beta, PEG ratio, and forward multiples, use infra scripts, consensus data, or web search (see Section 2).
+
+If a peer isn't in Daloopa (no `company_id`), fall back to Section 2 resolution order for market data. If a peer ticker fails (delisted, no data), drop it and note why.
 
 ### 5. Peer Fundamentals from Daloopa
 For each peer available in Daloopa:
@@ -1332,7 +1386,7 @@ Before writing HTML, organize all data into this structure:
 TARGET COMPANY:
   - Name, ticker, description
   - TTM Revenue, COGS, Gross Profit, Net Income, Gross Margin, Op Margin
-  - Market cap, stock price (from web)
+  - Market cap, stock price (from `get_stock_prices`)
 
 TIER 1 SUPPLIERS (sorted by estimated % of target COGS, descending):
   For each:
@@ -1698,6 +1752,9 @@ Read the document content from the search results. Focus on:
 
 If no document is found, proceed with the MCP fundamentals data only and note "No earnings document found — analysis based on financial data only."
 
+### 5b. Stock Price Context
+Get the current stock price using `get_stock_prices` (see Section 1.7) — pass `company_id` and `dates` for the 3 most recent calendar days. Also pull prices around the earnings date (1 day before to 3 days after the `latest_calendar_quarter` end + ~30-45 days) to compute the post-earnings reaction. Include the next-day move percentage in the Executive Flash section.
+
 ### 6. Executive Flash
 Write 3-5 bullet-point verdicts. Each bullet MUST compare the latest quarter's results against prior periods from Step 2 and/or guidance from Step 4. Format:
 
@@ -1772,7 +1829,7 @@ Add a disclaimer after the flash banner:
 ```html
 <p style="font-size: 10px; color: #6C757D; font-style: italic; margin-bottom: 16px;">
     This is a rapid first-read summary. For full analysis with 8-quarter trends, cost structure,
-    and competitive read-throughs, run /earnings {ticker}.
+    and competitive read-throughs, run /earnings-review {ticker}.
 </p>
 ```
 
@@ -1828,7 +1885,7 @@ Pull the most recent quarter's full financials from Daloopa. Calculate 4 quarter
 **Summarize the story of last quarter in 3-5 bullets:**
 - What beat expectations (guidance or consensus)?
 - What missed or disappointed?
-- What was the stock reaction? (use web search: "{{ticker}} earnings reaction {{latest_quarter_label}} {{year}}")
+- What was the stock reaction? (use `get_stock_prices` per Section 1.7 to get the actual next-day move; supplement with WebSearch for narrative context if needed)
 - What narrative emerged from the call? (e.g., "AI monetization acceleration," "margin expansion story intact," "consumer weakness")
 - What was the single most debated metric?
 
@@ -1961,12 +2018,22 @@ Gather available consensus context:
 **Note limitations** if consensus data is not directly available. Even directional context ("estimates have been revised up 3% over the last 90 days") is valuable.
 
 ### 8. Historical Earnings Reaction
-Use web search to find how the stock has reacted to the last 4-6 earnings prints:
-- Search: "{{ticker}} earnings stock reaction history {{year}}" — post-earnings moves
+**Stock price data (from Daloopa):**
+Use `get_stock_prices` (see Section 1.7) to get actual post-earnings price moves for the last 4-6 earnings prints. For each historical earnings date, pull prices for a window: `start_date` = 1 trading day before earnings, `end_date` = 3-5 trading days after. Compute:
+- Next-day move (pre-earnings close → post-earnings close)
+- 3-day drift (post-earnings close → 3 days later)
+
+To estimate historical earnings dates, use the quarter-end date + ~30-45 days as an approximation, or use WebSearch to confirm exact dates if needed.
+
+Also pull the current stock price (3 most recent calendar days) for the report header.
+
+**Supplement with web search for options context:**
 - Search: "{{ticker}} options implied move earnings {{upcoming_quarter_label}}" — current implied volatility
 
 **Present as a table:**
-| Quarter | Revenue Beat/Miss | EPS Beat/Miss | Next-Day Move | Notes |
+| Quarter | Revenue Beat/Miss | EPS Beat/Miss | Next-Day Move | 3-Day Drift | Notes |
+
+Populate the Revenue/EPS Beat/Miss columns from the guidance credibility analysis in Section 4. The price move columns come from `get_stock_prices`.
 
 **Pattern identification:**
 - Does the stock tend to sell off on beats? (buy-the-rumor, sell-the-news pattern)
@@ -2613,7 +2680,7 @@ Look up {ticker} using `discover_companies`. Capture:
 - `latest_fiscal_quarter`
 - Firm name for report attribution (default: "Daloopa")
 
-Get current stock price, market cap, shares outstanding, beta, and trading multiples for {ticker} (see market data resolution order above).
+Use `get_stock_prices` (see Section 1.7) with `company_id` and `dates` for the 3 most recent calendar days to get current price. Combine with Daloopa fundamentals (shares outstanding, total debt, cash) to compute market cap, enterprise value, and trading multiples (P/E, EV/EBITDA, P/S — see Section 1.7). For beta, use infra scripts or web search.
 
 ### Phase B — Core Financials + Cost Structure
 Calculate 8 quarters backward from `latest_calendar_quarter`. Pull Income Statement: Revenue, Gross Profit, Operating Income, Net Income, Diluted EPS, EBITDA (compute if needed — "(calc.)"), SG&A, R&D.
@@ -2735,7 +2802,7 @@ Look up {ticker} using `discover_companies`. Capture:
 - `latest_fiscal_quarter`
 - Firm name for report attribution (default: "Daloopa")
 
-Get current stock price, market cap, shares outstanding, beta, and trading multiples.
+Use `get_stock_prices` (see Section 1.7) with `company_id` and `dates` for the 3 most recent calendar days to get current price. Combine with Daloopa fundamentals (shares outstanding, total debt, cash) to compute market cap, enterprise value, and trading multiples (see Section 1.7). For beta, use infra scripts or web search.
 
 ### Phase 2 — Comprehensive Data Pull
 Calculate periods backward from `latest_calendar_quarter`. Pull as much data as Daloopa has for this company. Target 8-16 quarters.
@@ -2831,13 +2898,33 @@ For EACH company (target + all peers), pull from Daloopa:
 **Company-specific KPIs:**
 {_KPI_TAXONOMY}
 
-**Market data** per company: price, market cap, EV, shares, beta, all trading multiples (P/E trailing+forward, EV/EBITDA, P/S, P/B, EV/FCF, dividend yield).
+**Stock prices & valuation multiples:**
+Use `get_stock_prices` (see Section 1.7) to pull prices for ALL companies in a single batch call. Get:
+- Current price: `dates` = 3 most recent calendar days for all company_ids
+- Quarter-end prices: `dates` = quarter-end dates matching the financial periods (for historical multiples)
+
+Then compute valuation metrics by combining stock prices with Daloopa fundamentals:
+- **Market Cap** = Close price × Diluted shares outstanding
+- **Enterprise Value** = Market Cap + Total Debt - Cash
+- **P/E (trailing)** = Market Cap / Net Income (trailing 4Q)
+- **EV/EBITDA** = EV / EBITDA (trailing 4Q)
+- **P/S** = Market Cap / Revenue (trailing 4Q)
+- **P/B** = Market Cap / Total Equity
+- **EV/FCF** = EV / Free Cash Flow (trailing 4Q)
+- **FCF Yield** = FCF (trailing 4Q) / Market Cap
+- **Dividend Yield** = Dividends Paid (trailing 4Q) / Market Cap
+
+For beta, use infra scripts or web search (see Section 2). For forward multiples, use consensus estimates if available (Section 3).
 
 ### 3. KPI Discovery & Mapping
 Build coverage matrix: which KPIs for which companies. Group into categories: Segment Revenue, Growth KPIs, Unit Economics, Efficiency, Engagement. Flag comparable vs company-specific.
 
 ### 4. Compute Derived Metrics
-Per company: Gross/Operating/Net/FCF margin (each Q), Revenue/EPS YoY (each Q), Net Debt, Net Debt/EBITDA, FCF Yield, Shareholder Yield.
+Per company: Gross/Operating/Net/FCF margin (each Q), Revenue/EPS YoY (each Q), Net Debt, Net Debt/EBITDA, Shareholder Yield.
+
+**Historical multiples (from quarter-end prices pulled in Section 2):**
+- Compute P/E, EV/EBITDA, P/S, EV/FCF at each quarter-end to show how multiples have trended
+- This lets the reader see whether the current multiple is elevated or depressed vs. the company's own history
 
 **Implied valuation:** For each methodology (P/E, EV/EBITDA, P/S, EV/FCF): peer median multiple x target metric = implied value → implied share price. Compute median implied price.
 
@@ -2910,7 +2997,7 @@ Use Daloopa MCP for all financial data. Target comprehensive coverage:
 - Guidance and consensus estimates
 - SEC filings: risk factors, growth drivers, M&A commentary, strategic language
 
-Get market data for target and all peers: price, market cap, shares, beta, multiples, historical prices for TSR.
+Use `get_stock_prices` (see Section 1.7) to pull current prices for the target AND all peers in a single batch call (`dates` = 3 most recent calendar days). Also pull quarter-end prices for historical multiples and TSR. Combine with Daloopa fundamentals to compute market cap, EV, and trading multiples (see Section 1.7). For beta, use infra scripts or web search.
 
 ### Phase 3 — Analysis
 - **Valuation**: DCF (WACC, 5Y FCF, terminal, sensitivity), comps table, implied range
@@ -2987,7 +3074,7 @@ Look up {ticker} using `discover_companies`. Capture:
 - `latest_fiscal_quarter`
 - Firm name for report attribution (default: "Daloopa")
 
-Get market data: price, market cap, shares, beta, multiples, risk-free rate.
+Use `get_stock_prices` (see Section 1.7) with `company_id` and `dates` for the 3 most recent calendar days to get current price. Combine with Daloopa fundamentals (shares outstanding, total debt, cash) to compute market cap, EV, and trading multiples (see Section 1.7). For beta and risk-free rate, use infra scripts or web search (defaults: beta=1.0, Rf=4.5%).
 
 ### Phase 2 — Comprehensive Data Gathering
 Calculate 8-16 quarters backward from `latest_calendar_quarter`. Pull the superset needed for both outputs:
