@@ -33,7 +33,7 @@ Pull the most recent quarter's full financials from Daloopa. Calculate 4 quarter
 **Summarize the story of last quarter in 3-5 bullets:**
 - What beat expectations (guidance or consensus)?
 - What missed or disappointed?
-- What was the stock reaction? (use WebSearch: `"{TICKER} earnings reaction {latest_quarter_label} {year}"`)
+- What was the stock reaction? (use `get_stock_prices` per `../data-access.md` Section 1.7 to get the actual next-day move; supplement with WebSearch for narrative context if needed)
 - What narrative emerged from the call? (e.g., "AI monetization acceleration," "margin expansion story intact," "consumer weakness")
 - What was the single most debated metric?
 
@@ -166,12 +166,22 @@ Gather available consensus context:
 **Note limitations** if consensus data is not directly available. Even directional context ("estimates have been revised up 3% over the last 90 days") is valuable.
 
 ## 8. Historical Earnings Reaction
-Use web search to find how the stock has reacted to the last 4-6 earnings prints:
-- Search: `"{TICKER} earnings stock reaction history {year}"` — post-earnings moves
+**Stock price data (from Daloopa):**
+Use `get_stock_prices` (see `../data-access.md` Section 1.7) to get actual post-earnings price moves for the last 4-6 earnings prints. For each historical earnings date, pull prices for a window: `start_date` = 1 trading day before earnings, `end_date` = 3-5 trading days after. Compute:
+- Next-day move (pre-earnings close → post-earnings close)
+- 3-day drift (post-earnings close → 3 days later)
+
+To estimate historical earnings dates, use the quarter-end date + ~30-45 days as an approximation, or use WebSearch to confirm exact dates if needed.
+
+Also pull the current stock price (3 most recent calendar days) for the report header.
+
+**Supplement with web search for options context:**
 - Search: `"{TICKER} options implied move earnings {upcoming_quarter_label}"` — current implied volatility
 
 **Present as a table:**
-| Quarter | Revenue Beat/Miss | EPS Beat/Miss | Next-Day Move | Notes |
+| Quarter | Revenue Beat/Miss | EPS Beat/Miss | Next-Day Move | 3-Day Drift | Notes |
+
+Populate the Revenue/EPS Beat/Miss columns from the guidance credibility analysis in Section 4. The price move columns come from `get_stock_prices`.
 
 **Pattern identification:**
 - Does the stock tend to sell off on beats? (buy-the-rumor, sell-the-news pattern)

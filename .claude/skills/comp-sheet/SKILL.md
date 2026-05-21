@@ -49,9 +49,23 @@ For each company (target + all peers), pull from Daloopa:
 - **Pharma/Biotech**: pipeline stage, patient starts, scripts, market share
 - **Industrials/Energy**: backlog, book-to-bill, utilization, production volumes, reserves
 
-**Market data** for each company (see ../data-access.md Section 2):
-- Price, market cap, enterprise value, shares outstanding, beta
-- All trading multiples: P/E (trailing + forward), EV/EBITDA, P/S, P/B, EV/FCF, dividend yield
+**Stock prices & valuation multiples:**
+Use `get_stock_prices` (see `../data-access.md` Section 1.7) to pull prices for ALL companies in a single batch call. Get:
+- Current price: `dates` = 3 most recent calendar days for all company_ids
+- Quarter-end prices: `dates` = quarter-end dates matching the financial periods (for historical multiples)
+
+Then compute valuation metrics by combining stock prices with Daloopa fundamentals:
+- **Market Cap** = Close price × Diluted shares outstanding
+- **Enterprise Value** = Market Cap + Total Debt - Cash
+- **P/E (trailing)** = Market Cap / Net Income (trailing 4Q)
+- **EV/EBITDA** = EV / EBITDA (trailing 4Q)
+- **P/S** = Market Cap / Revenue (trailing 4Q)
+- **P/B** = Market Cap / Total Equity
+- **EV/FCF** = EV / Free Cash Flow (trailing 4Q)
+- **FCF Yield** = FCF (trailing 4Q) / Market Cap
+- **Dividend Yield** = Dividends Paid (trailing 4Q) / Market Cap
+
+For beta, use infra scripts or web search (see `../data-access.md` Section 2). For forward multiples, use consensus estimates if available (Section 3).
 
 ## 3. KPI Discovery & Mapping
 
@@ -78,8 +92,11 @@ For each company, calculate:
 **Capital metrics:**
 - Net Debt (Total Debt - Cash)
 - Net Debt/EBITDA
-- FCF Yield (trailing 4Q FCF / Market Cap)
 - Shareholder Yield (Buybacks + Dividends) / Market Cap
+
+**Historical multiples (from quarter-end prices pulled in Section 2):**
+- Compute P/E, EV/EBITDA, P/S, EV/FCF at each quarter-end to show how multiples have trended
+- This lets the reader see whether the current multiple is elevated or depressed vs. the company's own history
 
 **Implied valuation:**
 - For each valuation methodology (P/E, EV/EBITDA, P/S, EV/FCF):
