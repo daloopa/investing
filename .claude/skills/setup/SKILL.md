@@ -80,7 +80,7 @@ This creates the research note template at `templates/research_note.docx`.
 Tell the user about the available slash commands:
 
 **Building Block Skills** (markdown reports):
-- `/earnings TICKER` — Full earnings analysis with guidance tracking
+- `/earnings-review TICKER` — Full earnings analysis with guidance tracking
 - `/tearsheet TICKER` — Quick one-page company overview
 - `/industry TICKER1 TICKER2 ...` — Cross-company comparison
 - `/bull-bear TICKER` — Bull/bear/base scenario framework

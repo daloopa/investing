@@ -1,5 +1,5 @@
 ---
-name: earnings
+name: earnings-review
 description: Full earnings analysis with guidance tracking for a given company
 argument-hint: TICKER
 ---
