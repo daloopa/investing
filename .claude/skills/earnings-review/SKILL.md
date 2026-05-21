@@ -1,5 +1,5 @@
 ---
-name: earnings
+name: earnings-review
 description: Full earnings analysis with guidance tracking for a given company
 argument-hint: TICKER
 ---
@@ -123,13 +123,19 @@ Extract:
 - Any notable call-outs (one-time items, macro commentary, strategic updates)
 - Direct management quotes where available (with document citations)
 
-## 7.5. News Context
+## 7.5. News Context & Stock Reaction
+**Stock price reaction (from Daloopa):**
+Use `get_stock_prices` (see `../data-access.md` Section 1.7) to get the actual post-earnings price move. Pull prices for a window around the earnings date: `start_date` = 1 trading day before the likely earnings date (estimate from the `latest_calendar_quarter` end + ~30-45 days), `end_date` = 3 trading days after. Compute the next-day percentage change from the pre-earnings close to the post-earnings close. This gives you the hard number for "how did the stock react."
+
+Also pull the current stock price (3 most recent calendar days) so the report includes where the stock trades NOW relative to the post-earnings reaction.
+
+**Web search for context:**
 Run 2 WebSearch queries to add external context around the earnings:
 1. `"{TICKER} {company_name} earnings {latest_quarter} {year}"` — coverage and analyst reactions
 2. `"{TICKER} analyst price target {year}"` — sell-side sentiment
 
 Distill into a brief **Earnings Context** block (3-5 bullet points):
-- How did the stock react to earnings? (if available from search results)
+- How did the stock react to earnings? (use the actual price data from `get_stock_prices`, not just search results)
 - What were the key analyst takeaways or debates?
 - Any price target changes or rating changes post-earnings?
 - Any macro/industry context that affected the quarter?

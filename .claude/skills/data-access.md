@@ -14,6 +14,7 @@ Check your available tools. If you see Daloopa MCP tools (`discover_companies`, 
 | Find available series/metrics | `discover_company_series(company_id, keywords, periods)` |
 | Pull financial data | `get_company_fundamentals(company_id, periods, series_ids)` |
 | Search SEC filings | `search_documents(keywords, company_ids, periods)` |
+| Get stock prices (OHLCV) | `get_stock_prices(company_ids, dates?, start_date?, end_date?)` |
 
 Results come back as structured data you can use directly.
 
@@ -43,6 +44,26 @@ Example: if `latest_calendar_quarter` = "2025Q4", last 8Q = ["2024Q1", "2024Q2",
 
 **NEVER assume the current calendar date determines the latest available quarter — always use the field returned by `discover_companies`.**
 
+## Section 1.7: Stock Price Conventions
+
+`get_stock_prices` returns daily OHLCV (open, high, low, close, volume) data. Use it for current quotes, historical price context, valuation multiples, and post-earnings price reactions.
+
+**Parameter usage — use `dates` OR `start_date`/`end_date`, not both:**
+
+| Use Case | Parameters | Example |
+|---|---|---|
+| **Spot / current price** | `dates=[TODAY-2, TODAY-1, TODAY]` — pass 3 recent calendar days to guard against weekends/holidays. Use the most recent returned. | `dates=["2026-05-19", "2026-05-20", "2026-05-21"]` |
+| **Quarter-end prices (for multiples)** | `dates=[list of quarter-end dates]` — Q1→YYYY-03-31, Q2→YYYY-06-30, Q3→YYYY-09-30, Q4→YYYY-12-31 | `dates=["2025-12-31", "2026-03-31"]` |
+| **Post-earnings reaction** | `start_date` 1 day before earnings, `end_date` 2-3 days after | `start_date="2026-01-28", end_date="2026-01-31"` |
+| **Historical range** | `start_date` / `end_date` for a continuous period | `start_date="2025-01-01", end_date="2026-05-21"` |
+
+**Batch all company_ids into one call** when fetching prices for multiple peers — don't make separate calls per company.
+
+**Computing valuation multiples from stock prices + fundamentals:**
+- P/E = Close price × Diluted shares / Net income (trailing 4Q)
+- EV/EBITDA = (Market cap + Debt - Cash) / EBITDA (trailing 4Q)
+- Use quarter-end close prices matched to the corresponding quarter's fundamentals
+
 ### Fiscal Year Context
 
 Note that `get_company_fundamentals` returns both `calendar_period` and `fiscal_period` for each data point.
@@ -65,10 +86,13 @@ Skills that need market-side data should gather the following:
 
 **Resolution order — use the first available source:**
 
-1. **MCP tools** — Check your available tools for any MCP server that provides market data (stock quotes, multiples, historical prices). Use whatever the user has configured. This is the preferred path because it requires no local dependencies.
-2. **Infra scripts** (project repo only) — If no market-data MCP is available but `infra/market_data.py` exists, use it as a fallback (see Section 5 for commands).
-3. **Web search** — If neither MCP nor infra scripts are available, use web search to look up current stock price and key multiples.
-4. **Defaults** — If no market data source is available at all, use reasonable defaults (beta=1.0, risk-free rate=4.5%) and note the limitation. Proceed with Daloopa fundamentals only.
+1. **Daloopa `get_stock_prices`** — Use the Daloopa MCP tool (see Section 1.7) for OHLCV data. This is the preferred path for current price, historical prices, post-earnings reactions, and quarter-end prices for valuation multiples. Requires the `company_id` from `discover_companies`.
+2. **Other MCP tools** — Check your available tools for any additional MCP server that provides market data (beta, multiples, real-time quotes). Use whatever the user has configured.
+3. **Infra scripts** (project repo only) — If MCP is insufficient but `infra/market_data.py` exists, use it as a fallback for beta, pre-computed multiples, or risk-free rate (see Section 5 for commands).
+4. **Web search** — If neither MCP nor infra scripts provide what's needed, use web search to look up beta, analyst targets, or other market context.
+5. **Defaults** — If no market data source is available at all, use reasonable defaults (beta=1.0, risk-free rate=4.5%) and note the limitation. Proceed with Daloopa fundamentals only.
+
+**Note:** `get_stock_prices` gives you raw OHLCV, not pre-computed multiples or beta. To compute P/E, EV/EBITDA, etc., combine the stock price with fundamentals from `get_company_fundamentals` (see Section 1.7). For beta, use infra scripts or web search.
 
 ## Section 3: Consensus Estimates (Optional)
 
