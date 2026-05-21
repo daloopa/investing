@@ -19,6 +19,9 @@ Look up the company by ticker using `discover_companies`. Capture:
 - `latest_fiscal_quarter`
 - Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
+## 1b. Current Stock Price
+Get the current stock price using `get_stock_prices` (see `../data-access.md` Section 1.7). Pass `company_id` and `dates` for the 3 most recent calendar days — use the most recent returned close price. Include the price, date, and a simple context line (e.g., 52-week range or YTD change if you have enough history from a quick `start_date`/`end_date` pull of the last 12 months). Display this prominently at the top of the report next to the company name.
+
 ## 2. Key Financials
 Calculate periods backward from `latest_calendar_quarter` (8 quarters total: last 4 + year-ago for each to enable YoY):
 Pull:

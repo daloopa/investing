@@ -17,6 +17,9 @@ Look up the company by ticker using `discover_companies`. Capture:
 - `latest_fiscal_quarter`
 - Firm name for report attribution (default: "Daloopa") — see `../data-access.md` Section 4.5
 
+## 1b. Current Stock Price
+Get the current stock price using `get_stock_prices` (see `../data-access.md` Section 1.7). Pass `company_id` and `dates` for the 3 most recent calendar days — use the most recent returned close price. This is the anchor for scenario comparison: each scenario's implied value will be compared against this price to show upside/downside.
+
 ## 2. Historical Financial Baseline
 Calculate 8 quarters backward from `latest_calendar_quarter`. Pull:
 - Revenue

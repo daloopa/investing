@@ -62,6 +62,9 @@ Read the document content from the search results. Focus on:
 
 If no document is found, proceed with the MCP fundamentals data only and note "No earnings document found — analysis based on financial data only."
 
+## 5b. Stock Price Context
+Get the current stock price using `get_stock_prices` (see `../data-access.md` Section 1.7) — pass `company_id` and `dates` for the 3 most recent calendar days. Also pull prices around the earnings date (1 day before to 3 days after the `latest_calendar_quarter` end + ~30-45 days) to compute the post-earnings reaction. Include the next-day move percentage in the Executive Flash section.
+
 ## 6. Executive Flash
 
 Write 3-5 bullet-point verdicts. Each bullet MUST compare the latest quarter's results against prior periods from Step 2 and/or guidance from Step 4. Format:
