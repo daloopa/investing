@@ -33,7 +33,7 @@ Pull the most recent quarter's full financials from Daloopa. Calculate 4 quarter
 **Summarize the story of last quarter in 3-5 bullets:**
 - What beat expectations (guidance or consensus)?
 - What missed or disappointed?
-- What was the stock reaction? (use WebSearch: `"{TICKER} earnings reaction {latest_quarter_label} {year}"`)
+- What was the stock reaction? (use `get_stock_prices` per `../data-access.md` Section 1.7 to get the actual next-day move; supplement with WebSearch for narrative context if needed)
 - What narrative emerged from the call? (e.g., "AI monetization acceleration," "margin expansion story intact," "consumer weakness")
 - What was the single most debated metric?
 

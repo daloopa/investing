@@ -39,14 +39,22 @@ Calculate 4 quarters backward from `latest_calendar_quarter`. Pull from Daloopa 
 - Operating Margin (most recent quarter)
 - Net Margin (most recent quarter)
 
-## 4. Peer Market Multiples
-For each peer, get trading multiples and current quote (see ../data-access.md Section 2):
-- P/E (trailing and forward), EV/EBITDA, P/S, P/B, dividend yield, PEG ratio
-- Price, market cap, enterprise value
+## 4. Stock Prices & Valuation Multiples
+Use `get_stock_prices` (see `../data-access.md` Section 1.7) to pull current prices for the target AND all peers in a single batch call — pass all `company_ids` together with `dates` = 3 most recent calendar days.
 
-If market data is unavailable, note that peer multiples cannot be sourced and provide a framework for manual completion.
+Compute valuation multiples by combining stock prices with the fundamentals pulled in Sections 3 and 5:
+- **Market Cap** = Close price × Diluted shares outstanding
+- **Enterprise Value** = Market Cap + Total Debt - Cash (from Daloopa balance sheet if available)
+- **P/E (trailing)** = Market Cap / Net Income (trailing 4Q)
+- **EV/EBITDA** = EV / EBITDA (trailing 4Q)
+- **P/S** = Market Cap / Revenue (trailing 4Q)
+- **P/B** = Market Cap / Total Equity
+- **FCF Yield** = FCF (trailing 4Q) / Market Cap
+- **Dividend Yield** = Dividends Paid (trailing 4Q) / Market Cap
 
-If a peer ticker fails (delisted, no data), drop it and note why.
+For beta, PEG ratio, and forward multiples, use infra scripts, consensus data, or web search (see `../data-access.md` Sections 2-3).
+
+If a peer isn't in Daloopa (no `company_id`), fall back to `../data-access.md` Section 2 resolution order for market data. If a peer ticker fails (delisted, no data), drop it and note why.
 
 ## 5. Peer Fundamentals from Daloopa
 For each peer that is available in Daloopa:
