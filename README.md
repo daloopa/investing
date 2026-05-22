@@ -37,7 +37,7 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 | Command | Description | Example | Output |
 |---------|-------------|---------|--------|
 | `/setup` | Interactive setup wizard | `/setup` | — |
-| `/earnings` | Full earnings analysis with guidance tracking | `/earnings AAPL` | `reports/AAPL_earnings_2025Q3.html` |
+| `/earnings-review` | Full earnings analysis with guidance tracking | `/earnings-review AAPL` | `reports/AAPL_earnings_2025Q3.html` |
 | `/earnings-prep` | Pre-earnings preparation report | `/earnings-prep AAPL` | `reports/AAPL_earnings_prep_2026Q1.html` |
 | `/earnings-flash` | Rapid first-read earnings flash | `/earnings-flash AAPL` | `reports/AAPL_earnings_flash_2025Q4.html` |
 | `/tearsheet` | Quick one-page company overview | `/tearsheet MSFT` | `reports/MSFT_tearsheet.html` |
@@ -164,7 +164,7 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │       ├── data-access.md     # Shared data access reference
 │       ├── design-system.md   # Formatting and styling conventions
 │       ├── setup/             # /setup — interactive setup wizard
-│       ├── earnings/          # /earnings — earnings analysis
+│       ├── earnings-review/   # /earnings-review — earnings analysis
 │       ├── earnings-prep/     # /earnings-prep — pre-earnings preparation
 │       ├── earnings-flash/    # /earnings-flash — rapid first-read flash
 │       ├── tearsheet/         # /tearsheet — company one-pager

@@ -37,7 +37,7 @@ PHASE2_WARNINGS=0
 echo "Phase 1: Copying shared building block skills..."
 echo ""
 
-SHARED_SKILLS="tearsheet earnings earnings-prep earnings-flash bull-bear guidance-tracker industry inflection capital-allocation dcf comps precedent-transactions supply-chain unit-economics working-capital"
+SHARED_SKILLS="tearsheet earnings-review earnings-prep earnings-flash bull-bear guidance-tracker industry inflection capital-allocation dcf comps precedent-transactions supply-chain unit-economics working-capital"
 
 for skill in $SHARED_SKILLS; do
     src="$PROJECT_DIR/.claude/skills/$skill/SKILL.md"
