@@ -270,6 +270,20 @@ hr { border: none; border-top: 1px solid var(--mid-gray); margin: 20px 0; }
 </body>
 </html>
 ```
+
+### Delivery Requirement
+
+Do not paste raw HTML source in the chat response.
+
+Generate the report as a downloadable `.html` file artifact and render the HTML report for the user in the interface when possible.
+
+The chat response should only include:
+1. A short confirmation that the HTML report was created
+2. A download link to the `.html` file
+3. Optional one-sentence note on what is included
+
+The HTML document itself must be written to the file/artifact, not displayed inline as source code in chat. 
+If rendering is available, show the rendered HTML view rather than the raw HTML.
 """
 
 _EXCEL_ARTIFACT = """\
