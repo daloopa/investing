@@ -51,7 +51,7 @@ Find 8-15 completed M&A transactions from the last 7-10 years involving target c
 
 Use web search to identify deals: `"{industry} acquisitions {sub-sector} last 10 years"`, `"{TICKER} comparable M&A transactions"`, `"{sector} deal comps precedent transactions"`.
 
-**Do NOT use:** finance blogs, Seeking Alpha, Reddit, anonymous wiki contributions, or aggregators without a traceable primary source.
+**Do NOT use:** finance blogs, Yahoo Finance editorial, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, StockTwits, Reddit, anonymous wiki contributions, or aggregators without a traceable primary source (see `../data-access.md` Section 2.5).
 
 For each transaction, capture:
 - Announcement date
