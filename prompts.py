@@ -12,7 +12,7 @@
 # Skipped: setup (interactive setup wizard — not an analytical skill)
 # Skipped: update (requires prior context JSON from file system — not portable to MCP prompt)
 # Shared references inlined: data-access.md, design-system.md
-# Date: 2026-05-21
+# Date: 2026-05-21 (source quality policy added 2026-07-22)
 
 from app.daloopa_mcp import daloopa_mcp
 
@@ -151,7 +151,7 @@ Gather using the following resolution order (use the first available source):
 1. **Daloopa `get_stock_prices`** — Use the Daloopa MCP tool (see Section 1.7) for OHLCV data. This is the preferred path for current price, historical prices, post-earnings reactions, and quarter-end prices for valuation multiples. Requires the `company_id` from `discover_companies`.
 2. **Other MCP tools** — Check your available tools for any additional MCP server that provides market data (beta, multiples, real-time quotes). Use whatever the user has configured.
 3. **Infra scripts** (project repo only) — If MCP is insufficient but `infra/market_data.py` exists, use it as a fallback for beta, pre-computed multiples, or risk-free rate (quote, multiples, history, peers, risk-free-rate subcommands).
-4. **Web search** — If neither MCP nor infra scripts provide what's needed, use web search to look up beta, analyst targets, or other market context.
+4. **Web search** — If neither MCP nor infra scripts provide what's needed, use web search to look up beta, analyst targets, or other market context. Use only reputable sources (exchange/company data, Tier-1 financial press); never Yahoo Finance editorial, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, or similar aggregators.
 5. **Defaults** — If no market data source is available at all, use reasonable defaults (beta=1.0, risk-free rate=4.5%) and note the limitation. Proceed with Daloopa fundamentals only.
 
 **Note:** `get_stock_prices` gives you raw OHLCV, not pre-computed multiples or beta. To compute P/E, EV/EBITDA, etc., combine the stock price with fundamentals from `get_company_fundamentals` (see Section 1.7). For beta, use infra scripts or web search.
@@ -162,6 +162,10 @@ Data needed:
 - **Historical prices**: OHLCV for trend analysis (if needed)
 - **Peer multiples**: Side-by-side multiples for comparable companies
 - **Risk-free rate**: 10Y Treasury yield (for WACC/DCF)
+"""
+
+_SOURCE_QUALITY = """\
+**Source quality (MANDATORY for all web searches):** Use only primary sources (SEC filings, company IR pages, press releases, earnings call transcripts) and Tier-1 financial press (Reuters, Bloomberg, Wall Street Journal, Financial Times, Barron's, The Economist); reputable sector trade press only when those don't cover the topic. Never use or cite Yahoo Finance editorial content, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, InvestorPlace, GuruFocus, StockTwits, Reddit or other forums, SEO content farms, or aggregators without a traceable primary source. If a claim appears only on low-quality sites, corroborate it with a primary or Tier-1 source or exclude it and note the gap. Name the source (publication + date) for every web-sourced fact.
 """
 
 _CONSENSUS = """\
@@ -408,6 +412,7 @@ Web search for:
 1. "{ticker} [company name] earnings [latest quarter]" — analyst reactions
 2. "{ticker} analyst price target" — sell-side sentiment
 
+{_SOURCE_QUALITY}
 Distill into 3-5 bullets:
 - How did the stock react to earnings? (use the actual price data from `get_stock_prices`, not just search results)
 - What were the key analyst takeaways or debates?
@@ -528,6 +533,8 @@ Extract: business description (2-3 sentences), key developments, management prio
 
 ### 7. News Snapshot
 Web search for recent context. Distill into 3-5 key events from last 6 months: date, one-line headline, sentiment tag (Positive / Negative / Mixed / Upcoming).
+
+{_SOURCE_QUALITY}
 
 ### 8. What to Watch
 **Quantitative Monitors** — 5 metrics with thresholds:
@@ -809,6 +816,8 @@ When a company raises, cuts, or materially changes its guidance, the implication
 - KPI guidance (subscriber adds, unit volumes, ARPU) → most direct read-through to suppliers and competitors
 
 **Web research:** Search "{ticker} guidance change implications read through" for analyst commentary on cross-company signals.
+
+{_SOURCE_QUALITY}
 
 Present as a structured section after Pattern Analysis, grouped by guidance change (each major guide raise/cut gets its own sub-block with read-throughs beneath).
 
@@ -1234,6 +1243,7 @@ The output enables an analyst to understand: Who are the critical suppliers and 
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
 {_MARKET_DATA}
+{_SOURCE_QUALITY}
 
 ## Research Workflow
 
@@ -1287,6 +1297,7 @@ For each identified supplier (aim for 8-15 key suppliers):
    - Search Daloopa documents for the supplier: keywords ["[target company name]", "customer", "concentration"]
    - Web search: "[supplier name] [target company] revenue percentage customer"
    - Web search: "[supplier name] 10-K customer concentration"
+   - Concentration figures are factual claims — accept them only from primary sources or Tier-1 financial press (see Source Quality rules below); if a figure only appears on aggregator/blog sites, corroborate it or flag it as unverified
    - Many suppliers disclose their top customers in 10-K filings — look for "customers that accounted for 10% or more of revenue"
 4. **Determine COGS attribution** (what % of target's costs is this supplier):
    - This is often estimated. Use logic like:
@@ -1354,6 +1365,7 @@ For each identified customer (aim for 6-10 key customers):
    - Search Daloopa documents for the target company: keywords ["[customer name]", "customer", "concentration", "accounts receivable"]
    - Web search: "[target company] [customer name] revenue percentage"
    - Web search: "[target company] 10-K customer concentration"
+   - Same source-quality rule as the supplier analysis: attribution figures only from primary sources or Tier-1 financial press
    - Many companies disclose customers that account for >10% of revenue in their 10-K
 4. **Determine input criticality** (what % of customer's COGS comes from target):
    - This is the inverse of the supplier analysis: if the target sells $X to a customer with $Y in COGS, then input share = X/Y
@@ -1876,6 +1888,7 @@ Generate a pre-earnings preparation report for {ticker}. This is the note a L/S 
 {_GUIDANCE_RULES}
 {_MARKET_DATA}
 {_CONSENSUS}
+{_SOURCE_QUALITY}
 
 ## Analysis Steps
 
@@ -2180,7 +2193,9 @@ Find 8-15 completed M&A transactions from the last 7-10 years involving target c
 
 Use web search to identify deals: "{{industry}} acquisitions {{sub-sector}} last 10 years", "{{ticker}} comparable M&A transactions", "{{sector}} deal comps precedent transactions".
 
-**Do NOT use:** finance blogs, Seeking Alpha, Reddit, anonymous wiki contributions, or aggregators without a traceable primary source.
+**Do NOT use:** finance blogs, Yahoo Finance editorial, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, StockTwits, Reddit, anonymous wiki contributions, or aggregators without a traceable primary source.
+
+{_SOURCE_QUALITY}
 
 For each transaction, capture:
 - Announcement date
@@ -2754,6 +2769,8 @@ Pull buyback, dividend, share count, FCF data. Compute shareholder yield, FCF pa
 - Forward catalysts: near-term (0-3mo HIGH), medium-term (3-12mo MEDIUM), long-term (1-3yr LOW)
 - Policy backdrop: macro/regulatory context (if material)
 
+{_SOURCE_QUALITY}
+
 ### Phase I — Charts
 Describe what charts would be produced (the LLM receiving this prompt cannot generate images, but should describe the data): Revenue trend, margin trend, segment pie, DCF sensitivity heatmap.
 
@@ -3131,6 +3148,8 @@ Build falsifiable bull/bear beliefs:
 Executive summary (3-4 sentences with directional view), variant perception, key findings (top 3-5), five key tensions, monitoring framework (quantitative + qualitative).
 
 News context: web search for recent headlines, analyst sentiment, catalysts, industry outlook. Organize into timeline, forward catalysts, policy backdrop.
+
+{_SOURCE_QUALITY}
 
 ## Output — Part 1: Research Note
 

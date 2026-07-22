@@ -101,7 +101,7 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `templates/research_note.docx` — Word template for research notes
 
 ## Plugin
-The building block skills (10 analysis skills) are also available as a standalone Claude Code plugin at `../daloopa-plugin/`. The plugin uses MCP + generic market data language (no Python infrastructure required). Use `scripts/sync_plugin.sh` to sync shared skill files to the plugin repo.
+The building block skills are also available as standalone plugins in two sibling repos: `../daloopa-plugin-claude/` (Claude Code plugin) and `../daloopa-plugin-codex/` (Codex plugin, derived from the Claude version — no `argument-hint`/`$ARGUMENTS`, plus per-skill `agents/openai.yaml`). The plugins use MCP + generic market data language (no Python infrastructure required). Use `scripts/sync_plugin.sh` to sync shared skill files to both plugin repos. Note: each plugin repo maintains its own simplified `skills/data-access.md` — shared policy changes (e.g., Source Quality rules) must be applied to those copies manually.
 
 ## API Documentation
 The `daloopa-docs` MCP server provides direct access to Daloopa's knowledgebase for API usage questions, data coverage, and platform features. A local copy of the docs is also in `daloopa_docs/`. See also: https://docs.daloopa.com

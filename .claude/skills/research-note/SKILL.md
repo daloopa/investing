@@ -156,6 +156,8 @@ Run 4 WebSearch queries to gather recent external context:
 3. `"{TICKER} catalysts risks"` — forward-looking events and risk factors
 4. `"{company_name} industry outlook {sector}"` — macro and industry trends
 
+**Source quality (MANDATORY):** Follow `../data-access.md` Section 2.5 — cite only primary sources (SEC filings, IR pages, press releases, transcripts) and Tier-1 financial press (Reuters, Bloomberg, WSJ, FT). Never use or cite Yahoo Finance editorial, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, StockTwits, Reddit, or similar aggregators/blogs.
+
 Organize results into three new context keys:
 
 - `news_timeline` (string) — 6-10 key events from the last 6-12 months in reverse chronological order. Each event: date, headline, 1-sentence impact, sentiment tag (Positive / Negative / Mixed / Upcoming). Format as a numbered list.

@@ -104,6 +104,8 @@ Run 2 WebSearch queries to gather recent context:
 1. `"{TICKER} {company_name} news {current_year}"` — recent headlines
 2. `"{TICKER} catalysts risks {current_year}"` — forward-looking events
 
+**Source quality (MANDATORY):** Follow `../data-access.md` Section 2.5 — cite only primary sources (SEC filings, IR pages, press releases, transcripts) and Tier-1 financial press (Reuters, Bloomberg, WSJ, FT). Never use or cite Yahoo Finance editorial, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, StockTwits, Reddit, or similar aggregators/blogs.
+
 Distill into **3-5 key events** from the last 6 months, reverse chronological. Each event: date, one-line headline, sentiment tag (Positive / Negative / Mixed / Upcoming). Keep it tight — this is a tearsheet, not a research note.
 
 ## 8. What to Watch
