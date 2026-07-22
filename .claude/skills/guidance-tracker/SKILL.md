@@ -118,6 +118,8 @@ When a company raises, cuts, or materially changes its guidance, the implication
 **Web research for validation:**
 Run 1 targeted search: `"{TICKER} guidance change implications read through {year}"` — analyst commentary on cross-company signals from guidance moves.
 
+**Source quality (MANDATORY):** Follow `../data-access.md` Section 2.5 — cite only primary sources (SEC filings, IR pages, press releases, transcripts) and Tier-1 financial press (Reuters, Bloomberg, WSJ, FT). Never use or cite Yahoo Finance editorial, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, StockTwits, Reddit, or similar aggregators/blogs.
+
 Present as a structured section in the report after the Pattern Analysis, grouped by guidance change (each major guide raise/cut gets its own sub-block with the read-throughs beneath it).
 
 ## 8. Save Report

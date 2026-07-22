@@ -94,6 +94,21 @@ Skills that need market-side data should gather the following:
 
 **Note:** `get_stock_prices` gives you raw OHLCV, not pre-computed multiples or beta. To compute P/E, EV/EBITDA, etc., combine the stock price with fundamentals from `get_company_fundamentals` (see Section 1.7). For beta, use infra scripts or web search.
 
+## Section 2.5: Source Quality for Web Searches (MANDATORY)
+
+These rules apply to EVERY web search in EVERY skill — news gathering, analyst sentiment, consensus context, market data lookups, and factual research.
+
+**Use, in priority order:**
+1. **Primary sources** — SEC filings (10-K, 10-Q, 8-K, proxy statements), company investor relations pages, official press releases, earnings call transcripts
+2. **Tier-1 financial press** — Reuters, Bloomberg, Wall Street Journal, Financial Times, Barron's, The Economist
+3. **Reputable trade press** — sector-specific outlets with original reporting, only when the above don't cover the topic
+
+**Never use or cite:** Yahoo Finance editorial content, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, InvestorPlace, GuruFocus, StockTwits, Reddit or other forums, SEO content farms, or any aggregator that lacks a traceable primary source.
+
+**If a claim appears only on low-quality sites:** treat it as unverified — corroborate it with a primary or Tier-1 source before using it, or exclude it and note the gap.
+
+**Attribution:** every web-sourced fact in a report must name its source (publication and date), just as every Daloopa figure carries its citation link.
+
 ## Section 3: Consensus Estimates (Optional)
 
 When available, consensus analyst estimates add valuable context. Look for:
