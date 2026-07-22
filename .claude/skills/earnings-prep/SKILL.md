@@ -10,6 +10,8 @@ This is the note a L/S equity analyst reads the night before a company reports â
 
 **Before starting, read `../data-access.md` for data access methods and `../design-system.md` for formatting conventions.** Follow the data access detection logic and design system throughout this skill.
 
+**Source quality (MANDATORY, applies to every web search in this skill):** Follow `../data-access.md` Section 2.5 â€” cite only primary sources (SEC filings, IR pages, press releases, transcripts) and Tier-1 financial press (Reuters, Bloomberg, WSJ, FT). Never use or cite Yahoo Finance editorial, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, StockTwits, Reddit, or similar aggregators/blogs.
+
 Follow these steps:
 
 ## 1. Company Lookup

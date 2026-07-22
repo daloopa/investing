@@ -92,6 +92,7 @@ For each identified supplier (aim for 8-15 key suppliers):
    - Web search: `"[supplier name] [target company] revenue percentage customer"`
    - Web search: `"[supplier name] 10-K customer concentration"`
    - Many suppliers disclose their top customers in 10-K filings — look for "customers that accounted for 10% or more of revenue"
+   - **Source quality (MANDATORY):** these are factual claims — accept them only from primary sources (SEC filings, IR pages, press releases, transcripts) or Tier-1 financial press (Reuters, Bloomberg, WSJ, FT) per `../data-access.md` Section 2.5. Never source concentration figures from Yahoo Finance editorial, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, StockTwits, Reddit, or similar aggregators/blogs; if a figure only appears there, corroborate it or flag it as unverified.
 4. **Determine COGS attribution** (what % of target's costs is this supplier):
    - This is often estimated. Use logic like:
      - If Apple's COGS is ~$200B TTM and TSMC's revenue from Apple is ~$70B, then TSMC = ~35% of COGS
@@ -159,6 +160,7 @@ For each identified customer (aim for 6-10 key customers):
    - Web search: `"[target company] [customer name] revenue percentage"`
    - Web search: `"[target company] 10-K customer concentration"`
    - Many companies disclose customers that account for >10% of revenue in their 10-K
+   - **Source quality (MANDATORY):** same rule as the supplier analysis — attribution figures only from primary sources or Tier-1 financial press per `../data-access.md` Section 2.5; never from Yahoo Finance editorial, Benzinga, Seeking Alpha, Motley Fool, Zacks, TipRanks, StockTwits, Reddit, or similar aggregators/blogs. Corroborate or flag as unverified.
 4. **Determine input criticality** (what % of customer's COGS comes from target):
    - This is the inverse of the supplier analysis: if the target sells $X to a customer with $Y in COGS, then input share = X/Y
    - Search for: `"[customer name] [target company] supplier dependence"` or `"[customer name] key inputs components"`
