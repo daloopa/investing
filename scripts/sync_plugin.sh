@@ -24,8 +24,12 @@ for dir in "$CLAUDE_PLUGIN_DIR" "$CODEX_PLUGIN_DIR"; do
     fi
 done
 
-# Derive the Codex-plugin variant of a skill file from the Claude-plugin version.
-# Codex skills have no argument-hint frontmatter and no $ARGUMENTS placeholder.
+# Derive the Codex-plugin variant of a BUILDING BLOCK skill from the Claude-plugin
+# version. Codex skills have no argument-hint frontmatter and no $ARGUMENTS
+# placeholder. Safe for Phase 1 skills only — they are tool-agnostic (HTML output).
+# Phase 2 deliverable skills must NOT go through this (see adapt_codex_deliverable):
+# they contain Claude-specific output mechanisms (React artifacts / SheetJS) that
+# Codex cannot render and that were deliberately rewritten for Codex in that repo.
 derive_codex_variant() {
     local src="$1"
     local dst="$2"
@@ -34,6 +38,50 @@ derive_codex_variant() {
         -e "s/specified by the user: \$ARGUMENTS/named in the user's request. If no ticker or company is provided, ask for one before proceeding./" \
         -e "s/\$ARGUMENTS/the ticker(s) named in the user's request/" \
         "$src" > "$dst"
+}
+
+# Adapt a Phase 2 DELIVERABLE skill for Codex via claude -p. Input is the freshly
+# transformed Claude-plugin SKILL.md; output replaces Claude-specific mechanisms
+# (React artifacts, SheetJS in-browser downloads) with Codex-compatible ones
+# (Python/openpyxl or bundled tooling, saving to reports/). On any failure the
+# existing Codex file is left untouched so known-good adaptations survive.
+adapt_codex_deliverable() {
+    local skill_name="$1"
+    local src="$CLAUDE_PLUGIN_DIR/skills/$skill_name/SKILL.md"
+    local dst="$CODEX_PLUGIN_DIR/skills/$skill_name/SKILL.md"
+
+    local codex_prompt="Adapt the following Claude Code plugin SKILL.md for the Codex plugin. Apply ONLY these changes and preserve everything else verbatim:
+1. Remove the 'argument-hint:' line from the YAML frontmatter.
+2. Replace \$ARGUMENTS phrasing: 'for the company specified by the user: \$ARGUMENTS' becomes 'for the company named in the user's request. If no ticker or company is provided, ask for one before proceeding.' (adapt grammar to the sentence).
+3. Codex/ChatGPT cannot render Claude React artifacts. Replace any React artifact / SheetJS in-browser generation instructions with: generate the file directly using bundled spreadsheet tooling or Python (openpyxl) when available, saving outputs to reports/ (e.g., reports/{TICKER}_model.xlsx) instead of triggering browser downloads.
+4. Keep HTML deliverables as direct HTML output presented in the response (no artifact language).
+
+## SKILL.md to adapt
+
+$(cat "$src")
+
+---
+
+Return ONLY the adapted SKILL.md, starting with YAML frontmatter. No explanation or code fences."
+
+    local codex_output
+    local codex_exit=0
+    codex_output=$(echo "$codex_prompt" | claude -p --model sonnet --max-turns 1 --no-session-persistence 2>/dev/null) || codex_exit=$?
+
+    if [ $codex_exit -ne 0 ] || [ "${#codex_output}" -lt 500 ]; then
+        echo "  ⚠ $skill_name — codex adaptation failed (exit $codex_exit, ${#codex_output} chars); existing codex file left untouched"
+        PHASE2_WARNINGS=$((PHASE2_WARNINGS + 1))
+        return 0
+    fi
+    if echo "$codex_output" | grep -q "React artifact\|SheetJS\|\$ARGUMENTS"; then
+        echo "  ⚠ $skill_name — codex adaptation still contains Claude-specific content; existing codex file left untouched"
+        PHASE2_WARNINGS=$((PHASE2_WARNINGS + 1))
+        return 0
+    fi
+    mkdir -p "$(dirname "$dst")"
+    echo "$codex_output" > "$dst"
+    echo "    ↳ codex variant adapted"
+    return 0
 }
 
 if [ ! -f "$TRANSFORM_PROMPT" ]; then
@@ -166,11 +214,13 @@ Return ONLY the transformed SKILL.md, starting with YAML frontmatter. No explana
         PHASE2_WARNINGS=$((PHASE2_WARNINGS + 1))
     fi
 
-    # Write output (claude plugin), then derive the codex variant from it
+    # Write output (claude plugin), then adapt for codex via a second claude pass
+    # (NOT the sed derivation — deliverable skills contain Claude-specific output
+    # mechanisms that need semantic rewriting for Codex)
     mkdir -p "$(dirname "$dst")"
     echo "$output" > "$dst"
-    derive_codex_variant "$dst" "$CODEX_PLUGIN_DIR/skills/$skill_name/SKILL.md"
-    echo "  ✓ $skill_name ($output_len chars, claude + codex)"
+    echo "  ✓ $skill_name ($output_len chars, claude)"
+    adapt_codex_deliverable "$skill_name"
     return 0
 }
 
