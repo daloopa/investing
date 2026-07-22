@@ -1,20 +1,40 @@
 #!/bin/bash
-# Sync shared skill files from the project repo to the plugin repo.
-# Phase 1: Copy 10 building block skills + design-system.md (identical between repos)
+# Sync shared skill files from the project repo to the plugin repos.
+# Targets BOTH plugin repos:
+#   ../daloopa-plugin-claude — Claude Code plugin (direct copy / transform)
+#   ../daloopa-plugin-codex  — Codex plugin (derived from the Claude version:
+#                              no argument-hint frontmatter, no $ARGUMENTS placeholder;
+#                              per-skill agents/openai.yaml files are left untouched)
+# Phase 1: Copy building block skills + design-system.md
 # Phase 2: Transform 5 deliverable skills via claude -p (adapt infra → plugin-compatible)
 # Run from the project root: bash scripts/sync_plugin.sh
 
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-PLUGIN_DIR="$PROJECT_DIR/../daloopa-plugin"
+CLAUDE_PLUGIN_DIR="$PROJECT_DIR/../daloopa-plugin-claude"
+CODEX_PLUGIN_DIR="$PROJECT_DIR/../daloopa-plugin-codex"
 TRANSFORM_PROMPT="$PROJECT_DIR/scripts/transform_skill_prompt.md"
 
-if [ ! -d "$PLUGIN_DIR" ]; then
-    echo "Error: Plugin repo not found at $PLUGIN_DIR"
-    echo "Clone the plugin repo first, then re-run this script."
-    exit 1
-fi
+for dir in "$CLAUDE_PLUGIN_DIR" "$CODEX_PLUGIN_DIR"; do
+    if [ ! -d "$dir" ]; then
+        echo "Error: Plugin repo not found at $dir"
+        echo "Clone the plugin repo first, then re-run this script."
+        exit 1
+    fi
+done
+
+# Derive the Codex-plugin variant of a skill file from the Claude-plugin version.
+# Codex skills have no argument-hint frontmatter and no $ARGUMENTS placeholder.
+derive_codex_variant() {
+    local src="$1"
+    local dst="$2"
+    mkdir -p "$(dirname "$dst")"
+    sed -e '/^argument-hint:/d' \
+        -e "s/specified by the user: \$ARGUMENTS/named in the user's request. If no ticker or company is provided, ask for one before proceeding./" \
+        -e "s/\$ARGUMENTS/the ticker(s) named in the user's request/" \
+        "$src" > "$dst"
+}
 
 if [ ! -f "$TRANSFORM_PROMPT" ]; then
     echo "Error: Transformation prompt not found at $TRANSFORM_PROMPT"
@@ -41,19 +61,21 @@ SHARED_SKILLS="tearsheet earnings-review earnings-prep earnings-flash bull-bear 
 
 for skill in $SHARED_SKILLS; do
     src="$PROJECT_DIR/.claude/skills/$skill/SKILL.md"
-    dst="$PLUGIN_DIR/skills/$skill/SKILL.md"
+    dst="$CLAUDE_PLUGIN_DIR/skills/$skill/SKILL.md"
     if [ -f "$src" ]; then
         mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
-        echo "  ✓ $skill"
+        derive_codex_variant "$dst" "$CODEX_PLUGIN_DIR/skills/$skill/SKILL.md"
+        echo "  ✓ $skill (claude + codex)"
     else
         echo "  ✗ $skill — source not found"
     fi
 done
 
-# Shared design system
-cp "$PROJECT_DIR/.claude/skills/design-system.md" "$PLUGIN_DIR/skills/design-system.md"
-echo "  ✓ design-system.md"
+# Shared design system (identical in both plugin repos)
+cp "$PROJECT_DIR/.claude/skills/design-system.md" "$CLAUDE_PLUGIN_DIR/skills/design-system.md"
+cp "$PROJECT_DIR/.claude/skills/design-system.md" "$CODEX_PLUGIN_DIR/skills/design-system.md"
+echo "  ✓ design-system.md (claude + codex)"
 
 echo ""
 
@@ -72,7 +94,7 @@ transform_skill() {
     local extra_context="$3"
 
     local src="$PROJECT_DIR/.claude/skills/$skill_name/SKILL.md"
-    local dst="$PLUGIN_DIR/skills/$skill_name/SKILL.md"
+    local dst="$CLAUDE_PLUGIN_DIR/skills/$skill_name/SKILL.md"
 
     if [ ! -f "$src" ]; then
         echo "  ✗ $skill_name — source not found, skipping"
@@ -105,8 +127,8 @@ Return ONLY the transformed SKILL.md, starting with YAML frontmatter. No explana
     echo "  ⏳ $skill_name — transforming via claude..."
 
     local output
-    output=$(echo "$prompt" | claude -p --model sonnet --max-turns 1 --no-session-persistence 2>/dev/null)
-    local exit_code=$?
+    local exit_code=0
+    output=$(echo "$prompt" | claude -p --model sonnet --max-turns 1 --no-session-persistence 2>/dev/null) || exit_code=$?
 
     if [ $exit_code -ne 0 ]; then
         echo "  ✗ $skill_name — claude command failed (exit code $exit_code)"
@@ -144,10 +166,11 @@ Return ONLY the transformed SKILL.md, starting with YAML frontmatter. No explana
         PHASE2_WARNINGS=$((PHASE2_WARNINGS + 1))
     fi
 
-    # Write output
+    # Write output (claude plugin), then derive the codex variant from it
     mkdir -p "$(dirname "$dst")"
     echo "$output" > "$dst"
-    echo "  ✓ $skill_name ($output_len chars)"
+    derive_codex_variant "$dst" "$CODEX_PLUGIN_DIR/skills/$skill_name/SKILL.md"
+    echo "  ✓ $skill_name ($output_len chars, claude + codex)"
     return 0
 }
 
@@ -158,7 +181,7 @@ In the plugin version:
 - Replace the .docx rendering step with a styled HTML report using the HTML Report Template from design-system.md (full CSS inlined, zero dependencies). Never output raw markdown — the design system explicitly forbids it.
 - Remove all references to templates/research_note.docx.
 - Remove file-save steps (reports/ directory). Present the HTML report directly in the response.
-- Keep all analytical phases, data gathering, and qualitative sections intact."
+- Keep all analytical phases, data gathering, and qualitative sections intact." || true
 
 # --- build-model ---
 transform_skill "build-model" \
@@ -168,7 +191,7 @@ In the plugin version:
 - Preserve the exact same tab structure (Income Statement, Balance Sheet, Cash Flow, Segments, KPIs, Projections, DCF, Summary).
 - Replace projection_engine.py usage with inline methodology — the LLM does the math directly.
 - Replace chart_generator.py usage with well-formatted data tables.
-- Remove file-save steps (reports/ directory)."
+- Remove file-save steps (reports/ directory)." || true
 
 # --- comp-sheet ---
 transform_skill "comp-sheet" \
@@ -176,16 +199,17 @@ transform_skill "comp-sheet" \
 In the plugin version:
 - Replace the comp_builder.py rendering step with a React artifact that uses SheetJS (xlsx library) to build and download the .xlsx file directly in the user's browser.
 - Preserve the exact same 8-tab structure.
-- Remove file-save steps (reports/ directory)."
+- Remove file-save steps (reports/ directory)." || true
 
 # --- ib-deck ---
-# Copy reference files to plugin, then transform with references as context
+# Copy reference files to both plugins, then transform with references as context
 IB_REF_SRC="$PROJECT_DIR/.claude/skills/ib-deck/references"
-IB_REF_DST="$PLUGIN_DIR/skills/ib-deck/references"
 if [ -d "$IB_REF_SRC" ]; then
-    mkdir -p "$IB_REF_DST"
-    cp "$IB_REF_SRC"/*.md "$IB_REF_DST/" 2>/dev/null || true
-    echo "  ✓ ib-deck/references/ copied"
+    for plugin_dir in "$CLAUDE_PLUGIN_DIR" "$CODEX_PLUGIN_DIR"; do
+        mkdir -p "$plugin_dir/skills/ib-deck/references"
+        cp "$IB_REF_SRC"/*.md "$plugin_dir/skills/ib-deck/references/" 2>/dev/null || true
+    done
+    echo "  ✓ ib-deck/references/ copied (claude + codex)"
 fi
 
 # Build reference context for ib-deck
@@ -208,13 +232,13 @@ In the plugin version:
 - Keep the reference files (references/slide-templates.md, references/financial-components.md, references/ib-advisory-patterns.md) — they are copied alongside the skill.
 - Keep all 14 slide types and analytical depth intact.
 - Remove file-save steps (reports/ directory). Present the HTML directly." \
-    "$IB_CONTEXT"
+    "$IB_CONTEXT" || true
 
 # --- initiate ---
 # Include research-note and build-model SKILL.md as context so initiate can reference the adapted sub-workflows
 INITIATE_CONTEXT=""
 for sub_skill in research-note build-model; do
-    sub_dst="$PLUGIN_DIR/skills/$sub_skill/SKILL.md"
+    sub_dst="$CLAUDE_PLUGIN_DIR/skills/$sub_skill/SKILL.md"
     if [ -f "$sub_dst" ]; then
         INITIATE_CONTEXT="${INITIATE_CONTEXT}### Transformed $sub_skill/SKILL.md
 $(cat "$sub_dst")
@@ -231,7 +255,7 @@ In the plugin version:
 - Remove all context JSON serialization to reports/.tmp/ — no filesystem persistence.
 - Remove file-save steps (reports/ directory).
 - The transformed versions of research-note and build-model are provided below as reference for how those sub-workflows now work in the plugin." \
-    "$INITIATE_CONTEXT"
+    "$INITIATE_CONTEXT" || true
 
 # --- update (SKIPPED) ---
 echo ""
@@ -259,9 +283,11 @@ if [ $PHASE2_WARNINGS -gt 0 ]; then
 fi
 
 echo ""
-echo "Files NOT synced (maintained separately):"
-echo "  - skills/data-access.md (plugin version is simplified)"
+echo "Files NOT synced (maintained separately in EACH plugin repo):"
+echo "  - skills/data-access.md (plugin versions are simplified — apply shared policy"
+echo "    changes like Source Quality rules to both copies manually)"
 echo "  - skills/setup/SKILL.md (plugin-specific)"
+echo "  - skills/*/agents/openai.yaml (codex-specific, never overwritten)"
 echo "  - .claude-plugin/plugin.json"
 echo "  - .mcp.json"
 echo "  - README.md"
