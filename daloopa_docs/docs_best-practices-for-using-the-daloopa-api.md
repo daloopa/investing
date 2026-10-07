@@ -726,13 +726,13 @@ Bash
     # For Passenger Revenue
     curl --request GET \
          --url 'https://app.daloopa.com/api/v2/taxonomy/metrics/1558?sub_industry_id=281' \
-         --header 'Authorization: Basic YXBpLW1hcml6dUBwb2ludDcyLmNvbTp4cU84RFdNaFM5dkdzeWZ3SXI1cGVHMGFudUNXcGVMbThRelFzV1FYQW5WRnI3cjFHWHlEYUE=' \
+         --header 'Authorization: Basic <your_token>' \
          --header 'accept: application/json'
     
     # For Operating Income
     curl --request GET \
          --url 'https://app.daloopa.com/api/v2/taxonomy/metrics/1560?sub_industry_id=281' \
-         --header 'Authorization: Basic YXBpLW1hcml6dUBwb2ludDcyLmNvbTp4cU84RFdNaFM5dkdzeWZ3SXI1cGVHMGFudUNXcGVMbThRelFzV1FYQW5WRnI3cjFHWHlEYUE=' \
+         --header 'Authorization: Basic <your_token>' \
          --header 'accept: application/json'
 
 **Response:**
