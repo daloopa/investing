@@ -62,6 +62,8 @@ Search SEC filings/documents across multiple queries. If any search returns empt
 - **Capital allocation**: Try "repurchase", "dividend"; fallback to "buyback", "capital return"
 - **Macro/regulatory**: Try "tariff", "regulatory"; fallback to "geopolitical", "compliance"
 
+**Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` and pull insider views on demand, pricing, competition and margins. Use them to sharpen scenario assumptions (e.g., an expert-flagged share loss belongs in the bear case) — label each as expert opinion and cite: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`.
+
 ## 5. Consensus Positioning (if available)
 If consensus estimates are available (see ../data-access.md Section 3), note:
 - Where consensus revenue/EPS sits relative to your base case
@@ -123,6 +125,7 @@ The report should include:
   - Catalysts / risks specific to that scenario
 - Probability-weighted summary with reasoning
 - Key risk factors and growth drivers from filings (with document citations)
+- Expert call views mapped to the scenarios they support, with expert call citations (only if expert calls were available)
 - Summary comparison table across scenarios
 - Key swing factors section — the 3-5 variables that most determine which scenario plays out
 

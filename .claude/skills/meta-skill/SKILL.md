@@ -34,6 +34,7 @@ Identify these sections and what each provides:
 | Section | Content | MCP Prompt Relevance |
 |---------|---------|---------------------|
 | Section 1: Daloopa MCP Tools | Tool signatures: `discover_companies`, `discover_company_series`, `get_company_fundamentals`, `search_documents` | **ALWAYS INLINE** — every skill needs these. The period parameter is **`calendar_periods`**, not `periods` (outdated): emit `discover_company_series(company_id, keywords, calendar_periods)`, `get_company_fundamentals(company_id, calendar_periods, series_ids)`, `search_documents(keywords, company_ids, calendar_periods)` even if data-access.md still says `periods` |
+| Section 1.8: Expert Call Transcripts | `get_expert_call_transcripts(company_id)` — firm-gated BlueHeron expert calls: never-block rule, usage, mandatory call-URL citation | **CONDITIONAL** — the tool row always stays in the Section 1 tool table; inline the Section 1.8 body verbatim as a shared `_EXPERT_CALLS` block only in prompts whose skill calls `get_expert_call_transcripts` |
 | Section 1: API Script Fallback | `python recipes/company_fundamentals.py` etc. | **ALWAYS DROP** — no file system in MCP prompt context |
 | Section 2: External Market Data | Stock quotes, trading multiples, historical prices, peer multiples, risk-free rate | **CONDITIONAL** — only inline for skills that use market data |
 | Section 2: Market Data Resolution Order | MCP → infra scripts → web search → defaults | **ALWAYS INLINE** — preserve the full 4-step resolution order (MCP tools → infra scripts → web search → defaults) |
@@ -87,6 +88,10 @@ For this specific skill, determine:
 3. **Does it use `search_documents`?** (Look for: SEC filings, qualitative research, risk factors, management commentary)
    - YES → ensure document citation format is included
    - NO → can omit document citation format (keep fundamental citation)
+
+3b. **Does it call `get_expert_call_transcripts`?** (Look for: "Expert call", "expert calls", `get_expert_call_transcripts`)
+   - YES → inline the `_EXPERT_CALLS` block (data-access.md Section 1.8) and keep the skill's expert-call step, including its "if unavailable, skip" instruction — the tool is firm-gated, so the prompt must never stop or fail when it's missing
+   - NO → omit `_EXPERT_CALLS` (the tool row in the tool table stays regardless)
 
 4. **Does it reference infra scripts?** (Look for: chart_generator.py, projection_engine.py, excel_builder.py, docx_renderer.py, comp_builder.py, deck_renderer.py, market_data.py)
    - YES → these must be adapted. See Step 2d.
@@ -297,6 +302,7 @@ After generating `prompts.py`, review each function:
 5. **No redundant inlining**: Is there content inlined from shared references that this specific skill doesn't use?
 6. **Argument handling**: Does the function signature match the skill's expected arguments? Most take `ticker: str`, but `/industry` takes multiple tickers. Check each skill's argument-hint.
 7. **Period parameter**: No tool signature or call example uses `periods` as a parameter name — every one must be `calendar_periods`.
+8. **Expert calls**: Every prompt whose skill has an expert-call step includes `_EXPERT_CALLS` and that step (with its skip-if-unavailable rule and the `[Expert call: {interviewed_affiliation}, {call_date}]({url})` citation); no other prompt includes `_EXPERT_CALLS`. Inside f-strings, the citation's braces must be doubled (`{{interviewed_affiliation}}`, `{{call_date}}`, `{{url}}`) so they render literally.
 
 If any check fails, fix the function before moving on.
 

@@ -69,6 +69,7 @@ For the top 5 most significant inflections (by magnitude and importance to the b
 - Try keywords related to the specific metric (e.g., if "Services Revenue" is accelerating, search for "services", "subscription", "recurring")
 - Extract management commentary explaining the inflection
 - Note whether the inflection aligns with or contradicts management guidance
+- **Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` once (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, check whether insiders explain the inflection or see it continuing or reversing. Label each view as expert opinion and cite: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`
 
 ## 7. Synthesize
 Identify the narrative:

@@ -12,7 +12,7 @@
 # Skipped: setup (interactive setup wizard — not an analytical skill)
 # Skipped: update (requires prior context JSON from file system — not portable to MCP prompt)
 # Shared references inlined: data-access.md, design-system.md
-# Date: 2026-05-21 (source quality policy added 2026-07-22)
+# Date: 2026-05-21 (source quality policy added 2026-07-22; expert call transcripts added 2026-10-29)
 
 from app.daloopa_mcp import daloopa_mcp
 
@@ -32,6 +32,7 @@ _DALOOPA_TOOLS = """\
 | Pull financial data | `get_company_fundamentals(company_id, calendar_periods, series_ids)` |
 | Search SEC filings | `search_documents(keywords, company_ids, calendar_periods)` |
 | Get stock prices (OHLCV) | `get_stock_prices(company_ids, dates?, start_date?, end_date?)` |
+| Get expert call transcripts (optional, firm-gated) | `get_expert_call_transcripts(company_id)` — see Expert Call Transcripts |
 """
 
 _PERIOD_DETERMINATION = """\
@@ -88,6 +89,23 @@ Format: `[$X.XX million](https://daloopa.com/src/{fundamental_id})`
 - Carry IDs through to ALL output — tables, prose, computations
 - Computed values (margins, growth rates) cite their underlying inputs
 - Document citations: `[Document Name](https://marketplace.daloopa.com/document/{document_id})`
+"""
+
+_EXPERT_CALLS = """\
+## Expert Call Transcripts (Optional)
+
+`get_expert_call_transcripts(company_id)` returns expert call interviews for a company — Q&A sessions with former employees, suppliers, customers and industry insiders, sourced from BlueHeron. It is only available when the user's firm has the feature enabled. Pull from BOTH `search_documents` (what management says) and expert calls (what insiders say).
+
+**Never block on it.** Call it once per company where the steps ask for it. If the tool is not in your tool list, the call errors, or it returns a message string instead of a list (feature not enabled, no calls found, request failed), skip expert calls and continue. Do not retry, do not substitute web search, and omit expert-call sections from the output rather than leaving them empty.
+
+**Using results** — each call has `summary`, `content` (full "Q: ...\\nA: ..." transcript), `url`, `call_tone`, `interviewed_affiliation`, `call_date` (YYYY-MM-DD):
+- Triage with `summary`; read `content` only for the calls relevant to the question.
+- State `interviewed_affiliation` (role and tenure) so the reader can weigh credibility. When views conflict, favor the most recent `call_date` and note the disagreement.
+- Expert views are personal opinion, not company guidance or fact. Label them as expert views, never use them as reported figures or calculation inputs, and corroborate with `get_company_fundamentals` / `search_documents` where possible — call out where experts confirm or contradict management and the numbers.
+
+**Citation (MANDATORY, no exceptions):** whenever you show ANY content from a transcript — quote, paraphrase, summary or a single insight — cite that call's `url` inline:
+`[Expert call: {interviewed_affiliation}, {call_date}]({url})`
+Never show transcript content without its BlueHeron link. Never alter or fabricate a URL.
 """
 
 _NUMBER_FMT = """\
@@ -337,6 +355,7 @@ Perform a comprehensive earnings analysis for {ticker}.
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -400,6 +419,16 @@ Search SEC filings via `search_documents` with multiple keyword sets:
 - If empty, try broader single-keyword searches
 
 Extract: results/drivers, forward outlook, segment highlights, notable call-outs, direct quotes with document citations.
+
+### 7.2. Expert Call Color (optional)
+Call `get_expert_call_transcripts(company_id)` (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls, skip this step and leave expert-call content out of the report.
+
+Otherwise, triage by `summary` and read the calls most relevant to this quarter (favor recent `call_date`). Extract what insiders say about demand, pricing, competition, margins and product adoption, and set it against Step 7:
+- **Confirms**: where expert views back up management's narrative or the reported numbers
+- **Contradicts**: where experts see something different (e.g., softer demand than management describes, share loss, pricing pressure) — these are the most valuable
+- **Ahead of the numbers**: trends experts flag that haven't shown up in reported results yet
+
+Label each point as expert opinion, state the `interviewed_affiliation`, and cite every one: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`.
 
 ### 7.5. News Context & Stock Reaction
 **Stock price reaction (from Daloopa):**
@@ -471,6 +500,7 @@ Include these sections in the HTML report:
 - News context
 - Forward outlook and revenue drivers
 - Management commentary with quotes and document citations
+- Expert call color — confirms / contradicts / ahead of the numbers, each with its expert call citation (only if expert calls were available)
 - Read-throughs & competitive implications (grouped by Suppliers / Customers / Competitors / Industry)
 
 Highlight 2-3 findings with critical lens: quality of earnings, red flags, what the market is missing.
@@ -486,6 +516,7 @@ Generate a concise company tearsheet for {ticker}. Quick one-page overview — t
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -527,6 +558,8 @@ Search most recent 2 quarters of filings via `search_documents`:
 - Strategy-specific terms for {ticker}
 
 Extract: business description (2-3 sentences), key developments, management priorities, notable quotes. 3-5 bullets max.
+
+**Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` and add 1-2 bullets with the most notable recent insider view (demand, pricing, competition), labelled as expert opinion and cited: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`.
 
 ### 6. Five Key Tensions
 5 most critical bull/bear debates. Each is one line framing both sides. Alternate bullish/bearish leaning. Every tension references a specific data point.
@@ -572,6 +605,7 @@ Perform an industry comparison across these companies: {tickers}
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -622,6 +656,8 @@ For each company, search most recent 2 quarters via `search_documents` with mult
 
 Extract per company: competitive position, strategic priorities, industry/macro commentary, references to competitors. If sparse, try broader keywords.
 
+**Expert calls (optional):** For each company, call `get_expert_call_transcripts(company_id)` (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls for a company, skip it for that company. Otherwise, triage by `summary` and look for insider views on competitive position, share shifts, pricing and customer switching — especially calls that mention other companies in the comparison set. Label each as expert opinion and cite: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`.
+
 ## Output
 
 {_HTML_TEMPLATE}
@@ -638,6 +674,7 @@ Include these sections in the HTML report:
 - Cash flow comparison: OCF, CapEx, FCF, CapEx % of revenue
 - Rankings summary table
 - Competitive insights from filings with document citations
+- Expert call views on competitive position, with expert call citations (only if expert calls were available)
 - Calendar quarter alignment note
 
 Give a clear competitive verdict: Who is winning/losing? Strongest position and why? Most vulnerable? Structurally mispriced? Don't hedge — rank honestly.
@@ -653,6 +690,7 @@ Build a bull/bear/base case scenario framework for {ticker}.
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -688,6 +726,8 @@ Search filings via `search_documents` with multiple queries:
 - "repurchase" / "dividend" — capital allocation
 - "tariff" / "regulatory" — macro/regulatory
 
+**Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` and pull insider views on demand, pricing, competition and margins. Use them to sharpen scenario assumptions (e.g., an expert-flagged share loss belongs in the bear case) — label each as expert opinion and cite: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`.
+
 ### 5. Consensus Positioning
 If consensus available: note where consensus revenue/EPS sits vs your base case, whether market is positioned closer to bull or bear, recent revision trends. If unavailable, skip.
 
@@ -722,6 +762,7 @@ Include these sections in the HTML report:
 - Three scenario sections each with: key assumptions, bottoms-up segment build, implied revenue/margin/EPS trajectory, implied KPI trajectory, catalysts/risks
 - Probability-weighted summary with reasoning
 - Risk factors and growth drivers from filings (document citations)
+- Expert call views mapped to the scenarios they support, with expert call citations (only if expert calls were available)
 - Summary comparison table across scenarios
 - Key swing factors — 3-5 variables that determine which scenario plays out
 
@@ -847,6 +888,7 @@ Detect the biggest financial and operating inflections for {ticker}.
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -898,6 +940,7 @@ For top 5 most significant inflections:
 - Use keywords related to the specific metric
 - Extract management commentary
 - Note alignment/contradiction with guidance
+- **Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` once (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, check whether insiders explain the inflection or see it continuing or reversing. Label each view as expert opinion and cite: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`
 
 ### 7. Synthesize
 - Broadly accelerating or decelerating?
@@ -1239,6 +1282,7 @@ The output enables an analyst to understand: Who are the critical suppliers and 
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -1267,6 +1311,9 @@ Run these concurrently to build a comprehensive supplier list:
 - Search keywords: ["sole source", "single source", "key supplier"] across last 2-4 quarters
 - Search keywords: ["concentration", "significant supplier"] across last 2-4 quarters
 - Search the company's 10-K specifically for supplier disclosures
+
+**2a-bis. Expert Calls (optional):**
+Call `get_expert_call_transcripts(company_id)` for the target once (see Expert Call Transcripts); reuse the result in Phase 4. If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` for calls with suppliers, former procurement/operations staff or channel partners, and extract named suppliers, single-source dependencies, pricing/allocation pressure and lead-time signals. Expert-named relationships are leads, not confirmed facts — verify them through filings or Tier-1 sources before treating them as established, and cite each expert insight: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`.
 
 **2b. Web Research:**
 - "[ticker] [company name] key suppliers list" — supplier identification
@@ -1335,6 +1382,8 @@ The downstream side requires the same research rigor as the upstream side. Run t
 - Search keywords: ["distribution", "retail partner", "reseller", "licensee"] across last 2-4 quarters
 - Search keywords: ["accounts receivable", "contract asset", "deferred revenue"] — concentration in A/R often reveals customer dependency even when not explicitly named
 - Search the company's 10-K specifically for customer disclosures and segment end-market breakdowns
+
+**4a-bis. Expert Calls (optional):** Reuse the expert call results from Phase 2 (if any) — look for calls with customers, distributors or former sales staff for named customers, switching costs, share of wallet and demand signals. Same rules: leads to verify, each insight cited.
 
 **4b. Web Research:**
 - "[ticker] [company name] major customers list" — direct customer identification
@@ -1728,6 +1777,7 @@ Generate a rapid earnings flash for {ticker}. This is a lightweight, speed-focus
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -1777,6 +1827,11 @@ Read the document content from the search results. Focus on:
 - **8-K**: Full document (short event-driven filings)
 
 If no document is found, proceed with the MCP fundamentals data only and note "No earnings document found — analysis based on financial data only."
+
+### 5a. Expert Call Check (optional)
+Call `get_expert_call_transcripts(company_id)` (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls, skip this step and leave expert-call content out of the report.
+
+Otherwise, keep it fast: triage by `summary` only and read `content` just for the 1-3 most recent calls relevant to this print. Note where insiders confirm or contradict the quarter's story (demand, pricing, competition, margins). Present as a short **Expert Call Check** block (2-3 bullets) after Guidance & Outlook, each labelled as expert opinion and cited: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`. Expert concerns the print doesn't address can also feed Risk Flags.
 
 ### 5b. Stock Price Context
 Get the current stock price using `get_stock_prices` (see Section 1.7) — pass `company_id` and `dates` for the 3 most recent calendar days. Also pull prices around the earnings date (1 day before to 3 days after the `latest_calendar_quarter` end + ~30-45 days) to compute the post-earnings reaction. Include the next-day move percentage in the Executive Flash section.
@@ -1864,6 +1919,7 @@ Include these sections in the HTML report:
 - Executive Flash (3-5 BEAT/MISS/INLINE verdicts + Management Tone)
 - Key Numbers Table (grouped: P&L, Segments, KPIs, Cash Flow; with vs Guidance column)
 - Guidance & Outlook (new vs prior guidance table)
+- Expert Call Check (only if expert calls were available)
 - Risk Flags
 - Quick Read-Throughs
 
@@ -1882,6 +1938,7 @@ Generate a pre-earnings preparation report for {ticker}. This is the note a L/S 
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -2095,6 +2152,15 @@ Beyond the numbers, what could management announce that would move the stock? Se
 
 For each potential surprise, note the signal strength (rumored / speculated / no signal) and the likely stock impact direction.
 
+### 10b. Expert Call Color (optional)
+Call `get_expert_call_transcripts(company_id)` (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls, skip this step and leave expert-call content out of the report.
+
+Otherwise, triage by `summary` and read the most recent calls relevant to the upcoming quarter. Extract what insiders say about current-quarter demand, pricing, competition, margins and product adoption, and compare it with the outstanding guidance (Step 3) and the whisper number (Step 4):
+- Does expert color point above or below guidance? On which metric?
+- Does it support or undercut a Key Metric to Watch (Step 6) or a Potential Surprise (Step 10)?
+
+Label each point as expert opinion, state the `interviewed_affiliation`, and cite every one: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`. A strong expert signal can inform the Bull Catalyst / Bear Risk in the checklist, labelled as expert-sourced.
+
 ### 11. Pre-Earnings Checklist
 A concise, actionable summary that fits on a single card. This is what the analyst tapes to their monitor:
 
@@ -2130,6 +2196,7 @@ Include these sections in the HTML report:
 - Historical earnings reaction table
 - Macro & sector backdrop (bulleted list with directional tags)
 - Potential surprises & call catalysts
+- Expert call color vs guidance, each point with its expert call citation (only if expert calls were available)
 - Pre-earnings checklist (prominently styled — this is the payoff of the whole report)
 
 Highlight what makes this print particularly interesting: Is the whisper number meaningfully above guidance (setting up for disappointment even on a beat)? Are peer read-throughs conflicting (creating genuine uncertainty)? Is there a potential surprise catalyst that could overshadow the numbers? Give the analyst the single most important thing to watch.
@@ -2304,6 +2371,7 @@ Perform a bottoms-up unit economics decomposition for {ticker}.
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -2384,6 +2452,8 @@ Search SEC filings via `search_documents` for context on the unit economics. Use
 - **General (all archetypes)**: Try "unit economics", "pricing"; fallback to "profitability", "margin", "per unit"
 
 Extract management commentary on pricing, retention, expansion, new unit openings, margin levers, etc. with document citations.
+
+**Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` for insider views on the same unit-economics levers (pricing power, churn, CAC, unit ramp, take rate) and note where they confirm or contradict management. Label each as expert opinion and cite: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`.
 
 ## Report Sections
 
@@ -2694,6 +2764,7 @@ NOTE: The original skill produces a .docx Word document via infra scripts. This 
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -2763,6 +2834,8 @@ Pull buyback, dividend, share count, FCF data. Compute shareholder yield, FCF pa
 ### Phase H — Qualitative Research + News & Catalysts
 
 **SEC Filings:** Search for risk factors, growth drivers, competitive dynamics, management outlook, strategic topics. Organize into risks (ranked), investment thesis, company description.
+
+**Expert Calls (optional):** Call `get_expert_call_transcripts(company_id)` (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` and use insider views on demand, pricing, competition and margins to test the thesis pillars and risks: note where experts confirm or contradict management. Label each as expert opinion and cite: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})` — fold the cited points into the investment thesis and risks.
 
 **News (web search):** 4 queries covering recent headlines, analyst sentiment, catalysts/risks, industry outlook. Organize into:
 - News timeline: 6-10 key events, reverse chronological, with sentiment tags
@@ -3088,6 +3161,7 @@ NOTE: The original skill produces .docx + .xlsx via infra scripts. This prompt p
 {_DALOOPA_TOOLS}
 {_PERIOD_DETERMINATION}
 {_CITATIONS}
+{_EXPERT_CALLS}
 {_NUMBER_FMT}
 {_TABLE_CONV}
 {_ANALYTICAL_VOICE}
@@ -3136,6 +3210,8 @@ WACC (CAPM), 5-year FCF projections, terminal value (perpetuity growth 2.5-3%), 
 
 ### Phase 6 — Qualitative Research
 Search filings for: risk factors, growth drivers, competitive dynamics, management outlook, capital allocation strategy, company-specific strategic topics. Extract: business description, risks (ranked), investment thesis, catalysts.
+
+**Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` (see Expert Call Transcripts). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` and use insider views on demand, pricing, competition and margins to test the thesis and risks; label each as expert opinion and cite: `[Expert call: {{interviewed_affiliation}}, {{call_date}}]({{url}})`.
 
 ### Phase 7 — What You Need to Believe
 Build falsifiable bull/bear beliefs:

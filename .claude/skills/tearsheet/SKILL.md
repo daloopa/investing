@@ -89,6 +89,8 @@ Extract:
 - Any notable management quotes (with document citations)
 Keep this brief — 3-5 bullet points max.
 
+**Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` and add 1-2 bullets with the most notable recent insider view (demand, pricing, competition), labelled as expert opinion and cited: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`.
+
 ## 6. Five Key Tensions
 Identify the 5 most critical bull/bear debates for this stock. Each tension is a single line that frames both sides. Alternate between bullish-leaning and bearish-leaning tensions. Every tension must reference a specific data point from the analysis above.
 

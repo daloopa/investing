@@ -123,6 +123,16 @@ Extract:
 - Any notable call-outs (one-time items, macro commentary, strategic updates)
 - Direct management quotes where available (with document citations)
 
+## 7.2. Expert Call Color (optional)
+Call `get_expert_call_transcripts(company_id)` (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls, skip this step and leave expert-call content out of the report.
+
+Otherwise, triage by `summary` and read the calls most relevant to this quarter (favor recent `call_date`). Extract what insiders say about demand, pricing, competition, margins and product adoption, and set it against Step 7:
+- **Confirms**: where expert views back up management's narrative or the reported numbers
+- **Contradicts**: where experts see something different (e.g., softer demand than management describes, share loss, pricing pressure) — these are the most valuable
+- **Ahead of the numbers**: trends experts flag that haven't shown up in reported results yet
+
+Label each point as expert opinion, state the `interviewed_affiliation`, and cite every one: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`.
+
 ## 7.5. News Context & Stock Reaction
 **Stock price reaction (from Daloopa):**
 Use `get_stock_prices` (see `../data-access.md` Section 1.7) to get the actual post-earnings price move. Pull prices for a window around the earnings date: `start_date` = 1 trading day before the likely earnings date (estimate from the `latest_calendar_quarter` end + ~30-45 days), `end_date` = 3 trading days after. Compute the next-day percentage change from the pre-earnings close to the post-earnings close. This gives you the hard number for "how did the stock react."
@@ -222,6 +232,7 @@ The report should include:
 - News context (analyst reactions, price target changes, market sentiment)
 - Forward outlook and revenue drivers analysis
 - Management commentary with direct quotes and document citations
+- Expert call color — confirms / contradicts / ahead of the numbers, each with its expert call citation (only if expert calls were available)
 - Read-throughs & competitive implications (grouped by Suppliers / Customers / Competitors / Industry)
 - Seasonality note if applicable
 

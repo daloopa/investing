@@ -83,6 +83,8 @@ Search SEC filings for context on the unit economics. Use archetype-specific sea
 
 Extract management commentary on pricing, retention, expansion, new unit openings, margin levers, etc. with document citations.
 
+**Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` for insider views on the same unit-economics levers (pricing power, churn, CAC, unit ramp, take rate) and note where they confirm or contradict management. Label each as expert opinion and cite: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`.
+
 ## 5. Analysis & Report Synthesis
 
 **Section 1: Business Model & Unit Definition (brief)**

@@ -62,6 +62,11 @@ Read the document content from the search results. Focus on:
 
 If no document is found, proceed with the MCP fundamentals data only and note "No earnings document found — analysis based on financial data only."
 
+## 5a. Expert Call Check (optional)
+Call `get_expert_call_transcripts(company_id)` (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls, skip this step and leave expert-call content out of the report.
+
+Otherwise, keep it fast: triage by `summary` only and read `content` just for the 1-3 most recent calls relevant to this print. Note where insiders confirm or contradict the quarter's story (demand, pricing, competition, margins). Present as a short **Expert Call Check** block (2-3 bullets) after Guidance & Outlook, each labelled as expert opinion and cited: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`. Expert concerns the print doesn't address can also feed Risk Flags.
+
 ## 5b. Stock Price Context
 Get the current stock price using `get_stock_prices` (see `../data-access.md` Section 1.7) — pass `company_id` and `dates` for the 3 most recent calendar days. Also pull prices around the earnings date (1 day before to 3 days after the `latest_calendar_quarter` end + ~30-45 days) to compute the post-earnings reaction. Include the next-day move percentage in the Executive Flash section.
 

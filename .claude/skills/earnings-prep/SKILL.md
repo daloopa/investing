@@ -218,6 +218,15 @@ Beyond the numbers, what could management announce that would move the stock? Se
 
 For each potential surprise, note the signal strength (rumored / speculated / no signal) and the likely stock impact direction.
 
+## 10b. Expert Call Color (optional)
+Call `get_expert_call_transcripts(company_id)` (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls, skip this step and leave expert-call content out of the report.
+
+Otherwise, triage by `summary` and read the most recent calls relevant to the upcoming quarter. Extract what insiders say about current-quarter demand, pricing, competition, margins and product adoption, and compare it with the outstanding guidance (Step 3) and the whisper number (Step 4):
+- Does expert color point above or below guidance? On which metric?
+- Does it support or undercut a Key Metric to Watch (Step 6) or a Potential Surprise (Step 10)?
+
+Label each point as expert opinion, state the `interviewed_affiliation`, and cite every one: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`. A strong expert signal can inform the Bull Catalyst / Bear Risk in the checklist, labelled as expert-sourced.
+
 ## 11. Pre-Earnings Checklist
 A concise, actionable summary that fits on a single card. This is what the analyst tapes to their monitor:
 
@@ -252,6 +261,7 @@ The report should include:
 - Historical earnings reaction table
 - Macro & sector backdrop (bulleted list with directional tags)
 - Potential surprises & call catalysts
+- Expert call color vs guidance, each point with its expert call citation (only if expert calls were available)
 - Pre-earnings checklist (prominently styled — this is the payoff of the whole report)
 
 All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`

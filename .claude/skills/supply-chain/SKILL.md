@@ -62,6 +62,9 @@ Run these concurrently to build a comprehensive supplier list:
 - Search keywords: ["concentration", "significant supplier"] across last 2-4 quarters
 - Search the company's 10-K specifically for supplier disclosures
 
+**2a-bis. Expert Calls (optional):**
+Call `get_expert_call_transcripts(company_id)` for the target once (see `../data-access.md` Section 1.8); reuse the result in Phase 4. If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` for calls with suppliers, former procurement/operations staff or channel partners, and extract named suppliers, single-source dependencies, pricing/allocation pressure and lead-time signals. Expert-named relationships are leads, not confirmed facts — verify them through filings or Tier-1 sources before treating them as established, and cite each expert insight: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`.
+
 **2b. Web Research:**
 - `"[TICKER] [company name] key suppliers list 2025 2026"` — supplier identification
 - `"[TICKER] supply chain analysis suppliers"` — analyst/industry reports
@@ -129,6 +132,8 @@ The downstream side requires the same research rigor as the upstream side. Run t
 - Search keywords: ["distribution", "retail partner", "reseller", "licensee"] across last 2-4 quarters
 - Search keywords: ["accounts receivable", "contract asset", "deferred revenue"] — concentration in A/R often reveals customer dependency even when not explicitly named
 - Search the company's 10-K specifically for customer disclosures and segment end-market breakdowns
+
+**4a-bis. Expert Calls (optional):** Reuse the expert call results from Phase 2 (if any) — look for calls with customers, distributors or former sales staff for named customers, switching costs, share of wallet and demand signals. Same rules: leads to verify, each insight cited.
 
 **4b. Web Research:**
 - `"[TICKER] [company name] major customers list"` — direct customer identification
@@ -1117,7 +1122,7 @@ Follow this exact sequence. Maximize parallelism — run independent searches an
 
 1. **discover_companies** → get target company_id
 2. **discover_company_series + get_company_fundamentals** → pull target company financials (revenue, COGS, margins) AND inventory series for 10 quarters
-3. **search_documents + WebSearch** → identify suppliers AND customers (run in parallel, multiple queries for each direction)
+3. **search_documents + WebSearch + get_expert_call_transcripts (optional)** → identify suppliers AND customers (run in parallel, multiple queries for each direction; skip expert calls if unavailable)
 4. **discover_companies** → look up each identified supplier AND customer by ticker (batch all at once)
 5. **discover_company_series** → for each supplier AND customer, pull BOTH financial series (revenue, GP, NI, GM) AND inventory series (RM, WIP, FG, total) — batch these in parallel
 6. **get_company_fundamentals** → pull 10 quarters of data for all suppliers AND customers (batch in parallel, group series_ids per company)

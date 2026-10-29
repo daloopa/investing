@@ -149,6 +149,9 @@ Extract and organize into:
 - `context.investment_thesis` — variant perception, thesis pillars, catalysts
 - `context.company_description` — 2-3 sentence business description
 
+### Expert Call Research (optional)
+Call `get_expert_call_transcripts(company_id)` (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls, skip this sub-step. Otherwise, triage by `summary` and use insider views on demand, pricing, competition and margins to test the thesis pillars and risks above: note where experts confirm or contradict management. Label each as expert opinion and cite: `[Expert call: {interviewed_affiliation}, {call_date}]({url})` — fold the cited points into `context.investment_thesis` and `context.risks`.
+
 ### News & Catalysts via WebSearch (NEW)
 Run 4 WebSearch queries to gather recent external context:
 1. `"{TICKER} {company_name} news {year}"` — recent headlines and developments
