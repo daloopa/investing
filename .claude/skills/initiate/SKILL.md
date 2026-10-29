@@ -61,6 +61,8 @@ Search SEC filings comprehensively:
 - Company-specific strategic topics
 Extract business description, risks (ranked), investment thesis, catalysts.
 
+**Expert calls (optional):** Call `get_expert_call_transcripts(company_id)` (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls, skip it. Otherwise, triage by `summary` and use insider views on demand, pricing, competition and margins to test the thesis and risks; label each as expert opinion and cite: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`.
+
 ## Phase 7 — What You Need to Believe
 Build falsifiable bull/bear beliefs (follows /research-note methodology):
 - 4-6 numbered bull beliefs with evidence and Daloopa citations — each testable in 6 months

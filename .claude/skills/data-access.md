@@ -15,6 +15,7 @@ Check your available tools. If you see Daloopa MCP tools (`discover_companies`, 
 | Pull financial data | `get_company_fundamentals(company_id, periods, series_ids)` |
 | Search SEC filings | `search_documents(keywords, company_ids, periods)` |
 | Get stock prices (OHLCV) | `get_stock_prices(company_ids, dates?, start_date?, end_date?)` |
+| Get expert call transcripts (optional, firm-gated) | `get_expert_call_transcripts(company_id)` — see Section 1.8 |
 
 Results come back as structured data you can use directly.
 
@@ -71,6 +72,21 @@ Note that `get_company_fundamentals` returns both `calendar_period` and `fiscal_
 - **Single-company analysis** (tearsheet, earnings, guidance-tracker, bull-bear, etc.): Note the company's fiscal year end and use `fiscal_period` labels when presenting data (e.g., "FQ1'26" for Apple's Oct-Dec quarter).
 - **Multi-company comparison** (industry, comps, comp-sheet): Use `calendar_period` labels to normalize across different fiscal year ends.
 - **API input is always calendar quarters** — never pass `latest_fiscal_quarter` values to the API. Fiscal notation (e.g., "FQ2'25") will be misinterpreted. Always calculate period arrays from `latest_calendar_quarter`.
+
+## Section 1.8: Expert Call Transcripts (Optional)
+
+`get_expert_call_transcripts(company_id)` returns expert call interviews for a company — Q&A sessions with former employees, suppliers, customers and industry insiders, sourced from BlueHeron. It is only available when the user's firm has the feature enabled. Skills that use it pull from BOTH `search_documents` (what management says) and expert calls (what insiders say).
+
+**Never block on it.** Call it once per company where the skill asks for it. If the tool is not in your tool list, the call errors, or it returns a message string instead of a list (feature not enabled, no calls found, request failed), skip expert calls and continue the skill. Do not retry, do not substitute web search, and omit expert-call sections from the output rather than leaving them empty.
+
+**Using results** — each call has `summary`, `content` (full "Q: ...\nA: ..." transcript), `url`, `call_tone`, `interviewed_affiliation`, `call_date` (YYYY-MM-DD):
+- Triage with `summary`; read `content` only for the calls relevant to the skill's question.
+- State `interviewed_affiliation` (role and tenure) so the reader can weigh credibility. When views conflict, favor the most recent `call_date` and note the disagreement.
+- Expert views are personal opinion, not company guidance or fact. Label them as expert views, never use them as reported figures or calculation inputs, and corroborate with `get_company_fundamentals` / `search_documents` where possible — call out where experts confirm or contradict management and the numbers.
+
+**Citation (MANDATORY, no exceptions):** whenever you show ANY content from a transcript — quote, paraphrase, summary or a single insight — cite that call's `url` inline:
+`[Expert call: {interviewed_affiliation}, {call_date}]({url})`
+Never show transcript content without its BlueHeron link. Never alter or fabricate a URL.
 
 ## Section 2: External Market Data
 
@@ -134,6 +150,7 @@ The `fundamental_id` (or `id`) is returned in every `get_company_fundamentals` r
 2. **Carry the ID through to output** — when building tables, prose, or context JSON, attach the citation link to every Daloopa-sourced number
 3. **Never drop citation IDs** — if a value came from Daloopa, it gets a link. No exceptions. Computed values (e.g., margins, growth rates) derived from Daloopa figures should cite the underlying inputs
 4. **Document citations** — when quoting SEC filings from `search_documents`, link to: `[Document Name](https://marketplace.daloopa.com/document/{document_id})`
+5. **Expert call citations** — any content from `get_expert_call_transcripts` cites the call's `url`: `[Expert call: {interviewed_affiliation}, {call_date}]({url})` (see Section 1.8)
 
 If you output a financial figure without a citation, it cannot be verified. Uncitable numbers are useless to an analyst.
 

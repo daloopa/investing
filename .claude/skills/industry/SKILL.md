@@ -90,6 +90,8 @@ For each company, extract:
 
 Use these findings to enrich the rankings analysis — numbers tell you who's winning, filings tell you why.
 
+**Expert calls (optional):** For each company, call `get_expert_call_transcripts(company_id)` (see `../data-access.md` Section 1.8). If the tool is unavailable or returns a message instead of calls for a company, skip it for that company. Otherwise, triage by `summary` and look for insider views on competitive position, share shifts, pricing and customer switching — especially calls that mention other companies in the comparison set. Label each as expert opinion and cite: `[Expert call: {interviewed_affiliation}, {call_date}]({url})`.
+
 ## 7. Save Report
 Save to `reports/{INDUSTRY_LABEL}_industry_comp.html` (where INDUSTRY_LABEL is derived from the tickers, e.g., "AAPL_MSFT_GOOG_AMZN") using the HTML report template from `../design-system.md`. Write the full analysis as styled HTML with the design system CSS inlined. This is the final deliverable — no intermediate markdown step needed.
 
@@ -105,6 +107,7 @@ The report should include:
 - **Cash flow comparison**: OCF, CapEx, FCF side-by-side with CapEx as % of revenue to highlight investment intensity differences
 - Rankings summary table
 - Key competitive insights from filings (with document citations)
+- Expert call views on competitive position, with expert call citations (only if expert calls were available)
 - Note on calendar quarter alignment and any fiscal year differences
 
 All financial figures must use Daloopa citation format: `<a href="https://daloopa.com/src/{fundamental_id}">$X.XX million</a>`
