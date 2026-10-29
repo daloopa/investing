@@ -33,7 +33,7 @@ Identify these sections and what each provides:
 
 | Section | Content | MCP Prompt Relevance |
 |---------|---------|---------------------|
-| Section 1: Daloopa MCP Tools | Tool signatures: `discover_companies`, `discover_company_series`, `get_company_fundamentals`, `search_documents` | **ALWAYS INLINE** — every skill needs these |
+| Section 1: Daloopa MCP Tools | Tool signatures: `discover_companies`, `discover_company_series`, `get_company_fundamentals`, `search_documents` | **ALWAYS INLINE** — every skill needs these. The period parameter is **`calendar_periods`**, not `periods` (outdated): emit `discover_company_series(company_id, keywords, calendar_periods)`, `get_company_fundamentals(company_id, calendar_periods, series_ids)`, `search_documents(keywords, company_ids, calendar_periods)` even if data-access.md still says `periods` |
 | Section 1: API Script Fallback | `python recipes/company_fundamentals.py` etc. | **ALWAYS DROP** — no file system in MCP prompt context |
 | Section 2: External Market Data | Stock quotes, trading multiples, historical prices, peer multiples, risk-free rate | **CONDITIONAL** — only inline for skills that use market data |
 | Section 2: Market Data Resolution Order | MCP → infra scripts → web search → defaults | **ALWAYS INLINE** — preserve the full 4-step resolution order (MCP tools → infra scripts → web search → defaults) |
@@ -296,6 +296,7 @@ After generating `prompts.py`, review each function:
 4. **No missing formatting**: Does the prompt include number formatting rules?
 5. **No redundant inlining**: Is there content inlined from shared references that this specific skill doesn't use?
 6. **Argument handling**: Does the function signature match the skill's expected arguments? Most take `ticker: str`, but `/industry` takes multiple tickers. Check each skill's argument-hint.
+7. **Period parameter**: No tool signature or call example uses `periods` as a parameter name — every one must be `calendar_periods`.
 
 If any check fails, fix the function before moving on.
 

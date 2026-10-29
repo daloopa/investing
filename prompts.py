@@ -28,9 +28,9 @@ _DALOOPA_TOOLS = """\
 | Operation | Tool |
 |---|---|
 | Find company by ticker/name | `discover_companies(keywords=["TICKER"])` → returns `company_id`, `latest_calendar_quarter`, `latest_fiscal_quarter` |
-| Find available series/metrics | `discover_company_series(company_id, keywords, periods)` |
-| Pull financial data | `get_company_fundamentals(company_id, periods, series_ids)` |
-| Search SEC filings | `search_documents(keywords, company_ids, periods)` |
+| Find available series/metrics | `discover_company_series(company_id, keywords, calendar_periods)` |
+| Pull financial data | `get_company_fundamentals(company_id, calendar_periods, series_ids)` |
+| Search SEC filings | `search_documents(keywords, company_ids, calendar_periods)` |
 | Get stock prices (OHLCV) | `get_stock_prices(company_ids, dates?, start_date?, end_date?)` |
 """
 
