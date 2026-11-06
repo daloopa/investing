@@ -6,7 +6,7 @@
 #                              no argument-hint frontmatter, no $ARGUMENTS placeholder;
 #                              per-skill agents/openai.yaml files are left untouched)
 # Phase 1: Copy building block skills + design-system.md
-# Phase 2: Transform 5 deliverable skills via claude -p (adapt infra → plugin-compatible)
+# Phase 2: Transform 7 deliverable skills via claude -p (adapt infra → plugin-compatible)
 # Run from the project root: bash scripts/sync_plugin.sh
 
 set -e
@@ -134,7 +134,7 @@ echo "Phase 2: Transforming deliverable skills for plugin..."
 echo ""
 
 # Infra patterns that should NOT appear in transformed output
-INFRA_PATTERNS="python infra/|excel_builder|comp_builder|docx_renderer|deck_renderer|pdf_renderer|report_differ|projection_engine|chart_generator"
+INFRA_PATTERNS="python infra/|excel_builder|comp_builder|docx_renderer|deck_renderer|pdf_renderer|report_differ|projection_engine|chart_generator|workbook_tools"
 
 transform_skill() {
     local skill_name="$1"
@@ -307,6 +307,33 @@ In the plugin version:
 - The transformed versions of research-note and build-model are provided below as reference for how those sub-workflows now work in the plugin." \
     "$INITIATE_CONTEXT" || true
 
+# --- port-replicate-model / fix-debug-audit (workbook-edit skills) ---
+# Copy the shared modeling reference and model-checks to both plugins, then transform
+# each skill with them as context
+for plugin_dir in "$CLAUDE_PLUGIN_DIR" "$CODEX_PLUGIN_DIR"; do
+    cp "$PROJECT_DIR/.claude/skills/modeling-conventions.md" "$plugin_dir/skills/modeling-conventions.md"
+    mkdir -p "$plugin_dir/skills/fix-debug-audit/references"
+    cp "$PROJECT_DIR/.claude/skills/fix-debug-audit/references/"*.md "$plugin_dir/skills/fix-debug-audit/references/"
+done
+echo "  ✓ modeling-conventions.md + fix-debug-audit/references/ copied (claude + codex)"
+
+WORKBOOK_EDIT_INSTRUCTIONS="This skill edits a workbook the user already built, using infra/workbook_tools.py (tabs/read/refs/apply/recalc).
+In the plugin version:
+- Replace workbook detection ('newest .xlsx in reports/') with: the workbook the user uploaded or attached; ask for it if none.
+- Replace 'tabs', 'read' and 'refs' with reading the uploaded workbook in code: per cell, formula vs typed value, formula text, last calculated value, number format, font, fill, hyperlink (a daloopa.com/src/{id} link carries the fundamental ID).
+- Replace 'apply' with the primary output: a change list table (Cell | Current | New | Reason) the user applies in Excel, which keeps their formatting. Then offer an optional React artifact with SheetJS that applies the change list and downloads the .xlsx, labelled prominently 'Values/formulas only — formatting lost' (SheetJS drops cell styles when it rewrites a file). Never present the SheetJS file as the main output.
+- Replace 'recalc' by keeping the step that recomputes every affected check from the workbook's values and states its expected value; the user confirms it in Excel.
+- Keep every analytical step, the Daloopa MCP calls, the announce line, and the approval pauses intact.
+- Keep the references to modeling-conventions.md and fix-debug-audit/references/model-checks.md — they are copied alongside the skill.
+- Remove file-save steps (reports/ directory)."
+
+MODELING_CONTEXT="### modeling-conventions.md
+$(cat "$PROJECT_DIR/.claude/skills/modeling-conventions.md")
+"
+
+transform_skill "port-replicate-model" "$WORKBOOK_EDIT_INSTRUCTIONS" "$MODELING_CONTEXT" || true
+transform_skill "fix-debug-audit" "$WORKBOOK_EDIT_INSTRUCTIONS" "$MODELING_CONTEXT" || true
+
 # --- update (SKIPPED) ---
 echo ""
 echo "  ⊘ update — SKIPPED (requires prior filesystem state from /initiate;"
@@ -321,7 +348,7 @@ echo "════════════════════════�
 echo "Sync complete."
 echo ""
 echo "Phase 1: 15 building block skills + design-system.md copied"
-echo "Phase 2: 5 deliverable skills transformed ($PHASE2_FAILURES failures, $PHASE2_WARNINGS warnings)"
+echo "Phase 2: 7 deliverable skills transformed ($PHASE2_FAILURES failures, $PHASE2_WARNINGS warnings)"
 echo ""
 
 if [ $PHASE2_FAILURES -gt 0 ]; then

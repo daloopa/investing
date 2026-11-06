@@ -15,6 +15,8 @@ Read these files first — you need them all loaded before you start converting:
 1. **Shared references:**
    - `.claude/skills/data-access.md` — data access patterns, tool signatures, citation rules
    - `.claude/skills/design-system.md` — formatting, analytical voice, HTML template, color palette
+   - `.claude/skills/modeling-conventions.md` — reading the user's model conventions, three-statement linkage (workbook-edit skills only)
+   - `.claude/skills/fix-debug-audit/references/model-checks.md` — model integrity checks and difference signatures (workbook-edit skills only)
 
 2. **Every skill file:**
    - `.claude/skills/*/SKILL.md` — read all of them
@@ -71,6 +73,7 @@ Read the skill's `SKILL.md`. Classify it:
 - **File-based deliverable** (research-note, build-model, comp-sheet): Produces .docx or .xlsx using infra scripts. These need the MOST adaptation since the rendering pipeline doesn't exist in MCP context.
 - **Composite skill** (initiate, update): Orchestrates other skills. Needs to reference other prompts or inline the sub-workflows.
 - **Utility** (setup): May not make sense as an MCP prompt at all.
+- **Workbook-edit skill** (port-replicate-model, fix-debug-audit): Works on a workbook the user already built — uploaded into the chat in MCP context — not a ticker-only data pull. Uses `infra/workbook_tools.py` to read and edit, which has no MCP equivalent. See Step 2c and Step 2d.
 
 ### 2b. Analyze Dependencies on Shared References
 
@@ -103,6 +106,11 @@ For this specific skill, determine:
 6. **Does it reference other skills?** (Look for: `/research-note`, `/build-model`, or similar cross-references)
    - YES → inline the sub-workflow or reference the other prompt function
 
+7. **Is it a workbook-edit skill?** (Look for: `../modeling-conventions.md`, `references/model-checks.md`, `infra/workbook_tools.py`)
+   - YES → inline the shared `_MODELING_CONVENTIONS` block (from modeling-conventions.md, condensed) and the `_WORKBOOK_IO` block (Step 2c). Inline the model-checks content (the battery and the signature table) only into `fix_debug_audit` and, condensed to the checks a port verifies, into `port_replicate_model`
+   - Omit `_HTML_TEMPLATE`, `_ANALYTICAL_VOICE`, `_EXCEL_ARTIFACT` — the deliverable is findings and a change list, not a report or a new model
+   - NO → omit `_MODELING_CONVENTIONS` and `_WORKBOOK_IO`
+
 ### 2c. Decide Output Format
 
 The original skills produce files (.html, .docx, .xlsx, .pdf). MCP prompts return text to a client. For each skill type:
@@ -114,6 +122,12 @@ The original skills produce files (.html, .docx, .xlsx, .pdf). MCP prompts retur
   **Delivery requirement (MCP-prompt path only):** The `_HTML_TEMPLATE` block MUST also include a delivery instruction so clients like ChatGPT don't dump raw HTML source into the chat response. This is specific to the MCP-prompt context — the original Claude Code skills write the report to a `reports/*.html` file, so this concern does not exist there and must NOT be added to `design-system.md`. The block must instruct the LLM to: (1) NOT paste raw HTML source in the chat response; (2) generate the report as a downloadable `.html` file artifact and render it in the interface when the client supports it; (3) keep the chat response to a short confirmation, a download link, and an optional one-sentence summary of contents; and (4) write the HTML document to the file/artifact rather than inline as source, showing the rendered view rather than raw HTML when rendering is available.
 - **Excel skills** (.xlsx): Instruct the LLM to produce a React artifact with SheetJS that builds and downloads the file in-browser (see "Excel Output via Artifacts" in Step 2d).
 - **Word skills** (.docx): Produce the full analytical content as structured text/markdown — binary rendering still requires the infra scripts or a capable client.
+- **Workbook-edit skills** (port-replicate-model, fix-debug-audit): The LLM cannot save changes back to the user's uploaded file, so the `_WORKBOOK_IO` block must instruct it to:
+  1. Read the uploaded workbook in code (formulas, values, formatting, hyperlinks — `daloopa.com/src/{id}` links carry the fundamental ID).
+  2. Return **findings** plus an exact **change list** table (cell, current, new, reason) as the primary output — the user applies it in Excel and keeps all formatting.
+  3. State the **expected value of every affected check** after the changes (recomputed from the workbook's values), since nothing recalculates formulas in the chat.
+  4. Optionally offer a SheetJS `.xlsx` artifact with the changes applied (using the same base64 + data URI download method as "Excel Output via Artifacts"), labelled prominently **"values/formulas only — formatting lost"**, because SheetJS community edition drops cell styles when it rewrites a file. Never present it as the main output.
+  - Where the skill asks for approval before writing (port's mapping step, audit's fix mode), the prompt keeps that pause: present the plan/announce line and continue after the user confirms.
 
 ### 2d. Adapt Infrastructure Dependencies
 
@@ -130,6 +144,9 @@ When a skill references infra scripts, adapt as follows:
 | `python infra/deck_renderer.py ...` | Produce the deck content as structured sections/slides. |
 | `Save to reports/{TICKER}_xxx.html` | Replace with "Present as a complete, self-contained HTML document using the design-system template" |
 | `Save context JSON to reports/.tmp/` | Drop — no file system |
+| `python infra/workbook_tools.py tabs/read/refs ...` | Read the uploaded workbook in code (see `_WORKBOOK_IO`). Workbook detection ("newest .xlsx in reports/") becomes "the workbook the user uploaded; ask for it if none" |
+| `python infra/workbook_tools.py apply ...` | Replace with the change list table (+ optional SheetJS file, formatting lost) per Step 2c |
+| `python infra/workbook_tools.py recalc ...` | Drop — keep the "recompute the affected checks yourself and state the expected values" step; the user confirms them in Excel |
 
 ### Excel Output via Artifacts
 
@@ -216,6 +233,17 @@ The docstring is used as the **display name** in MCP clients (e.g., Claude). Wit
 | `comp_sheet` | `"""Comp Sheet"""` |
 | `ib_deck` | `"""IB Deck"""` |
 | `initiate` | `"""Initiate"""` |
+| `port_replicate_model` | `"""Port / Replicate Model"""` |
+| `fix_debug_audit` | `"""Fix / Debug / Audit"""` |
+
+**Workbook-edit signatures differ** — they don't take only `ticker`. Map the skill's argument-hint to optional string parameters:
+
+| Skill argument-hint | Signature |
+|---|---|
+| `TICKER [instructions]` | `def port_replicate_model(ticker: str, instructions: str = "") -> str` |
+| `[RANGE] [instructions]` | `def fix_debug_audit(range: str = "", instructions: str = "") -> str` |
+
+Interpolate empty values sensibly (e.g. "Range: {range or 'not given — use the main model sheet\\'s used range'}").
 
 ### Prompt Structure (for each skill)
 
@@ -284,6 +312,7 @@ Then one function per skill, in this order:
 1. Analytical HTML skills: earnings, tearsheet, industry, bull_bear, guidance_tracker, inflection, capital_allocation, dcf, comps, ib_deck, supply_chain
 2. Deliverable skills: research_note, build_model, comp_sheet
 3. Composite skills: initiate
+4. Workbook-edit skills: port_replicate_model, fix_debug_audit
 
 **Skip `/setup`** — it's an interactive setup wizard for Claude Code auth, not an analytical skill. Note in a comment why it was skipped.
 
@@ -303,6 +332,7 @@ After generating `prompts.py`, review each function:
 6. **Argument handling**: Does the function signature match the skill's expected arguments? Most take `ticker: str`, but `/industry` takes multiple tickers. Check each skill's argument-hint.
 7. **Period parameter**: No tool signature or call example uses `periods` as a parameter name — every one must be `calendar_periods`.
 8. **Expert calls**: Every prompt whose skill has an expert-call step includes `_EXPERT_CALLS` and that step (with its skip-if-unavailable rule and the `[Expert call: {interviewed_affiliation}, {call_date}]({url})` citation); no other prompt includes `_EXPERT_CALLS`. Inside f-strings, the citation's braces must be doubled (`{{interviewed_affiliation}}`, `{{call_date}}`, `{{url}}`) so they render literally.
+9. **Workbook-edit prompts**: `port_replicate_model` and `fix_debug_audit` never instruct the LLM to build a new model from scratch; both include `_WORKBOOK_IO` with the change-list output, the expected-check-values step, and the "values/formulas only — formatting lost" label on the optional SheetJS file; neither references `infra/workbook_tools.py` or `reports/`.
 
 If any check fails, fix the function before moving on.
 
@@ -315,4 +345,5 @@ After running this skill, you'll have `prompts.py` with all prompt functions. A 
 - **Token cost**: Each prompt inlines its dependencies, so longer skills (dcf, comps) will have larger prompt strings. This is intentional — it avoids runtime fetches. If token cost is a concern, you can extract the shared sections (data access, formatting) into a separate base prompt and compose them, but that adds complexity.
 - **Output format**: The 11 HTML skills (earnings, tearsheet, industry, bull-bear, guidance-tracker, inflection, capital-allocation, dcf, comps, ib-deck, supply-chain) produce complete styled HTML documents matching the original skill output. The HTML template with full CSS is inlined in each prompt. Excel skills (.xlsx) produce React artifacts with SheetJS that build and download the file in-browser.
 - **File deliverables**: The research-note skill produces structured markdown (original .docx requires infra scripts). Excel (.xlsx) deliverables are fully handled via SheetJS artifacts.
+- **Workbook-edit prompts** (port-replicate-model, fix-debug-audit): the main output is a change list the user applies in Excel. The optional SheetJS file loses the workbook's formatting — that's a SheetJS limitation, and the prompt says so on the file.
 - **Composite skills**: `/initiate` and `/update` inline their sub-workflows. If you later change `/research-note` or `/build-model`, you'll need to regenerate the composite prompts.

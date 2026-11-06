@@ -8,11 +8,14 @@
 # Skills converted: earnings_review, earnings_flash, earnings_prep, tearsheet, industry,
 #   bull_bear, guidance_tracker, inflection, capital_allocation, dcf, comps,
 #   precedent_transactions, supply_chain, unit_economics, working_capital,
-#   research_note, build_model, comp_sheet, ib_deck, initiate
+#   research_note, build_model, comp_sheet, ib_deck, initiate,
+#   port_replicate_model, fix_debug_audit
 # Skipped: setup (interactive setup wizard — not an analytical skill)
 # Skipped: update (requires prior context JSON from file system — not portable to MCP prompt)
-# Shared references inlined: data-access.md, design-system.md
-# Date: 2026-05-21 (source quality policy added 2026-07-22; expert call transcripts added 2026-10-29)
+# Shared references inlined: data-access.md, design-system.md, modeling-conventions.md,
+#   fix-debug-audit/references/model-checks.md
+# Date: 2026-05-21 (source quality policy added 2026-07-22; expert call transcripts added 2026-10-29;
+#   workbook-edit skills added 2026-11-06)
 
 from app.daloopa_mcp import daloopa_mcp
 
@@ -332,6 +335,88 @@ a.click();
 document.body.removeChild(a);
 ```
 NEVER use `XLSX.writeFile()` or `URL.createObjectURL()` — both are blocked in the artifact sandbox.
+"""
+
+_WORKBOOK_IO = """\
+## Working on the User's Workbook
+
+This task works on an Excel workbook the user already built and uploaded into this chat. If no workbook is attached, ask the user to upload it before doing anything else.
+
+**Reading:** read the uploaded file in code. For every cell you need, capture: whether it holds a formula or a typed value, the formula text, the last calculated value, number format, font (name, size, colour, bold), fill, and hyperlink. A hyperlink to `https://daloopa.com/src/{id}` carries the Daloopa fundamental ID behind that cell. Read only the sheets and ranges the task needs, plus the cells their formulas reference — never dump the whole workbook.
+
+**You cannot save changes back to the user's file.** Deliver changes as:
+1. **Change list (primary output)** — a table the user applies in Excel, which keeps all their formatting:
+
+   | Cell | Current | New | Reason |
+   |---|---|---|---|
+   | Model!C14 | 1,243 | 1,234 | Disagrees with Daloopa ([$1,234mm](https://daloopa.com/src/...)) |
+   | Model!F30 | 512 (typed) | `=F28-F29` | Formula pasted as a value |
+
+   Formatting changes name the single attribute that changes (e.g. "font colour → black"). Group rows that share one fix ("Model!D30:K30 — restore `=D28-D29` across the row").
+2. **Expected check values** — nothing recalculates formulas in this chat, so recompute every check the changes affect (balance check, tie-outs, rollforwards) from the workbook's values with the changes applied, and state the result, e.g. *"After these changes, Model!F95 (balance check) should read 0.0 in every column (was 12.4 from 2025Q1)."* This gives the user a number to confirm in Excel.
+3. **Optional .xlsx with the changes applied** — offer a React artifact with SheetJS (`import * as XLSX from "xlsx"`) that applies the change list to the uploaded workbook and downloads it via the base64 + data URI method (never `XLSX.writeFile()` or `URL.createObjectURL()`). Label it prominently: **"Values/formulas only — formatting lost"** — SheetJS drops cell styles when it rewrites a file. Never present it as the main output.
+"""
+
+_MODELING_CONVENTIONS = """\
+## Modeling Conventions
+
+**Cardinal rule — conform to the user's model.** Precedence: what the user said → what their workbook already does → the defaults below. Never restyle or re-lay-out cells you weren't asked to touch, and never "upgrade" their conventions to ours.
+
+**Read their conventions** off the header block, the row labels, and a vertical slice across one historical, the actual→forecast boundary, and one forecast column:
+- Period layout (columns or rows; quarterly/annual; where annual totals sit; label style `1Q24` / `Q1 FY24`; fiscal vs calendar)
+- Unit basis — from the header text ("$mm", "in thousands"), never from magnitudes
+- Sign convention — check a subtotal formula on BOTH the income statement and the cash flow
+- Colour semantics — typed blue / formulas black = standard; everything black = they don't colour-code (don't impose it)
+- Which rows are typed and which computed, row by row; forecast columns stay formulas
+- Two columns disagreeing on the same kind of cell = drift; follow the majority. An absent signal = unknown; apply the default and say so
+
+**Defaults (only when the workbook shows nothing):** typed inputs blue `FF0000FF`, formulas black, links to other tabs green, a plug kept deliberately in yellow fill, negatives in brackets. Mark each as a default, not as observed.
+
+**Matching Daloopa series to row labels:** match on concept, not wording ("Net sales" = "Revenue"). `discover_company_series` keyword search is substring-based: put every label in ONE `keywords` list with parenthetical and singular/plural variants. When a row carries a `daloopa.com/src/{id}` link, confirm the series by pulling it with `get_company_fundamentals` and finding the datapoint whose `id` equals the link's ID. A row with no confirmed series is left unchecked or blank — never guessed. Map each column header to a calendar quarter using the offset between `latest_fiscal_quarter` and `latest_calendar_quarter` (the API takes calendar quarters only), and convert to the sheet's unit before comparing or writing.
+
+**Three-statement linkage a model should follow:**
+- IS → BS: net income → retained earnings; AR = DSO/91.25 × revenue; inventory and AP via DIO/DPO on COGS; D&A reduces PP&E
+- BS → CF: working-capital lines are the NEGATIVE of the BS change for assets, POSITIVE for liabilities (the most common silent CF bug)
+- CF → BS rollforwards: Cash_t = Cash_t-1 + OCF + investing + financing (+FX); Equity_t = Equity_t-1 + NI + SBC − dividends − buybacks + option proceeds (SBC must be added back, or the balance breaks by the SBC); PP&E_t = PP&E_t-1 + capex − depreciation
+- D&A comes from the PP&E build and interest from the debt schedule on the BEGINNING balance — neither is a %-of-revenue forecast
+- Subtotals are computed in every column, history included
+
+**Trust rules:** never plug a balance break or tie-out gap — find the broken link or report the gap. Never fabricate an unreported or restated figure — a labelled blank beats a wrong number.
+"""
+
+_MODEL_CHECKS = """\
+## Model Integrity Checks
+
+A **check** asserts an identity (it failing means the model is wrong). A **warning sign** is a fact about the business (negative cash, covenant breach) — report it, never "fix" it. Read each check as a signed difference per period against a small tolerance; a comparison against reported figures needs about `n_components × half a display unit` of slack.
+
+**Run in this order:**
+1. **Statement footing** — subtotals equal their components; CFO + CFI + CFF + FX = net change in cash; segments sum to total revenue.
+2. **Computed vs reported** (historical columns) — each computed subtotal vs Daloopa's figure; a gap beyond rounding means a missing component row.
+3. **Rollforwards** — retained earnings (use NI attributable to parent; don't subtract an already-negative dividend), total equity, PP&E (subtract depreciation, not D&A), debt (current + long-term = schedule), share count (basic ≤ diluted).
+4. **Cash** — BS cash = CF ending cash. In history, BS "cash and equivalents" vs CF "including restricted cash" differ by restricted cash: a reporting difference, not a bug.
+5. **CF vs BS** — working-capital lines tie exactly in forecast columns; in history expect acquisitions/FX/reclassifications (labelled reconciling line, never forced).
+6. **Quarters vs annual** — flows sum, balances equal Q4, ratios recompute; don't check that quarterly EPS sums to annual.
+7. **Balance sheet balances** — run LAST; it localizes nothing on its own.
+8. **Formula shape** — no `#REF!`/`#VALUE!`/`#DIV/0!`/`#NAME?`; every cell in a row shares one formula shape (a typed number inside a formula row is the highest-yield find); SUM ranges span all components; no dangling external links or circular references.
+
+**Reading a difference — the shape names the cause:**
+
+| Signature across periods | Cause |
+|---|---|
+| Exactly twice a line item | That item's sign is wrong |
+| Grows every period by a recurring amount | Item on one statement, missing from another |
+| Identical in every period | One-time error — opening balance or first forecast column's link |
+| Constant from the first forecast column onward | A stock re-based with no matching flow — diff first forecast vs last actual |
+| Exactly one line item | That row is missing from a subtotal's range |
+| Small/round (0.5) or ×1000 | Rounding or unit mismatch |
+| Zero in history, non-zero in forecast | Logic error |
+| Non-zero in history | Data error |
+| Always zero, even when a link is broken | A plug |
+| Many checks failing together | Block shifted one row/column, or a shifted period header |
+
+The four usual balance-break causes: (1) a working-capital sign, (2) SBC missing from the equity rollforward, (3) a CF flow missing from the cash rollforward, (4) a stock re-based with no matching flow.
+
+**Report** which checks ran, passed, failed, and which could not be built. Never call a model "verified".
 """
 
 
@@ -3240,6 +3325,194 @@ Create a React artifact with SheetJS building the .xlsx with 9 sheets:
 Include download button and HTML previews.
 
 Summary: key valuation range (DCF + comps), top 3 findings.
+
+Data sourced from Daloopa
+"""
+
+
+# ============================================================================
+# 4. WORKBOOK-EDIT SKILLS
+# ============================================================================
+
+
+@daloopa_mcp.prompt
+def port_replicate_model(ticker: str, instructions: str = "") -> str:
+    """Port / Replicate Model"""
+    return f"""\
+Replicate an existing Excel model or template the user uploaded for a new company: {ticker}.
+User instructions: {instructions or "none — detect the template, target and data tab from the workbook"}
+
+The common real ask is not "build from scratch" — it's "make my model for company A work for company B" and "link the historicals to the DATA tab I already pulled." Match the template's structure, formatting and formula logic exactly; swap only the company's data, segments and KPIs.
+
+{_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
+{_CITATIONS}
+{_NUMBER_FMT}
+{_WORKBOOK_IO}
+{_MODELING_CONVENTIONS}
+
+## Step 0 — Resolve and Announce
+
+1. **Sheets.** List the workbook's sheets with each one's used range, mix of typed / formula / text cells, whether it's blank, and which other sheets its formulas reference.
+2. **Detect the roles** (the user's instructions override every one):
+   - **Data tab** — a sheet named `DATA`, `Daloopa`, `Input` or `Sheet1`, or a mostly-typed sheet the model's formulas read from. May not exist.
+   - **Source (template)** — the populated model sheet with the most formulas, not the data tab.
+   - **Target** — a sheet whose name contains {ticker}; else a blank sheet; else the source itself.
+   - **Shape:** target blank or missing → `build` (replicate into a blank tab); target = source → `in-place` (swap data, not structure); target partly filled and named for {ticker} → `resume` (complete only what's missing).
+3. **Companies.** `discover_companies(keywords=["{ticker}"])` → `company_id`, `latest_calendar_quarter`, `latest_fiscal_quarter`. Identify the template's company from its header rows, tab name or Daloopa links.
+4. **Announce** in one line, e.g. *"Source `TNL Model` → target `HGV` (blank) · data: link to `DATA` · mode: build · new company HGV (Hilton Grand Vacations)"*. Continue with Steps 1–3 (reading only), then pause at Step 4.
+
+## Step 1 — Study the Template
+
+Read the source sheet and capture, exhaustively:
+- **Structure:** section order, row labels, subtotal rows, period header rows, the actual→forecast boundary, and which data-tab cells the template's formulas read.
+- **Formula logic:** formulas vs typed cells; how historicals are sourced (`INDEX/MATCH` or direct links to the data tab, or typed); how the statements link; forecast formulas.
+- **Formatting and conventions** (see Modeling Conventions). If formatting can't be read, say so and use the defaults — never invent a style.
+
+For `resume`, also read the partial target and diff it against the template row by row; what's done stays as it is.
+
+## Step 2 — Map Template Lines to {ticker}
+
+1. **Find series — one call:** `discover_company_series(company_id, keywords=[every template row label that holds data, with parenthetical and singular/plural variants], calendar_periods=[...])`.
+2. **Fetch — one call:** `get_company_fundamentals(company_id, calendar_periods=[the template's historical periods, re-anchored to {ticker}'s latest_calendar_quarter], series_ids=[...])`. Keep every datapoint's `id`.
+3. **Reporting differences:** a segment/KPI {ticker} reports that the template lacks → add a row. One the template has that {ticker} doesn't report → blank or remove it, never fabricate. Flag every add/remove.
+4. **Preserve driver logic** when names change (units × price stays units × price with {ticker}'s metrics).
+
+Relabel the period columns for {ticker}'s fiscal calendar and convert figures to the template's unit basis.
+
+## Step 3 — Decide Link vs Write
+
+- **Link to the user's data tab** when one exists: formulas referencing it (typically `INDEX/MATCH` on label + period header, matching the template). In `in-place`, re-point the existing formulas to {ticker}'s rows.
+- **Stage data first, then link** if the data tab holds the old company's data or none for {ticker}: in `in-place`, refresh the data tab itself; in `build`, add a new `DATA_{ticker}` tab with the same layout (the template still needs its own data). If the existing data cells carry Daloopa links, the new cells get links to their datapoints too.
+- **Write values directly** into the model only when there is no data tab, or the template types its actuals.
+- Keep the template's typed-vs-formula pattern; forecast columns stay formulas.
+
+## Step 4 — Present the Plan and Wait
+
+Show: the announce line; a **line mapping table** (template label → {ticker} series with a sample cited value → link / write / formula / blank), marking every added and removed row; the data-sourcing decision; the conventions to replicate (observed vs defaulted); limits honoured and incidental references to update (e.g. a ticker in a header cell). **Wait for the user to approve or correct it before Step 5.**
+
+## Step 5 — Build
+
+Produce the change list (see Working on the User's Workbook) for the target sheet, plus the data tab from Step 3:
+1. A new target or data sheet, with column widths, freeze panes and formatting copied from the template's corresponding ranges (state "copy formatting from `TNL Model!A1:Q90`" rather than listing every style).
+2. Labels, values and formulas — every formula re-pointed to {ticker}'s data, never the template's.
+3. Incidental references the user called out.
+
+In `in-place` with a limit like "only grey cells", touch nothing else. An added row in `in-place` goes in an empty row inside its section if one exists; otherwise list it as a manual "insert a row below row N" step.
+
+## Step 6 — Verify
+
+1. No formula in the target still points at the template company's data.
+2. Spot-check 3–5 key rows (revenue, operating income, a KPI): what each linked cell resolves to equals {ticker}'s Daloopa figure (cite it).
+3. Recompute the template's own check rows (balance check, tie-outs), statement footing, and segment sum vs total revenue, and state the expected value of each — the user confirms them in Excel.
+
+## Output
+
+1. The announce line and the approved mapping.
+2. The change list (primary), with every structural change called out: rows added/removed, a new data tab, manual steps.
+3. Expected check values.
+4. Anything not done (unresolved series, unreported periods left blank) and why.
+5. Optionally, the SheetJS file — labelled "Values/formulas only — formatting lost".
+
+Never restyle cells you weren't asked to touch, never clobber a formula you weren't asked to change, never fabricate a segment, KPI or period {ticker} doesn't report.
+
+Data sourced from Daloopa
+"""
+
+
+@daloopa_mcp.prompt
+def fix_debug_audit(range: str = "", instructions: str = "") -> str:
+    """Fix / Debug / Audit"""
+    return f"""\
+Diagnose an existing, user-built Excel model the user uploaded.
+Range: {range or "not given — use the main model sheet's used range (for a balance break, the rows around the off check)"}
+User instructions: {instructions or "none — audit and report only"}
+
+The deliverable is a finding (and, when asked, a fix) — not a new model. Localize the problem; never re-derive or rebuild the model.
+
+{_DALOOPA_TOOLS}
+{_PERIOD_DETERMINATION}
+{_CITATIONS}
+{_NUMBER_FMT}
+{_WORKBOOK_IO}
+{_MODELING_CONVENTIONS}
+{_MODEL_CHECKS}
+
+## Step 0 — Resolve and Announce
+
+1. **Sheet.** The sheet in the range; else the sheet with the most formula cells.
+2. **Task** — inferred from the instructions; exactly one of:
+
+   | Task | Triggered by |
+   |---|---|
+   | `balance-break` | "doesn't balance", "doesn't tie", "check is off" |
+   | `restatement` | "restated", "resegmented", "recast", "new segment structure" |
+   | `edit` | a concrete transformation: convert units, re-base, wrap in IFERROR, flip signs, rename labels |
+   | `audit` | everything else, including no instructions |
+
+   A balance break found during an audit is localized as part of the audit.
+3. **Fix or report.** Produce fixes only when the instructions ask ("fix", "correct", "repair", or any `edit` task). "Don't change anything" / "just review" — or no instruction — means report only: findings, no change list.
+4. **Ticker** (for the source check and restatements): a ticker in the instructions → Daloopa links in the sheet (resolved in the source check) → the file or tab name → a company name in the header rows. Confirm with `discover_companies`. If none resolves and the task needs one, ask.
+5. **Announce** in one line, e.g. *"Sheet `Model` · range `B10:M80` · task: audit · mode: fix · ticker HGV"*. Report-only: continue. Fix mode: wait for the user to confirm before producing the change list.
+
+## Step 1 — Read
+
+Read the range, the same rows' neighbouring columns, and the header rows that name each column's period; then only the cells the range's formulas reference. Record each column's period, the actual→forecast boundary, and the unit basis.
+
+## Task A — Balance-Break Localization
+
+- The first column where the break appears points at the period that introduced it.
+- Read the sign and size against the signature table above (line-item amount, round/×1000, growing, constant from the first forecast column).
+- Walk the rollforwards backwards, the four usual causes first.
+- Trace dependents of the off cell to the offending input. **Never plug the difference** — report the broken link and its fix.
+
+## Task B — Audit
+
+Run every check on every cell of the range before proposing any change, then fix in this order (a cell that passes stays as it is):
+1. **Sort the cells:** formula, formula pasted as a value, typed input, typed total.
+2. **Pasted formulas get the neighbours' formula back.** When the cells on both sides in the row hold the same (column-shifted) formula, a typed number between them is that formula pasted as a value — a long decimal tail, or a value equal to what the formula gives, confirms it. Restore exactly that formula, in reported and forecast columns alike. That decision is final: these cells skip the source check and are never set to zero.
+3. **Typed inputs in reported periods go to the source check — always.** Only Daloopa can tell an altered figure from a correct one; an audit that skipped this is unfinished.
+4. **Typed totals get the formula their row uses.**
+5. **Existing formulas change only when the fix is certain:** an error value, a broken or blank reference, or a total missing a line of its own section. A formula the author may have meant is reported and left alone.
+6. **Formatting** follows each cell's kind after steps 2–5: compare font, fill and number format with same-kind cells in the row and change only the attribute that differs.
+7. **Report** any total that still differs from Daloopa's, with both figures — never change an input or a restored formula to close it.
+
+Also look for: formula errors and broken cross-sheet links; deliberate hardcodes in calculated rows (flag as plugs); sign inconsistencies (a cost positive in one period, negative in another; a CF working-capital sign contradicting the BS change); drift between cells that should be identical; unit or period-label inconsistencies.
+
+### Source check
+
+Check every remaining typed number in a reported (actual) column against Daloopa — not formula cells, not estimate/forecast columns:
+1. `discover_companies(keywords=["TICKER"])`; map each column header to a calendar quarter via the fiscal↔calendar offset.
+2. **One** `discover_company_series(company_id, keywords=[every audited row label with variants], calendar_periods=[...])`.
+3. **One** `get_company_fundamentals(company_id, calendar_periods=[audited periods], series_ids=[every candidate])`.
+4. For a cell linked to `daloopa.com/src/{{id}}`, the series is the one whose datapoint `id` equals it; no match → "not checked — link not resolved". Unlinked rows use an unambiguous label match; none → "not checked — no series".
+5. Compare after converting to the sheet's unit and sign convention. A difference beyond the cell's displayed rounding is a finding: cell, sheet figure, Daloopa figure with citation.
+6. Fix (fix mode): Daloopa's figure as a plain value, format kept, no new hyperlink. Never fix by copying a neighbour, back-solving from a total, or changing the total.
+
+## Task C — Restatement Reconciliation
+
+- Identify what changed: `search_documents(keywords=["restated", "recast", "segment"], company_ids=[company_id], calendar_periods=[recent 2-4 quarters])`, then pull the restated series.
+- Recast the affected historical periods to the new structure; where the company only restated forward, hold the old basis for older periods and label the break.
+- Reconcile sum-of-quarters to the fiscal-year total and the new segment sum to total revenue; flag any residual rather than forcing it.
+- An undisclosed restated figure stays blank, with the assumption noted — never fabricated.
+
+## Task D — Targeted Edits
+
+Requested range only:
+- **Unit conversion:** INR crore → million ×10; lakh → million ÷10; $K → $M ÷1000. Rescale values (or wrap formulas with the factor) and update the header's unit label.
+- **Re-base a derived row:** rewrite only the base reference across the row.
+- **Wrap in IFERROR:** `=IFERROR(<existing formula>, "")`, or `0` where the row feeds a sum.
+- **Sign fixes:** apply the sheet's convention consistently; confirm subtotals still add up.
+- **Label find-replace:** straight text edit inside the range.
+
+## Output
+
+1. The announce line.
+2. **Findings**, grouped by kind (formula integrity, pasted formulas, values vs Daloopa, formatting, signs, drift, units) — location, what's wrong, the fix. Daloopa figures carry citations.
+3. **Change list** (fix mode) — or, report-only, the suggested fixes in the same table form, clearly marked as suggestions.
+4. **Checks:** which ran, passed, failed, couldn't be built, and the expected value of each affected check after the changes.
+5. **Left alone:** anything found but not changed, with why.
+6. Optionally (fix mode), the SheetJS file — labelled "Values/formulas only — formatting lost".
 
 Data sourced from Daloopa
 """

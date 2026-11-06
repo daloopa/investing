@@ -88,6 +88,10 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `/update TICKER` — Refresh existing coverage with latest quarter's data
 - `/ib-deck TICKER` — Generate institutional-grade pitch deck (HTML → PDF)
 
+### Model Maintenance (user's existing .xlsx; edits go to a copy in reports/)
+- `/port-replicate-model TICKER [instructions]` — Replicate an existing model/template for a new company, linked to the user's data tab
+- `/fix-debug-audit [RANGE] [instructions]` — Audit a model, localize a balance break, reconcile a restatement, or apply a targeted edit
+
 ## Infrastructure
 - `infra/market_data.py` — Market data fallback via yfinance (price, multiples, history)
 - `infra/chart_generator.py` — Professional chart generation (6 chart types: time-series, waterfall, football-field, pie, scenario-bar, dcf-sensitivity)
@@ -98,6 +102,8 @@ All generated analysis is saved to the `reports/` directory. Reports are gitigno
 - `infra/pdf_renderer.py` — Markdown → styled HTML → PDF renderer
 - `infra/deck_renderer.py` — HTML deck → PDF renderer
 - `infra/report_differ.py` — Context JSON diff for update tracking
+- `infra/workbook_tools.py` — Read/edit an existing workbook (tabs, read, refs, apply to a copy, LibreOffice recalc)
+- `.claude/skills/modeling-conventions.md` — Shared reference for the model maintenance skills (user's conventions, statement linkage)
 - `templates/research_note.docx` — Word template for research notes
 
 ## Plugin
