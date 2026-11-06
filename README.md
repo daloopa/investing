@@ -64,6 +64,15 @@ The `/setup` command will walk you through authenticating with Daloopa (OAuth op
 | `/update` | Refresh coverage with latest data | `/update AAPL` | Updated `.docx` + `.xlsx` |
 | `/ib-deck` | Institutional-grade pitch deck | `/ib-deck AAPL` | `reports/AAPL_deck.pdf` |
 
+### Model Maintenance (your existing .xlsx)
+
+These work on a model you already built. Workbook, tabs, task and ticker are detected; edits always go to a copy — your original is never overwritten.
+
+| Command | Description | Example | Output |
+|---------|-------------|---------|--------|
+| `/port-replicate-model` | Replicate a model/template for a new company, linked to your data tab | `/port-replicate-model HGV` | `reports/{name}_port_{date}.xlsx` |
+| `/fix-debug-audit` | Audit a model, localize a balance break, reconcile a restatement, or apply a targeted edit | `/fix-debug-audit Model!B10:M80 fix it` | Findings + `reports/{name}_audit_{date}.xlsx` when fixing |
+
 All reports are saved to the `reports/` directory. You can also just ask Claude anything about a company — the commands are shortcuts for common workflows.
 
 ## Plugin
@@ -163,6 +172,7 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │   └── skills/                # Claude Code skill definitions
 │       ├── data-access.md     # Shared data access reference
 │       ├── design-system.md   # Formatting and styling conventions
+│       ├── modeling-conventions.md # Reading a user's model conventions, statement linkage
 │       ├── setup/             # /setup — interactive setup wizard
 │       ├── earnings-review/   # /earnings-review — earnings analysis
 │       ├── earnings-prep/     # /earnings-prep — pre-earnings preparation
@@ -185,7 +195,9 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │       ├── research-note/     # /research-note — Word document output
 │       ├── build-model/       # /build-model — Excel model output
 │       ├── initiate/          # /initiate — both outputs
-│       └── update/            # /update — refresh coverage
+│       ├── update/            # /update — refresh coverage
+│       ├── port-replicate-model/ # /port-replicate-model — port a model to a new company
+│       └── fix-debug-audit/   # /fix-debug-audit — audit, debug and fix a model
 ├── recipes/                   # Python scripts for direct API access
 │   ├── daloopa_client.py      # Shared HTTP client with auth
 │   ├── company_fundamentals.py
@@ -205,7 +217,8 @@ Full API docs: [docs.daloopa.com](https://docs.daloopa.com)
 │   ├── docx_renderer.py       # Word document renderer
 │   ├── pdf_renderer.py        # Markdown → styled PDF
 │   ├── deck_renderer.py       # HTML deck → PDF
-│   └── report_differ.py       # Context diff for updates
+│   ├── report_differ.py       # Context diff for updates
+│   └── workbook_tools.py      # Read/edit an existing workbook (model maintenance skills)
 ├── templates/
 │   └── research_note.docx     # Word template (Jinja2 tags)
 ├── scripts/
